@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "cheapskate"
+version = "0.1.0"
+description = "Financial control telegram bot and API"
+authors = ["Ilya Malashenko <melax08@yandex.ru>"]
+license = "MIT License"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-telegram-bot = "^20.4"
+python-dotenv = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.12.0"
+flake8 = "^6.1.0"
+pre-commit = "^3.3.3"
+black = "^23.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
