@@ -1,0 +1,14 @@
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    app_title: str = 'Cheapskate'
+    app_description: str = '<Application for financial control>'
+    database_url: str = 'sqlite+aiosqlite:///./fastapi.db'
+    secret: str = 'SECRET'
+
+    class Config:
+        env_file = '.env'
+
+
+settings = Settings()

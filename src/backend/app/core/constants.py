@@ -1,0 +1,1 @@
+MAX_CATEGORY_LENGTH: int = 100
