@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field, field_validator
 from app.core.constants import MAX_CATEGORY_LENGTH
 
 
-class Category(BaseModel):
+class CategoryCreate(BaseModel):
     name: str = Field(..., max_length=MAX_CATEGORY_LENGTH)
 
     @field_validator('name')
@@ -13,7 +13,19 @@ class Category(BaseModel):
         return value
 
 
-class CategoryDB(Category):
+class CategoryDB(CategoryCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ExpenseCreate(BaseModel):
+    category_id: int
+    amount: int
+
+
+class ExpenseDB(ExpenseCreate):
     id: int
 
     class Config:

@@ -20,3 +20,6 @@ CATEGORIES = {
     8: 'Развлечения',
     20: 'Разное'
 }
+API_URL = 'http://127.0.0.1:8000/api/v1/'
+
+CATEGORY_ENDPOINT_PATH = 'category'

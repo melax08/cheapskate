@@ -5,6 +5,7 @@ from telegram.ext import (
     filters,
     CallbackQueryHandler
 )
+
 from .messages import (
     WRONG_REQUEST,
     UPDATE_MESSAGE,
@@ -14,15 +15,20 @@ from .messages import (
 from .validators import money_validator
 from .api_requests import send_expense_to_api, delete_expense_request
 from .constants import CATEGORIES, BUTTON_ROW_LEN
+from .api_requests import client
 
 
-def create_category_keyboard(money: int) -> list:
+async def create_category_keyboard(money: int) -> list:
+    """Create keyboard with categories from API."""
+    categories = await client.get_categories()
+
     keyboard = []
     row = []
-    for category_id, name in CATEGORIES.items():
+
+    for category in categories:
         row.append(
             InlineKeyboardButton(
-                name, callback_data=f'{money} {category_id}'
+                category['name'], callback_data=f'{money} {category["id"]}'
             )
         )
         if len(row) == BUTTON_ROW_LEN:
@@ -43,10 +49,12 @@ async def spending_money(
         await update.message.reply_text(WRONG_REQUEST)
         return
 
+    keyboard = await create_category_keyboard(money)
+
     await update.message.reply_text(
         CHOOSE_CATEGORY.format(money),
         reply_markup=InlineKeyboardMarkup(
-            create_category_keyboard(money)
+            keyboard
         )
     )
 
