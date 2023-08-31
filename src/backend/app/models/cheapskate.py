@@ -9,11 +9,12 @@ from app.core.db import Base
 class Category(Base):
     """Expenses categories."""
     name = Column(String(100), unique=True, nullable=False)
-    expenses = relationship('Expense')  # ToDo: подумать над параметром cascade=...
+    expenses = relationship('Expense', back_populates='category')  # ToDo: подумать над параметром cascade=...
 
 
 class Expense(Base):
     """Expenses model."""
     date = Column(DateTime, default=dt.datetime.now, index=True)
     category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
+    category = relationship('Category', back_populates='expenses')
     amount = Column(Integer, nullable=False)

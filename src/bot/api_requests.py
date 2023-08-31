@@ -4,7 +4,12 @@ from typing import Optional, Type
 
 import aiohttp
 
-from .constants import API_URL, CATEGORY_ENDPOINT_PATH
+from .constants import (
+    API_URL,
+    CATEGORY_ENDPOINT_PATH,
+    EXPENSE_ADD_PATH,
+    MONEY_LEFT_PATH
+)
 
 
 class ApiClient:
@@ -50,18 +55,30 @@ class ApiClient:
             response_json = await response.json()
             return response_json
 
-    async def get_categories(self):
+    async def _delete(self, path):
+        async with self._client.delete(self._make_url(path)) as response:
+            response_json = await response.json()
+            return response_json
+
+    async def get_categories(self) -> list:
         categories = await self._get(CATEGORY_ENDPOINT_PATH)
         return categories
 
+    async def send_expense(self, money: str, category_id: str):
+        data = {
+            'category_id': category_id,
+            'amount': money
+        }
+        response_data = await self._post(EXPENSE_ADD_PATH, data)
+        return response_data
+
+    async def delete_expense(self, expense_id: str):
+        response_data = await self._delete(EXPENSE_ADD_PATH + expense_id)
+        return response_data
+
+    async def get_money_left(self):
+        response_data = await self._get(MONEY_LEFT_PATH)
+        return response_data
+
 
 client = ApiClient(URL(API_URL))
-
-
-async def send_expense_to_api(money: str, category_id: str) -> tuple[int, int]:
-    print(f'ЗАГЛУШКА. Отправлено {money} денег по категории {category_id}')
-    return 100500 - int(money), 5
-
-
-async def delete_expense_request(expense_id: str):
-    print(f'ЗАГЛУШКА. Удален, а может и не удален расход с id {expense_id} на сумму ...')

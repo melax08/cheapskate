@@ -1,1 +1,1 @@
-from .cheapskate import Category  # noqa
+from .cheapskate import Category, Expense  # noqa

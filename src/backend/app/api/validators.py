@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.cheapskate import get
-from app.models import Category
+from app.models import Category, Expense
 
 
 async def check_category_exists(
@@ -17,3 +17,13 @@ async def check_category_exists(
         )
     return category
 
+
+async def check_expense_exists(
+        expense_id: int, session: AsyncSession) -> Expense:
+    expense = await get(Expense, expense_id, session)
+    if expense is None:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Expense not found'
+        )
+    return expense
