@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator, PositiveInt
+from pydantic import BaseModel, Field, field_validator
 
 from app.core.constants import MAX_CATEGORY_LENGTH
 
@@ -15,23 +15,6 @@ class CategoryCreate(BaseModel):
 
 class CategoryDB(CategoryCreate):
     id: int
-
-    class Config:
-        orm_mode = True
-
-
-class ExpenseBase(BaseModel):
-    amount: PositiveInt
-
-
-class ExpenseCreate(ExpenseBase):
-    category_id: int
-
-
-class ExpenseDB(ExpenseBase):
-    id: int
-    category: CategoryDB
-    money_left: int
 
     class Config:
         orm_mode = True

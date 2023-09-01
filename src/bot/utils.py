@@ -28,6 +28,5 @@ async def create_category_keyboard(money: int) -> list:
 
 def get_user_info(update: Update) -> str:
     """Creates a string with information about the current telegram user."""
-    info = update.message
-    return (f'{info.chat.username}, {info.chat.first_name} '
-            f'{info.chat.last_name}, {update.effective_user.id}')
+    user = update.effective_user
+    return f'{user.username}, {user.first_name} {user.last_name}, {user.id}'

@@ -1,15 +1,9 @@
 import datetime as dt
 
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, ForeignKey
 
 from app.core.db import Base
-
-
-class Category(Base):
-    """Expenses categories."""
-    name = Column(String(100), unique=True, nullable=False)
-    expenses = relationship('Expense', back_populates='category')  # ToDo: подумать над параметром cascade=...
 
 
 class Expense(Base):

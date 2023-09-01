@@ -1,10 +1,17 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import cheapskate_router
+from app.api.endpoints import category_router, expense_router
 
-main_router = APIRouter()
+main_router = APIRouter(prefix='/api/v1')
+
 main_router.include_router(
-    cheapskate_router,
-    prefix='/api/v1',
-    tags=['Money control']
+    category_router,
+    prefix='/category',
+    tags=['Category']
+)
+
+main_router.include_router(
+    expense_router,
+    prefix='/expense',
+    tags=['Expense']
 )

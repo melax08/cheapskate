@@ -60,6 +60,7 @@ async def select_expense_category(
     money, category_id = query.data.split()
     response_data = await client.send_expense(money, category_id)
     logging.info(SPEND_EXPENSE_TO_API_LOG.format(
+        get_user_info(update),
         money,
         response_data['category']['name'],
         response_data['money_left'])
@@ -90,6 +91,7 @@ async def delete_expense(
     expense_to_delete_id = ''.join(query.data.split()[1:])
     response_data = await client.delete_expense(expense_to_delete_id)
     logging.info(DELETE_EXPENSE_FROM_API_LOG.format(
+        get_user_info(update),
         response_data['amount'],
         response_data['category']['name'],
         response_data['money_left'])
