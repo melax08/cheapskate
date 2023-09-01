@@ -4,7 +4,7 @@ from typing import Optional, Type
 
 import aiohttp
 
-from .constants import (
+from bot.constants.constants import (
     API_URL,
     CATEGORY_ENDPOINT_PATH,
     EXPENSE_ADD_PATH,

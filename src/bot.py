@@ -1,12 +1,13 @@
 from telegram.ext import Application
 
-from bot.handlers import (
-    spending_money_handler,
-    choose_category_handler,
-    delete_expense_handler,
-    money_left_handler,
-    start_handler
+from bot.handlers.main_handlers import start_handler
+from bot.handlers.command_handlers import money_left_handler
+from bot.handlers.expense_handlers import (
+    add_expense_handler,
+    select_category_handler,
+    delete_expense_handler
 )
+
 from utils.configs import TOKEN
 from utils.logger import configure_logging
 
@@ -17,9 +18,9 @@ def start_bot() -> None:
         (
             start_handler,
             money_left_handler,
-            spending_money_handler,
+            add_expense_handler,
             delete_expense_handler,
-            choose_category_handler,
+            select_category_handler,
         )
     )
     application.run_polling()

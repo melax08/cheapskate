@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardButton, Update
 
-from .constants import BUTTON_ROW_LEN
+from bot.constants.constants import BUTTON_ROW_LEN
 from .api_requests import client
 
 

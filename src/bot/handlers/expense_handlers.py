@@ -1,60 +1,35 @@
 import logging
 
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    MenuButtonCommands
-)
-from telegram.constants import ParseMode
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
     ContextTypes,
     MessageHandler,
     filters,
-    CallbackQueryHandler,
-    CommandHandler
+    CallbackQueryHandler
 )
+from telegram.constants import ParseMode
 
-from .messages import (
-    WRONG_REQUEST,
-    UPDATE_MESSAGE,
-    CHOOSE_CATEGORY,
-    DELETE_MESSAGE,
-    MONEY_LEFT_MESSAGE,
-    START_MESSAGE
-)
-from .logging_messages import (
-    START_BOT_LOG,
+from bot.validators import money_validator
+from bot.constants.logging_messages import (
     WRONG_EXPENSE_LOG,
     CHOOSE_CATEGORY_LOG,
     SPEND_EXPENSE_TO_API_LOG,
     DELETE_EXPENSE_FROM_API_LOG
 )
-from .validators import money_validator
-from .commands import COMMANDS
-from .api_requests import client
-from .utils import create_category_keyboard, get_user_info
+from bot.constants.telegram_messages import (
+    WRONG_REQUEST,
+    CHOOSE_CATEGORY,
+    UPDATE_MESSAGE,
+    DELETE_MESSAGE
+)
+from bot.utils import get_user_info, create_category_keyboard
+from bot.api_requests import client
 
 
-async def start(
+async def add_expense(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    logging.info(START_BOT_LOG.format(get_user_info(update)))
-    bot_commands = await context.bot.get_my_commands()
-    if not bot_commands:
-        await context.bot.set_my_commands(commands=COMMANDS)
-        await context.bot.set_chat_menu_button(
-            menu_button=MenuButtonCommands()
-        )
-
-    await update.message.reply_html(
-        START_MESSAGE.format(update.effective_user.mention_html())
-    )
-
-
-async def spending_money(
-        update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+    """The user has to write the amount of money he spent."""
     try:
         money = money_validator(update.message.text)
     except ValueError:
@@ -76,9 +51,11 @@ async def spending_money(
     )
 
 
-async def choose_category(
+async def select_expense_category(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
+    """The user must select the expense category by clicking
+    on one of the buttons."""
     query = update.callback_query
     money, category_id = query.data.split()
     response_data = await client.send_expense(money, category_id)
@@ -107,6 +84,8 @@ async def choose_category(
 async def delete_expense(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
+    """When the user clicks the 'delete' button under message,
+    the expense deleted by its id."""
     query = update.callback_query
     expense_to_delete_id = ''.join(query.data.split()[1:])
     response_data = await client.delete_expense(expense_to_delete_id)
@@ -126,17 +105,8 @@ async def delete_expense(
     )
 
 
-async def get_money_left(
-        update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    response_data = await client.get_money_left()
-    await update.message.reply_text(MONEY_LEFT_MESSAGE.format(response_data))
-
-
-spending_money_handler = MessageHandler(filters.TEXT, spending_money)
-choose_category_handler = CallbackQueryHandler(choose_category)
+add_expense_handler = MessageHandler(filters.TEXT, add_expense)
+select_category_handler = CallbackQueryHandler(select_expense_category)
 delete_expense_handler = CallbackQueryHandler(
     delete_expense, pattern=r'DEL \d+'
 )
-money_left_handler = CommandHandler('money_left', get_money_left)
-start_handler = CommandHandler('start', start)

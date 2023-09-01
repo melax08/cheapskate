@@ -1,4 +1,4 @@
-from .constants import MINIMUM_MONEY_TO_ADD
+from bot.constants.constants import MINIMUM_MONEY_TO_ADD
 
 
 def money_validator(money: str) -> int:

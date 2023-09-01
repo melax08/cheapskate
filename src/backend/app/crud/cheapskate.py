@@ -44,6 +44,8 @@ async def calculate_money_left(session: AsyncSession):
             func.cast(extract("year", Expense.date),
                       Integer) == current_date.year)
     )
-    money_left = (BUDGET_FOR_MONTH
-                  - waisted_money_for_current_month.scalars().first())
+    money_spend = waisted_money_for_current_month.scalars().first()
+    if not money_spend:
+        money_spend = 0
+    money_left = BUDGET_FOR_MONTH - money_spend
     return money_left
