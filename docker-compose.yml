@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile.bot
     restart: always
     volumes:
-      - ./.data/:/app/.data/
+      - ./.data/:/.data/
     depends_on:
       - cheapskate_api
     env_file:
