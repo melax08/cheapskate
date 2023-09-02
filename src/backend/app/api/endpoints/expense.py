@@ -48,7 +48,7 @@ async def delete_expense(
     return expense
 
 
-@router.get('/money-left', response_model=int)
+@router.get('/money-left', response_model=float)
 async def get_money_left(
     session: AsyncSession = Depends(get_async_session)
 ):

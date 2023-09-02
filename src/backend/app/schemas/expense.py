@@ -1,10 +1,10 @@
-from pydantic import BaseModel, PositiveInt
+from pydantic import BaseModel
 
 from .category import CategoryDB
 
 
 class ExpenseBase(BaseModel):
-    amount: PositiveInt
+    amount: float
 
 
 class ExpenseCreate(ExpenseBase):
@@ -14,7 +14,7 @@ class ExpenseCreate(ExpenseBase):
 class ExpenseDB(ExpenseBase):
     id: int
     category: CategoryDB
-    money_left: int
+    money_left: float
 
     class Config:
         orm_mode = True
