@@ -14,13 +14,15 @@ from bot.constants.logging_messages import (
     WRONG_EXPENSE_LOG,
     CHOOSE_CATEGORY_LOG,
     SPEND_EXPENSE_TO_API_LOG,
-    DELETE_EXPENSE_FROM_API_LOG
+    DELETE_EXPENSE_FROM_API_LOG,
+    NO_CATEGORIES_LOG
 )
 from bot.constants.telegram_messages import (
     WRONG_REQUEST,
     CHOOSE_CATEGORY,
     UPDATE_MESSAGE,
-    DELETE_MESSAGE
+    DELETE_MESSAGE,
+    NO_CATEGORIES
 )
 from bot.utils import get_user_info, create_category_keyboard
 from bot.api_requests import client
@@ -40,7 +42,12 @@ async def add_expense(
         await update.message.reply_text(WRONG_REQUEST)
         return
 
-    keyboard = await create_category_keyboard(money)
+    try:
+        keyboard = await create_category_keyboard(money)
+    except ValueError:
+        logging.warning(NO_CATEGORIES_LOG.format(get_user_info(update)))
+        await update.message.reply_text(NO_CATEGORIES)
+        return
 
     logging.info(CHOOSE_CATEGORY_LOG.format(get_user_info(update), money))
     await update.message.reply_text(

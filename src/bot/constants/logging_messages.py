@@ -1,5 +1,6 @@
 START_BOT_LOG = 'Someone starts bot: {}'
 WRONG_EXPENSE_LOG = 'User {} sends the wrong message with expense: {}'
+NO_CATEGORIES_LOG = "User {} can't add expense, no categories!"
 CHOOSE_CATEGORY_LOG = 'User {} have to choose the category for expense: {}'
 SPEND_EXPENSE_TO_API_LOG = (
     'User {} add expense {} to category {} to the API, money left: {}'

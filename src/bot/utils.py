@@ -8,6 +8,9 @@ async def create_category_keyboard(money: int) -> list:
     """Create keyboard with categories from API."""
     categories = await client.get_categories()
 
+    if len(categories) == 0:
+        raise ValueError
+
     keyboard = []
     row = []
 

@@ -12,6 +12,10 @@ from bot.constants.constants import (
 )
 
 
+class BadRequest(Exception):
+    pass
+
+
 class ApiClient:
     """
     - Open session;
@@ -47,6 +51,8 @@ class ApiClient:
 
     async def _post(self, path, data):
         async with self._client.post(self._make_url(path), json=data) as response:
+            if response.status == 400:  # ToDo: Добавить логирование, добавить обработку других status (404, 422, 500)
+                raise BadRequest
             response_json = await response.json()
             return response_json
 
@@ -63,6 +69,13 @@ class ApiClient:
     async def get_categories(self) -> list:
         categories = await self._get(CATEGORY_ENDPOINT_PATH)
         return categories
+
+    async def add_category(self, category_name: str):
+        data = {
+            'name': category_name
+        }
+        response_data = await self._post(CATEGORY_ENDPOINT_PATH, data)
+        return response_data
 
     async def send_expense(self, money: str, category_id: str):
         data = {
