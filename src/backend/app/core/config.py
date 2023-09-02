@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     secret: str = 'SECRET'
 
     class Config:
+        env_prefix = 'api_'
         env_file = '.env'
 
 

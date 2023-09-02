@@ -18,6 +18,7 @@ sqlalchemy = "^2.0.20"
 alembic = "^1.11.3"
 greenlet = "^2.0.2"
 aiohttp = "^3.8.5"
+asyncpg = "^0.28.0"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.12.0"

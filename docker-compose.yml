@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  cheapskate_db:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - cheapskate_database:/var/lib/postgresql/data/
+    env_file:
+      - src/.env
+    environment:
+      - TZ=Europe/Moscow
+
+  cheapskate_api:
+    build:
+      dockerfile: Dockerfile.api
+    restart: always
+    depends_on:
+      - cheapskate_db
+    env_file:
+      - src/.env
+    environment:
+      - TZ=Europe/Moscow
+
+  cheapskate_bot:
+    build:
+      dockerfile: Dockerfile.bot
+    restart: always
+    volumes:
+      - ./.data/:/app/.data/
+    depends_on:
+      - cheapskate_api
+    env_file:
+      - src/.env
+    environment:
+      - TZ=Europe/Moscow
+
+volumes:
+  cheapskate_database:
