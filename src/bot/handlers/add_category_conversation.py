@@ -10,7 +10,12 @@ from bot.constants.telegram_messages import (
     CATEGORY_ADD_SUCCESS,
     CATEGORY_ALREADY_EXISTS
 )
+from bot.constants.logging_messages import (
+    ADDED_CATEGORY_LOG,
+    CATEGORY_ALREADY_EXISTS_LOG
+)
 from bot.api_requests import client, BadRequest
+from bot.utils import get_user_info
 
 CONFIRMATION = 0
 
@@ -32,11 +37,19 @@ async def _category_confirmation(
     category_name = update.message.text.strip().title()
     try:
         response_data = await client.add_category(category_name)
+        logging.info(ADDED_CATEGORY_LOG.format(
+            get_user_info(update),
+            category_name)
+        )
         await update.message.reply_text(
             CATEGORY_ADD_SUCCESS.format(response_data['name'])
         )
         return ConversationHandler.END
     except BadRequest:
+        logging.warning(CATEGORY_ALREADY_EXISTS_LOG.format(
+            get_user_info(update),
+            category_name)
+        )
         await update.message.reply_html(
             CATEGORY_ALREADY_EXISTS.format(category_name)
         )

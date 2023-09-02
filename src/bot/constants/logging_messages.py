@@ -8,3 +8,8 @@ SPEND_EXPENSE_TO_API_LOG = (
 DELETE_EXPENSE_FROM_API_LOG = (
     'User {} delete expense {} from category {} on the API. money left: {}'
 )
+
+ADDED_CATEGORY_LOG = 'User {} added new expense category: {}'
+CATEGORY_ALREADY_EXISTS_LOG = (
+    'User {} tried to add already exists category: {}'
+)
