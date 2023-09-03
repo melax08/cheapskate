@@ -10,7 +10,9 @@ async def get_money_left(
 ) -> None:
     """Sends the user message with money left from budget for current month."""
     response_data = await client.get_money_left()
-    await update.message.reply_text(MONEY_LEFT_MESSAGE.format(response_data))
+    await update.message.reply_text(MONEY_LEFT_MESSAGE.format(
+        response_data['budget'], response_data['money_left'])
+    )
 
 
 money_left_handler = CommandHandler('money_left', get_money_left)

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, Integer, extract, and_
 
 from .base import CRUDBase
-from app.core.constants import BUDGET_FOR_MONTH
+from app.core.config import settings
 from app.models.expense import Expense
 
 
@@ -28,7 +28,7 @@ class CRUDExpense(CRUDBase):
 
         if not money_spend:
             money_spend = 0
-        money_left = BUDGET_FOR_MONTH - money_spend
+        money_left = settings.month_budget - money_spend
 
         return money_left
 

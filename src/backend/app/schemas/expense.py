@@ -18,3 +18,8 @@ class ExpenseDB(ExpenseBase):
 
     class Config:
         orm_mode = True
+
+
+class MoneyLeft(BaseModel):
+    budget: float
+    money_left: float

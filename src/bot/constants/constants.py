@@ -1,10 +1,12 @@
+from typing import Union
+
 import os
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-MINIMUM_MONEY_TO_ADD: int = 1
+MINIMUM_MONEY_TO_ADD: Union[float, int] = 0.001
 BUTTON_ROW_LEN: int = 3
 
 API_VERSION = 'v1'
