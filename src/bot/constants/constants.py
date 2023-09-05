@@ -1,6 +1,5 @@
-from typing import Union
-
 import os
+from typing import Union
 
 from dotenv import load_dotenv
 
@@ -16,3 +15,9 @@ API_URL = f'http://{API_HOST}:8000/api/{API_VERSION}/'
 CATEGORY_ENDPOINT_PATH = 'category/'
 EXPENSE_ADD_PATH = 'expense/'
 MONEY_LEFT_PATH = 'expense/money-left'
+
+# Auth settings:
+ALLOWED_TELEGRAM_IDS = os.getenv('ALLOWED_TELEGRAM_IDS')
+if ALLOWED_TELEGRAM_IDS is not None:
+    ALLOWED_TELEGRAM_IDS = set(map(
+        int, os.getenv('ALLOWED_TELEGRAM_IDS').split()))

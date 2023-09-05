@@ -1,14 +1,15 @@
 import logging
 
-from telegram import Update, MenuButtonCommands
-from telegram.ext import ContextTypes, CommandHandler, ConversationHandler
+from telegram import MenuButtonCommands, Update
+from telegram.ext import CommandHandler, ContextTypes, ConversationHandler
 
-from bot.constants.logging_messages import START_BOT_LOG
-from bot.constants.telegram_messages import START_MESSAGE, ACTION_CANCELED
-from bot.utils import get_user_info
 from bot.constants.commands import COMMANDS
+from bot.constants.logging_messages import START_BOT_LOG
+from bot.constants.telegram_messages import ACTION_CANCELED, START_MESSAGE
+from bot.utils import auth, get_user_info
 
 
+@auth
 async def start(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -23,6 +24,7 @@ async def start(
     )
 
 
+@auth
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Cancels and ends the conversation."""
     context.user_data.clear()

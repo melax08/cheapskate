@@ -1,10 +1,12 @@
 from telegram import Update
-from telegram.ext import (ContextTypes, CommandHandler)
+from telegram.ext import CommandHandler, ContextTypes
 
 from bot.api_requests import client
 from bot.constants.telegram_messages import MONEY_LEFT_MESSAGE
+from bot.utils import auth
 
 
+@auth
 async def get_money_left(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:

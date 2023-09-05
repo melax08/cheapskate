@@ -1,11 +1,10 @@
 from http import HTTPStatus
 
-from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.crud.category import category_crud
 from app.crud.expense import expense_crud
 from app.models import Category, Expense
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def check_category_exists(

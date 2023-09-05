@@ -1,9 +1,8 @@
 import datetime as dt
 
-from sqlalchemy.orm import relationship
-from sqlalchemy import Column, DateTime, Integer, ForeignKey, Float
-
 from app.core.db import Base
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer
+from sqlalchemy.orm import relationship
 
 
 class Expense(Base):

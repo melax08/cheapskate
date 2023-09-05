@@ -4,22 +4,20 @@ from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import (CommandHandler, ContextTypes, ConversationHandler,
                           MessageHandler, filters)
 
+from bot.api_requests import BadRequest, client
+from bot.constants.logging_messages import (ADDED_CATEGORY_LOG,
+                                            CATEGORY_ALREADY_EXISTS_LOG)
+from bot.constants.telegram_messages import (CATEGORY_ADD_SUCCESS,
+                                             CATEGORY_ALREADY_EXISTS,
+                                             ENTER_CATEGORY_NAME)
+from bot.utils import auth, get_user_info
+
 from .main_handlers import cancel
-from bot.constants.telegram_messages import (
-    ENTER_CATEGORY_NAME,
-    CATEGORY_ADD_SUCCESS,
-    CATEGORY_ALREADY_EXISTS
-)
-from bot.constants.logging_messages import (
-    ADDED_CATEGORY_LOG,
-    CATEGORY_ALREADY_EXISTS_LOG
-)
-from bot.api_requests import client, BadRequest
-from bot.utils import get_user_info
 
 CONFIRMATION = 0
 
 
+@auth
 async def add_category(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:
@@ -31,6 +29,7 @@ async def add_category(
     return CONFIRMATION
 
 
+@auth
 async def _category_confirmation(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> int:

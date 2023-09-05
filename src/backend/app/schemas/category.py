@@ -1,6 +1,5 @@
-from pydantic import BaseModel, Field, field_validator
-
 from app.core.constants import MAX_CATEGORY_LENGTH
+from pydantic import BaseModel, Field, field_validator
 
 
 class CategoryCreate(BaseModel):

@@ -1,33 +1,24 @@
 import logging
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import (
-    ContextTypes,
-    MessageHandler,
-    filters,
-    CallbackQueryHandler
-)
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
+from telegram.ext import (CallbackQueryHandler, ContextTypes, MessageHandler,
+                          filters)
 
-from bot.validators import money_validator
-from bot.constants.logging_messages import (
-    WRONG_EXPENSE_LOG,
-    CHOOSE_CATEGORY_LOG,
-    SPEND_EXPENSE_TO_API_LOG,
-    DELETE_EXPENSE_FROM_API_LOG,
-    NO_CATEGORIES_LOG
-)
-from bot.constants.telegram_messages import (
-    WRONG_REQUEST,
-    CHOOSE_CATEGORY,
-    UPDATE_MESSAGE,
-    DELETE_MESSAGE,
-    NO_CATEGORIES
-)
-from bot.utils import get_user_info, create_category_keyboard
 from bot.api_requests import client
+from bot.constants.logging_messages import (CHOOSE_CATEGORY_LOG,
+                                            DELETE_EXPENSE_FROM_API_LOG,
+                                            NO_CATEGORIES_LOG,
+                                            SPEND_EXPENSE_TO_API_LOG,
+                                            WRONG_EXPENSE_LOG)
+from bot.constants.telegram_messages import (CHOOSE_CATEGORY, DELETE_MESSAGE,
+                                             NO_CATEGORIES, UPDATE_MESSAGE,
+                                             WRONG_REQUEST)
+from bot.utils import auth, create_category_keyboard, get_user_info
+from bot.validators import money_validator
 
 
+@auth
 async def add_expense(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -58,6 +49,7 @@ async def add_expense(
     )
 
 
+@auth
 async def select_expense_category(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -89,6 +81,7 @@ async def select_expense_category(
     )
 
 
+@auth
 async def delete_expense(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:

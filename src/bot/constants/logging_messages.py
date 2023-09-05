@@ -1,3 +1,4 @@
+ACCESS_DENIED_LOG = 'Unauthorized access attempt from user: {}'
 START_BOT_LOG = 'Someone starts bot: {}'
 WRONG_EXPENSE_LOG = 'User {} sends the wrong message with expense: {}'
 NO_CATEGORIES_LOG = "User {} can't add expense, no categories!"

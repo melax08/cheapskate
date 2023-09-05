@@ -1,15 +1,11 @@
-from yarl import URL
 from types import TracebackType
 from typing import Optional, Type
 
 import aiohttp
+from yarl import URL
 
-from bot.constants.constants import (
-    API_URL,
-    CATEGORY_ENDPOINT_PATH,
-    EXPENSE_ADD_PATH,
-    MONEY_LEFT_PATH
-)
+from bot.constants.constants import (API_URL, CATEGORY_ENDPOINT_PATH,
+                                     EXPENSE_ADD_PATH, MONEY_LEFT_PATH)
 
 
 class BadRequest(Exception):
@@ -50,8 +46,11 @@ class ApiClient:
         return self._api_url / path
 
     async def _post(self, path, data):
-        async with self._client.post(self._make_url(path), json=data) as response:
-            if response.status == 400:  # ToDo: Добавить логирование, добавить обработку других status (404, 422, 500)
+        async with self._client.post(self._make_url(path), json=data
+                                     ) as response:
+            # ToDo: Добавить логирование,
+            #  добавить обработку других status (404, 422, 500)
+            if response.status == 400:
                 raise BadRequest
             response_json = await response.json()
             return response_json

@@ -1,11 +1,11 @@
 import datetime as dt
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, Integer, extract, and_
-
-from .base import CRUDBase
 from app.core.config import settings
 from app.models.expense import Expense
+from sqlalchemy import Integer, and_, extract, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from .base import CRUDBase
 
 
 class CRUDExpense(CRUDBase):

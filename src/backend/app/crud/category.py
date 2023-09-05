@@ -1,10 +1,10 @@
 from typing import Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.category import Category
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base import CRUDBase
-from app.models.category import Category
 
 
 class CRUDCategory(CRUDBase):

@@ -1,2 +1,2 @@
-from .category import Category
-from .expense import Expense
+from .category import Category  # noqa
+from .expense import Expense  # noqa

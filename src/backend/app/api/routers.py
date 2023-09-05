@@ -1,6 +1,5 @@
-from fastapi import APIRouter
-
 from app.api.endpoints import category_router, expense_router
+from fastapi import APIRouter
 
 main_router = APIRouter(prefix='/api/v1')
 
