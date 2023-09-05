@@ -1,6 +1,5 @@
-from typing import Union
-
 import datetime as dt
+from typing import Union
 
 from app.core.config import settings
 from app.models.expense import Expense
