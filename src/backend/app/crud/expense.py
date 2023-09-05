@@ -1,3 +1,5 @@
+from typing import Union
+
 import datetime as dt
 
 from app.core.config import settings
@@ -11,7 +13,9 @@ from .base import CRUDBase
 class CRUDExpense(CRUDBase):
     """Class with DB CRUD operations for `Expense` model."""
 
-    async def calculate_money_left(self, session: AsyncSession) -> int:
+    async def calculate_money_left(
+            self, session: AsyncSession
+    ) -> Union[float, int]:
         """Calculates how much money is left from the budget for
         the current month."""
         current_date = dt.datetime.now()
@@ -30,7 +34,7 @@ class CRUDExpense(CRUDBase):
             money_spend = 0
         money_left = settings.month_budget - money_spend
 
-        return money_left
+        return round(money_left, 2)
 
 
 expense_crud = CRUDExpense(Expense)

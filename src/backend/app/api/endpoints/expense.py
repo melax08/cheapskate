@@ -1,3 +1,5 @@
+import datetime as dt
+
 from app.api.validators import check_category_exists, check_expense_exists
 from app.core.config import settings
 from app.core.db import get_async_session
@@ -53,8 +55,11 @@ async def get_money_left(
     session: AsyncSession = Depends(get_async_session)
 ):
     money_left = await expense_crud.calculate_money_left(session)
+    money_spend = settings.month_budget - money_left
     response_model = MoneyLeft(
         budget=settings.month_budget,
-        money_left=money_left
+        money_left=money_left,
+        money_spend=money_spend,
+        current_datetime=dt.datetime.now()
     )
     return response_model

@@ -1,3 +1,5 @@
+import datetime as dt
+
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 
@@ -12,8 +14,15 @@ async def get_money_left(
 ) -> None:
     """Sends the user message with money left from budget for current month."""
     response_data = await client.get_money_left()
+    current_datetime = dt.datetime.fromisoformat(
+        response_data['current_datetime']
+    )
+    current_month = current_datetime.strftime('%B')
     await update.message.reply_text(MONEY_LEFT_MESSAGE.format(
-        response_data['budget'], response_data['money_left'])
+        current_month,
+        response_data['budget'],
+        response_data['money_spend'],
+        response_data['money_left'])
     )
 
 

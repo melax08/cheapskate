@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 from .category import CategoryDB
 
@@ -22,4 +23,6 @@ class ExpenseDB(ExpenseBase):
 
 class MoneyLeft(BaseModel):
     budget: float
+    money_spend: float
     money_left: float
+    current_datetime: datetime
