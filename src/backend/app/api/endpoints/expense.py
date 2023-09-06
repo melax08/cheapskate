@@ -5,7 +5,8 @@ from app.core.config import settings
 from app.core.db import get_async_session
 from app.crud.expense import expense_crud
 from app.schemas.category import CategoryDB
-from app.schemas.expense import ExpenseCreate, ExpenseDB, MoneyLeft
+from app.schemas.expense import (ExpenseCreate, ExpenseDB, MoneyLeft,
+                                 TodayExpenses)
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -54,6 +55,8 @@ async def delete_expense(
 async def get_money_left(
     session: AsyncSession = Depends(get_async_session)
 ):
+    """Gets information about month budget, money left for month,
+    money spend in current month."""
     money_left = await expense_crud.calculate_money_left(session)
     money_spend = settings.month_budget - money_left
     response_model = MoneyLeft(
@@ -62,4 +65,19 @@ async def get_money_left(
         money_spend=money_spend,
         current_datetime=dt.datetime.now()
     )
+    return response_model
+
+
+@router.get('/today', response_model=TodayExpenses)
+async def get_today_expenses(
+        session: AsyncSession = Depends(get_async_session)
+):
+    """Gets information about today expenses."""
+    today_expenses_amount = await expense_crud.calculate_today_expenses(
+        session)
+
+    response_model = TodayExpenses(
+        money_spend=today_expenses_amount,
+    )
+
     return response_model

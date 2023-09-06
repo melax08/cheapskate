@@ -5,7 +5,8 @@ import aiohttp
 from yarl import URL
 
 from bot.constants.constants import (API_URL, CATEGORY_ENDPOINT_PATH,
-                                     EXPENSE_ADD_PATH, MONEY_LEFT_PATH)
+                                     EXPENSE_ADD_PATH, MONEY_LEFT_PATH,
+                                     TODAY_EXPENSES_PATH)
 
 
 class BadRequest(Exception):
@@ -90,6 +91,10 @@ class ApiClient:
 
     async def get_money_left(self):
         response_data = await self._get(MONEY_LEFT_PATH)
+        return response_data
+
+    async def get_today_expenses(self):
+        response_data = await self._get(TODAY_EXPENSES_PATH)
         return response_data
 
 

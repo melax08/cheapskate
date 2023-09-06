@@ -27,3 +27,7 @@ class MoneyLeft(BaseModel):
     money_spend: float
     money_left: float
     current_datetime: datetime
+
+
+class TodayExpenses(BaseModel):
+    money_spend: float

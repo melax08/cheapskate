@@ -35,5 +35,20 @@ class CRUDExpense(CRUDBase):
 
         return round(money_left, 2)
 
+    async def calculate_today_expenses(
+            self, session: AsyncSession
+    ) -> Union[float, int]:
+        """Calculates how much money was spent today."""
+        today_date = dt.date.today()
+
+        today_expenses = await session.execute(select(
+            func.sum(self.model.amount)).where(self.model.date >= today_date))
+
+        today_expenses = today_expenses.scalars().first()
+        if not today_expenses:
+            today_expenses = 0
+
+        return today_expenses
+
 
 expense_crud = CRUDExpense(Expense)

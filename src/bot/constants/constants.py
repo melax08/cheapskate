@@ -15,6 +15,7 @@ API_URL = f'http://{API_HOST}:8000/api/{API_VERSION}/'
 CATEGORY_ENDPOINT_PATH = 'category/'
 EXPENSE_ADD_PATH = 'expense/'
 MONEY_LEFT_PATH = 'expense/money-left'
+TODAY_EXPENSES_PATH = 'expense/today'
 
 # Auth settings:
 ALLOWED_TELEGRAM_IDS = os.getenv('ALLOWED_TELEGRAM_IDS')
