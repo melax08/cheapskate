@@ -3,10 +3,10 @@ import datetime as dt
 from app.api.validators import check_category_exists, check_expense_exists
 from app.core.config import settings
 from app.core.db import get_async_session
-from app.crud import expense_crud, category_crud
+from app.crud import category_crud, expense_crud
 from app.schemas.category import CategoryDB
-from app.schemas.expense import (ExpenseCreate, ExpenseDB, MoneyLeft,
-                                 TodayExpenses, CategoryExpense)
+from app.schemas.expense import (CategoryExpense, ExpenseCreate, ExpenseDB,
+                                 MoneyLeft, TodayExpenses)
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 

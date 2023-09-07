@@ -1,9 +1,9 @@
 from datetime import datetime
 
+from app.core.constants import MINIMUM_EXPENSE_AMOUNT
 from pydantic import BaseModel, Field
 
 from .category import CategoryDB
-from app.core.constants import MINIMUM_EXPENSE_AMOUNT
 
 
 class ExpenseBase(BaseModel):

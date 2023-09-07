@@ -4,10 +4,10 @@ from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 
 from bot.api_requests import client
-from bot.constants.telegram_messages import (MONEY_LEFT_MESSAGE,
-                                             NO_TODAY_EXPENSES, TODAY_EXPENSES,
+from bot.constants.telegram_messages import (CATEGORY_ITEM,
                                              IN_CATEGORIES_LABEL,
-                                             CATEGORY_ITEM,
+                                             MONEY_LEFT_MESSAGE,
+                                             NO_TODAY_EXPENSES, TODAY_EXPENSES,
                                              TOO_MANY_MONEY_BRUH)
 from bot.utils import auth
 

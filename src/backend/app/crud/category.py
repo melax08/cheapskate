@@ -2,7 +2,7 @@ import datetime as dt
 from typing import Optional
 
 from app.models import Category, Expense
-from sqlalchemy import select, desc, func
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base import CRUDBase
