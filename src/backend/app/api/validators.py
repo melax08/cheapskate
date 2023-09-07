@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
-from app.crud.category import category_crud
-from app.crud.expense import expense_crud
+from app.crud import category_crud, expense_crud
 from app.models import Category, Expense
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession

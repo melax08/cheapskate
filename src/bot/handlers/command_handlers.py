@@ -5,7 +5,10 @@ from telegram.ext import CommandHandler, ContextTypes
 
 from bot.api_requests import client
 from bot.constants.telegram_messages import (MONEY_LEFT_MESSAGE,
-                                             NO_TODAY_EXPENSES, TODAY_EXPENSES)
+                                             NO_TODAY_EXPENSES, TODAY_EXPENSES,
+                                             IN_CATEGORIES_LABEL,
+                                             CATEGORY_ITEM,
+                                             TOO_MANY_MONEY_BRUH)
 from bot.utils import auth
 
 PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
@@ -29,21 +32,35 @@ async def get_money_left(
     )
 
 
+@auth
 async def get_today_expenses(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Sends the user message with information about today expenses."""
     response_data = await client.get_today_expenses()
     today_expenses_amount = response_data['money_spend']
+
     if today_expenses_amount == 0:
-        message = NO_TODAY_EXPENSES
-    else:
-        message = TODAY_EXPENSES.format(today_expenses_amount)
+        await update.message.reply_text(NO_TODAY_EXPENSES)
+        return
+
+    message = [TODAY_EXPENSES.format(today_expenses_amount)]
 
     if today_expenses_amount >= PSYCHOLOGICAL_EXPENSE_LIMIT:
-        message += ' 🗿'
+        message[0] += TOO_MANY_MONEY_BRUH
 
-    await update.message.reply_text(message)
+    categories = response_data['categories']
+    message.append(IN_CATEGORIES_LABEL)
+
+    for category in categories:
+        message.append(
+            CATEGORY_ITEM.format(
+                category.get("name"),
+                category.get("amount")
+            )
+        )
+
+    await update.message.reply_text('\n'.join(message))
 
 
 money_left_handler = CommandHandler('money_left', get_money_left)

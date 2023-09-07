@@ -8,3 +8,6 @@ class Category(Base):
     name = Column(String(100), unique=True, nullable=False)
     # ToDo: подумать над параметром cascade=...
     expenses = relationship('Expense', back_populates='category')
+
+    def __repr__(self):
+        return f'<Category {self.name}>'

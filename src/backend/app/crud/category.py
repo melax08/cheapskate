@@ -1,7 +1,8 @@
+import datetime as dt
 from typing import Optional
 
-from app.models.category import Category
-from sqlalchemy import select
+from app.models import Category, Expense
+from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base import CRUDBase
@@ -17,6 +18,16 @@ class CRUDCategory(CRUDBase):
             self.model.name == category_name)
         )
         return db_obj.scalars().first()
+
+    @staticmethod
+    async def get_today_expenses_by_categories(session: AsyncSession):
+        """Gets the list of today expenses by categories."""
+        today_categories_with_expenses = await session.execute(select(
+            Category.name,
+            func.sum(Expense.amount).label('category_expense')
+        ).join(Expense).where(Expense.date >= dt.date.today()).group_by(
+            Category.name).order_by(desc('category_expense')))
+        return today_categories_with_expenses.all()
 
 
 category_crud = CRUDCategory(Category)

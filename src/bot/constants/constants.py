@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MINIMUM_MONEY_TO_ADD: Union[float, int] = 0.001
+MINIMUM_MONEY_TO_ADD: Union[float, int] = 0.01
 BUTTON_ROW_LEN: int = 3
 
 API_VERSION = 'v1'

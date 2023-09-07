@@ -11,3 +11,8 @@ class Expense(Base):
     category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
     category = relationship('Category', back_populates='expenses')
     amount = Column(Float, nullable=False)
+
+    def __repr__(self):
+        return (
+            f'<Expense for {self.amount} money in category {self.category_id}>'
+        )

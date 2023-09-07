@@ -3,10 +3,10 @@ import datetime as dt
 from app.api.validators import check_category_exists, check_expense_exists
 from app.core.config import settings
 from app.core.db import get_async_session
-from app.crud.expense import expense_crud
+from app.crud import expense_crud, category_crud
 from app.schemas.category import CategoryDB
 from app.schemas.expense import (ExpenseCreate, ExpenseDB, MoneyLeft,
-                                 TodayExpenses)
+                                 TodayExpenses, CategoryExpense)
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -75,9 +75,15 @@ async def get_today_expenses(
     """Gets information about today expenses."""
     today_expenses_amount = await expense_crud.calculate_today_expenses(
         session)
+    today_categories = await category_crud.get_today_expenses_by_categories(
+        session)
+
+    categories = [CategoryExpense(name=name, amount=amount)
+                  for name, amount in today_categories]
 
     response_model = TodayExpenses(
         money_spend=today_expenses_amount,
+        categories=categories
     )
 
     return response_model

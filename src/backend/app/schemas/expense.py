@@ -1,12 +1,13 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .category import CategoryDB
+from app.core.constants import MINIMUM_EXPENSE_AMOUNT
 
 
 class ExpenseBase(BaseModel):
-    amount: float
+    amount: float = Field(..., ge=MINIMUM_EXPENSE_AMOUNT)
 
 
 class ExpenseCreate(ExpenseBase):
@@ -29,5 +30,11 @@ class MoneyLeft(BaseModel):
     current_datetime: datetime
 
 
+class CategoryExpense(BaseModel):
+    name: str
+    amount: float
+
+
 class TodayExpenses(BaseModel):
     money_spend: float
+    categories: list[CategoryExpense]
