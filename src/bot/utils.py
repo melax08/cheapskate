@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 from telegram import InlineKeyboardButton, Update
 
@@ -6,12 +7,13 @@ from bot.constants.constants import ALLOWED_TELEGRAM_IDS, BUTTON_ROW_LEN
 from bot.constants.logging_messages import ACCESS_DENIED_LOG
 from bot.constants.telegram_messages import ACCESS_DENIED
 
-from .api_requests import client
+from .api_requests import get_api_client
 
 
-async def create_category_keyboard(money: int) -> list:
+async def create_category_keyboard(money: Union[float, int]) -> list:
     """Create keyboard with categories from API."""
-    categories = await client.get_categories()
+    async with get_api_client() as client:
+        categories = await client.get_categories()
 
     if len(categories) == 0:
         raise ValueError

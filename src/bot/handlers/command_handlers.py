@@ -3,7 +3,7 @@ import datetime as dt
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 
-from bot.api_requests import client
+from bot.api_requests import get_api_client
 from bot.constants.telegram_messages import (CATEGORY_ITEM,
                                              IN_CATEGORIES_LABEL,
                                              MONEY_LEFT_MESSAGE,
@@ -19,7 +19,9 @@ async def get_money_left(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Sends the user message with money left from budget for current month."""
-    response_data = await client.get_money_left()
+    async with get_api_client() as client:
+        response_data = await client.get_money_left()
+
     current_datetime = dt.datetime.fromisoformat(
         response_data['current_datetime']
     )
@@ -37,7 +39,10 @@ async def get_today_expenses(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Sends the user message with information about today expenses."""
-    response_data = await client.get_today_expenses()
+
+    async with get_api_client() as client:
+        response_data = await client.get_today_expenses()
+
     today_expenses_amount = response_data['money_spend']
 
     if today_expenses_amount == 0:

@@ -4,8 +4,9 @@ from telegram import MenuButtonCommands, Update
 from telegram.ext import CommandHandler, ContextTypes, ConversationHandler
 
 from bot.constants.commands import COMMANDS
-from bot.constants.logging_messages import START_BOT_LOG
-from bot.constants.telegram_messages import ACTION_CANCELED, START_MESSAGE
+from bot.constants.logging_messages import EXCEPTION_LOG, START_BOT_LOG
+from bot.constants.telegram_messages import (ACTION_CANCELED, API_ERROR,
+                                             START_MESSAGE)
 from bot.utils import auth, get_user_info
 
 
@@ -30,6 +31,18 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data.clear()
     await update.message.reply_text(ACTION_CANCELED)
     return ConversationHandler.END
+
+
+async def error_handler(
+        update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """Log the error and send a telegram message to notify the current user
+    about the problem."""
+    logging.error(EXCEPTION_LOG, exc_info=context.error)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=API_ERROR
+    )
 
 
 start_handler = CommandHandler('start', start)

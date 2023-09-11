@@ -4,7 +4,7 @@ from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import (CommandHandler, ContextTypes, ConversationHandler,
                           MessageHandler, filters)
 
-from bot.api_requests import BadRequest, client
+from bot.api_requests import BadRequest, get_api_client
 from bot.constants.logging_messages import (ADDED_CATEGORY_LOG,
                                             CATEGORY_ALREADY_EXISTS_LOG)
 from bot.constants.telegram_messages import (CATEGORY_ADD_SUCCESS,
@@ -35,7 +35,9 @@ async def _category_confirmation(
 ) -> int:
     category_name = update.message.text.strip().title()
     try:
-        response_data = await client.add_category(category_name)
+        async with get_api_client() as client:
+            response_data = await client.add_category(category_name)
+
         logging.info(ADDED_CATEGORY_LOG.format(
             get_user_info(update),
             category_name)

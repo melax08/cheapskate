@@ -5,7 +5,7 @@ from telegram.constants import ParseMode
 from telegram.ext import (CallbackQueryHandler, ContextTypes, MessageHandler,
                           filters)
 
-from bot.api_requests import client
+from bot.api_requests import get_api_client
 from bot.constants.logging_messages import (CHOOSE_CATEGORY_LOG,
                                             DELETE_EXPENSE_FROM_API_LOG,
                                             NO_CATEGORIES_LOG,
@@ -57,7 +57,10 @@ async def select_expense_category(
     on one of the buttons."""
     query = update.callback_query
     money, category_id = query.data.split()
-    response_data = await client.send_expense(money, category_id)
+
+    async with get_api_client() as client:
+        response_data = await client.add_expense(money, category_id)
+
     logging.info(SPEND_EXPENSE_TO_API_LOG.format(
         get_user_info(update),
         money,
@@ -89,7 +92,10 @@ async def delete_expense(
     the expense deleted by its id."""
     query = update.callback_query
     expense_to_delete_id = ''.join(query.data.split()[1:])
-    response_data = await client.delete_expense(expense_to_delete_id)
+
+    async with get_api_client() as client:
+        response_data = await client.delete_expense(expense_to_delete_id)
+
     logging.info(DELETE_EXPENSE_FROM_API_LOG.format(
         get_user_info(update),
         response_data['amount'],

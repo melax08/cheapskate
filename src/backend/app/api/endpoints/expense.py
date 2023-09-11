@@ -58,7 +58,7 @@ async def get_money_left(
     """Gets information about month budget, money left for month,
     money spend in current month."""
     money_left = await expense_crud.calculate_money_left(session)
-    money_spend = settings.month_budget - money_left
+    money_spend = round(settings.month_budget - money_left, 2)
     response_model = MoneyLeft(
         budget=settings.month_budget,
         money_left=money_left,

@@ -14,3 +14,4 @@ ADDED_CATEGORY_LOG = 'User {} added new expense category: {}'
 CATEGORY_ALREADY_EXISTS_LOG = (
     'User {} tried to add already exists category: {}'
 )
+EXCEPTION_LOG = 'Exception while handling an update:'

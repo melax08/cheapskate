@@ -1,29 +1,21 @@
+from contextlib import asynccontextmanager
+from http import HTTPStatus
 from types import TracebackType
 from typing import Optional, Type
 
 import aiohttp
+from aiohttp.client_exceptions import ContentTypeError
 from yarl import URL
 
 from bot.constants.constants import (API_URL, CATEGORY_ENDPOINT_PATH,
                                      EXPENSE_ADD_PATH, MONEY_LEFT_PATH,
                                      TODAY_EXPENSES_PATH)
 
-
-class BadRequest(Exception):
-    pass
+from .exceptions import APIError, BadRequest
 
 
-class ApiClient:
-    """
-    - Open session;
-    - Request exceptions;
-    - get_categories method;
-    - send_expense method;
-    - delete_expense method;
-    - month_statistic;
-    - etc;
-    """
-
+class APIClient:
+    """Client that sends async requests to REST API and returns results."""
     def __init__(self, api_url: URL):
         self._api_url = api_url
         self._client = aiohttp.ClientSession()
@@ -37,47 +29,72 @@ class ApiClient:
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> Optional[bool]:
-        await self.close()
+        await self._close()
         return None
 
-    async def close(self) -> None:
+    async def _close(self) -> None:
+        """Close aiohttp.ClientSession."""
         return await self._client.close()
 
     def _make_url(self, path: str) -> URL:
+        """Create full URL to the needed API endpoint."""
         return self._api_url / path
 
     async def _post(self, path, data):
-        async with self._client.post(self._make_url(path), json=data
-                                     ) as response:
-            # ToDo: Добавить логирование,
-            #  добавить обработку других status (404, 422, 500)
-            if response.status == 400:
-                raise BadRequest
-            response_json = await response.json()
-            return response_json
+        """Make POST-requests to the specified API path with specified request
+        data."""
+        async with self._client.post(
+                self._make_url(path), json=data
+        ) as response:
+            return await self._response_processing(response)
 
     async def _get(self, path):
+        """Make GET-request to the specified API path."""
         async with self._client.get(self._make_url(path)) as response:
-            response_json = await response.json()
-            return response_json
+            return await self._response_processing(response)
 
     async def _delete(self, path):
+        """Make DELETE-request to the specified API path."""
         async with self._client.delete(self._make_url(path)) as response:
-            response_json = await response.json()
-            return response_json
+            return await self._response_processing(response)
+
+    async def _response_processing(self, response):
+        """Check response status code and get response data."""
+        await self.check_response_status_code(response)
+        response_json = await response.json()
+        return response_json
+
+    @staticmethod
+    async def check_response_status_code(response) -> None:
+        """Check if response status code is correct."""
+        if response.status == HTTPStatus.BAD_REQUEST:
+            raise BadRequest
+        if response.status > HTTPStatus.BAD_REQUEST:
+            try:
+                response_data = await response.json()
+            except ContentTypeError:
+                response_data = 'No JSON data returned'
+            raise APIError(
+                f'Wrong API status code: {response.status}. '
+                f'Requested URL: {response.url}. '
+                f'Response data: {response_data}'
+            )
 
     async def get_categories(self) -> list:
+        """Get all expense categories."""
         categories = await self._get(CATEGORY_ENDPOINT_PATH)
         return categories
 
     async def add_category(self, category_name: str):
+        """Add new expense category."""
         data = {
             'name': category_name
         }
         response_data = await self._post(CATEGORY_ENDPOINT_PATH, data)
         return response_data
 
-    async def send_expense(self, money: str, category_id: str):
+    async def add_expense(self, money: str, category_id: str):
+        """Add new expense."""
         data = {
             'category_id': category_id,
             'amount': money
@@ -86,16 +103,24 @@ class ApiClient:
         return response_data
 
     async def delete_expense(self, expense_id: str):
+        """Delete specified expense."""
         response_data = await self._delete(EXPENSE_ADD_PATH + expense_id)
         return response_data
 
     async def get_money_left(self):
+        """Get money left for current month."""
         response_data = await self._get(MONEY_LEFT_PATH)
         return response_data
 
     async def get_today_expenses(self):
+        """Get today expenses information."""
         response_data = await self._get(TODAY_EXPENSES_PATH)
         return response_data
 
 
-client = ApiClient(URL(API_URL))
+@asynccontextmanager
+async def get_api_client():
+    """Creates API client with aiohttp session that allows to send API
+    requests."""
+    async with APIClient(URL(API_URL)) as client:
+        yield client
