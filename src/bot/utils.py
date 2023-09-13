@@ -1,11 +1,12 @@
 import logging
-from typing import Union
+from typing import Tuple, Union
 
 from telegram import InlineKeyboardButton, Update
 
 from bot.constants.constants import ALLOWED_TELEGRAM_IDS, BUTTON_ROW_LEN
 from bot.constants.logging_messages import ACCESS_DENIED_LOG
-from bot.constants.telegram_messages import ACCESS_DENIED
+from bot.constants.telegram_messages import (ACCESS_DENIED, MONEY_LEFT_HAS,
+                                             MONEY_RAN_OUT)
 
 from .api_requests import get_api_client
 
@@ -59,3 +60,17 @@ def auth(func):
         return await func(*args, **kwargs)
 
     return wrapper
+
+
+def money_left_calculate_message(
+        money_left: str, first_message_part: str
+) -> Tuple[float, str]:
+    """Checks the money left value and generates a final message for the
+    user."""
+    money_left = float(money_left)
+    if money_left > 0:
+        message = first_message_part + MONEY_LEFT_HAS
+    else:
+        money_left = abs(money_left)
+        message = first_message_part + MONEY_RAN_OUT
+    return money_left, message

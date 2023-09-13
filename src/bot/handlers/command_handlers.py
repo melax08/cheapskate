@@ -9,7 +9,7 @@ from bot.constants.telegram_messages import (CATEGORY_ITEM,
                                              MONEY_LEFT_MESSAGE,
                                              NO_TODAY_EXPENSES, TODAY_EXPENSES,
                                              TOO_MANY_MONEY_BRUH)
-from bot.utils import auth
+from bot.utils import auth, money_left_calculate_message
 
 PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
 
@@ -26,11 +26,17 @@ async def get_money_left(
         response_data['current_datetime']
     )
     current_month = current_datetime.strftime('%B')
-    await update.message.reply_text(MONEY_LEFT_MESSAGE.format(
+
+    money_left, message = money_left_calculate_message(
+        response_data['money_left'],
+        MONEY_LEFT_MESSAGE
+    )
+
+    await update.message.reply_text(message.format(
         current_month,
         response_data['budget'],
         response_data['money_spend'],
-        response_data['money_left'])
+        money_left)
     )
 
 

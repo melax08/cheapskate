@@ -14,7 +14,8 @@ from bot.constants.logging_messages import (CHOOSE_CATEGORY_LOG,
 from bot.constants.telegram_messages import (CHOOSE_CATEGORY, DELETE_MESSAGE,
                                              NO_CATEGORIES, UPDATE_MESSAGE,
                                              WRONG_REQUEST)
-from bot.utils import auth, create_category_keyboard, get_user_info
+from bot.utils import (auth, create_category_keyboard, get_user_info,
+                       money_left_calculate_message)
 from bot.validators import money_validator
 
 
@@ -67,12 +68,18 @@ async def select_expense_category(
         response_data['category']['name'],
         response_data['money_left'])
     )
+
+    money_left, message = money_left_calculate_message(
+        response_data['money_left'],
+        UPDATE_MESSAGE
+    )
+
     await query.answer()
     await query.edit_message_text(
-        text=UPDATE_MESSAGE.format(
+        text=message.format(
             money,
             response_data['category']['name'],
-            response_data['money_left']
+            money_left
         ),
         reply_markup=InlineKeyboardMarkup.from_row(
             [InlineKeyboardButton(
@@ -102,12 +109,18 @@ async def delete_expense(
         response_data['category']['name'],
         response_data['money_left'])
     )
+
+    money_left, message = money_left_calculate_message(
+        response_data['money_left'],
+        DELETE_MESSAGE
+    )
+
     await query.answer()
     await query.edit_message_text(
-        text=DELETE_MESSAGE.format(
+        text=message.format(
             response_data['amount'],
             response_data['category']['name'],
-            response_data['money_left']
+            money_left
         ),
         parse_mode=ParseMode.HTML
     )
