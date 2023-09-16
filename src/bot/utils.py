@@ -68,9 +68,21 @@ def money_left_calculate_message(
     """Checks the money left value and generates a final message for the
     user."""
     money_left = float(money_left)
-    if money_left > 0:
+    if money_left >= 0:
         message = first_message_part + MONEY_LEFT_HAS
     else:
         money_left = abs(money_left)
         message = first_message_part + MONEY_RAN_OUT
     return money_left, message
+
+
+def wrap_list_to_monospace(message_array: list) -> None:
+    """
+    Wraps the passed list with <code> </code> HTML tags.
+    If you want telegram to correct parse this HTML tags, use:
+    telegram.constants.ParseMode.HTML or update.message.reply_html shortcut.
+    """
+    if len(message_array) == 0:
+        return
+    message_array[0] = '<code>' + message_array[0]
+    message_array[-1] = message_array[-1] + '</code>'

@@ -8,8 +8,9 @@ from bot.constants.telegram_messages import (CATEGORY_ITEM,
                                              IN_CATEGORIES_LABEL,
                                              MONEY_LEFT_MESSAGE,
                                              NO_TODAY_EXPENSES, TODAY_EXPENSES,
-                                             TOO_MANY_MONEY_BRUH)
-from bot.utils import auth, money_left_calculate_message
+                                             TOO_MUCH_MONEY_BRUH)
+from bot.utils import (auth, money_left_calculate_message,
+                       wrap_list_to_monospace)
 
 PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
 
@@ -58,20 +59,20 @@ async def get_today_expenses(
     message = [TODAY_EXPENSES.format(today_expenses_amount)]
 
     if today_expenses_amount >= PSYCHOLOGICAL_EXPENSE_LIMIT:
-        message[0] += TOO_MANY_MONEY_BRUH
+        message[0] += TOO_MUCH_MONEY_BRUH
 
     categories = response_data['categories']
     message.append(IN_CATEGORIES_LABEL)
 
-    for category in categories:
-        message.append(
-            CATEGORY_ITEM.format(
-                category.get("name"),
-                category.get("amount")
-            )
-        )
+    category_items = [
+        CATEGORY_ITEM.format(category.get("name"), category.get("amount"))
+        for category in categories
+    ]
 
-    await update.message.reply_text('\n'.join(message))
+    wrap_list_to_monospace(category_items)
+    message.extend(category_items)
+
+    await update.message.reply_html('\n'.join(message))
 
 
 money_left_handler = CommandHandler('money_left', get_money_left)

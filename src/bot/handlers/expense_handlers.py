@@ -77,7 +77,7 @@ async def select_expense_category(
     await query.answer()
     await query.edit_message_text(
         text=message.format(
-            money,
+            round(float(money), 2),
             response_data['category']['name'],
             money_left
         ),
