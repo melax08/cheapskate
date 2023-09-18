@@ -20,14 +20,35 @@ class CRUDCategory(CRUDBase):
         return db_obj.scalars().first()
 
     @staticmethod
-    async def get_today_expenses_by_categories(session: AsyncSession):
-        """Gets the list of today expenses by categories."""
-        today_categories_with_expenses = await session.execute(select(
+    async def _select_categories_expenses(
+            session: AsyncSession, where_stmt: bool
+    ):
+        """Select the list of expenses by categories for specified period."""
+        categories_expenses = await session.execute(select(
             Category.name,
             func.sum(Expense.amount).label('category_expense')
-        ).join(Expense).where(Expense.date >= dt.date.today()).group_by(
+        ).join(Expense).where(where_stmt).group_by(
             Category.name).order_by(desc('category_expense')))
-        return today_categories_with_expenses.all()
+
+        return categories_expenses.all()
+
+    async def get_today_expenses_by_categories(self, session: AsyncSession):
+        """Gets the list of today expenses by categories."""
+        return await self._select_categories_expenses(
+            session,
+            Expense.date >= dt.date.today()
+        )
+
+    async def get_this_month_expenses_by_categories(
+            self, session: AsyncSession
+    ):
+        """Gets the list of this month expenses by categories."""
+        return await self._select_categories_expenses(
+            session,
+            Expense.date >= dt.date(
+                dt.date.today().year, dt.date.today().month, 1
+            )
+        )
 
 
 category_crud = CRUDCategory(Category)

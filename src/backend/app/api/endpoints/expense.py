@@ -59,11 +59,18 @@ async def get_money_left(
     money spend in current month."""
     money_left = await expense_crud.calculate_money_left(session)
     money_spend = round(settings.month_budget - money_left, 2)
+
+    categories = await category_crud.get_this_month_expenses_by_categories(
+        session)
+    categories = [CategoryExpense(name=name, amount=amount)
+                  for name, amount in categories]
+
     response_model = MoneyLeft(
         budget=settings.month_budget,
         money_left=money_left,
         money_spend=money_spend,
-        current_datetime=dt.datetime.now()
+        current_datetime=dt.datetime.now(),
+        categories=categories
     )
     return response_model
 

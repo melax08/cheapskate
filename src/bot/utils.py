@@ -5,8 +5,8 @@ from telegram import InlineKeyboardButton, Update
 
 from bot.constants.constants import ALLOWED_TELEGRAM_IDS, BUTTON_ROW_LEN
 from bot.constants.logging_messages import ACCESS_DENIED_LOG
-from bot.constants.telegram_messages import (ACCESS_DENIED, MONEY_LEFT_HAS,
-                                             MONEY_RAN_OUT)
+from bot.constants.telegram_messages import (ACCESS_DENIED, CATEGORY_ITEM,
+                                             MONEY_LEFT_HAS, MONEY_RAN_OUT)
 
 from .api_requests import get_api_client
 
@@ -86,3 +86,19 @@ def wrap_list_to_monospace(message_array: list) -> None:
         return
     message_array[0] = '<code>' + message_array[0]
     message_array[-1] = message_array[-1] + '</code>'
+
+
+def append_categories_expenses_info(
+        categories: list, message: list, category_label: str
+) -> None:
+    """Adds expenses information by categories to the message."""
+    if categories:
+        message.append(category_label)
+
+        category_items = [
+            CATEGORY_ITEM.format(category.get("name"), category.get("amount"))
+            for category in categories
+        ]
+
+        wrap_list_to_monospace(category_items)
+        message.extend(category_items)

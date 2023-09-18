@@ -4,13 +4,13 @@ from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
 
 from bot.api_requests import get_api_client
-from bot.constants.telegram_messages import (CATEGORY_ITEM,
-                                             IN_CATEGORIES_LABEL,
+from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL,
                                              MONEY_LEFT_MESSAGE,
+                                             MONTH_CATEGORIES_LABEL,
                                              NO_TODAY_EXPENSES, TODAY_EXPENSES,
                                              TOO_MUCH_MONEY_BRUH)
-from bot.utils import (auth, money_left_calculate_message,
-                       wrap_list_to_monospace)
+from bot.utils import (append_categories_expenses_info, auth,
+                       money_left_calculate_message)
 
 PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
 
@@ -19,7 +19,8 @@ PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
 async def get_money_left(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """Sends the user message with money left from budget for current month."""
+    """Sends the user a message with information about the remaining funds for
+     the current month and information about spending by categories."""
     async with get_api_client() as client:
         response_data = await client.get_money_left()
 
@@ -33,12 +34,22 @@ async def get_money_left(
         MONEY_LEFT_MESSAGE
     )
 
-    await update.message.reply_text(message.format(
-        current_month,
-        response_data['budget'],
-        response_data['money_spend'],
-        money_left)
+    message = [
+        message.format(
+            current_month,
+            response_data['budget'],
+            response_data['money_spend'],
+            money_left
+        )
+    ]
+
+    append_categories_expenses_info(
+        response_data['categories'],
+        message,
+        MONTH_CATEGORIES_LABEL
     )
+
+    await update.message.reply_html('\n'.join(message))
 
 
 @auth
@@ -61,16 +72,11 @@ async def get_today_expenses(
     if today_expenses_amount >= PSYCHOLOGICAL_EXPENSE_LIMIT:
         message[0] += TOO_MUCH_MONEY_BRUH
 
-    categories = response_data['categories']
-    message.append(IN_CATEGORIES_LABEL)
-
-    category_items = [
-        CATEGORY_ITEM.format(category.get("name"), category.get("amount"))
-        for category in categories
-    ]
-
-    wrap_list_to_monospace(category_items)
-    message.extend(category_items)
+    append_categories_expenses_info(
+        response_data['categories'],
+        message,
+        IN_CATEGORIES_LABEL
+    )
 
     await update.message.reply_html('\n'.join(message))
 

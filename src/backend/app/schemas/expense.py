@@ -23,13 +23,6 @@ class ExpenseDB(ExpenseBase):
         orm_mode = True
 
 
-class MoneyLeft(BaseModel):
-    budget: float
-    money_spend: float
-    money_left: float
-    current_datetime: datetime
-
-
 class CategoryExpense(BaseModel):
     name: str
     amount: float
@@ -37,4 +30,12 @@ class CategoryExpense(BaseModel):
 
 class TodayExpenses(BaseModel):
     money_spend: float
+    categories: list[CategoryExpense]
+
+
+class MoneyLeft(BaseModel):
+    budget: float
+    money_spend: float
+    money_left: float
+    current_datetime: datetime
     categories: list[CategoryExpense]
