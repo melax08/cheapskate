@@ -6,7 +6,7 @@ from app.core.db import get_async_session
 from app.crud import category_crud, expense_crud
 from app.schemas.category import CategoryDB
 from app.schemas.expense import (CategoryExpense, ExpenseCreate, ExpenseDB,
-                                 MoneyLeft, TodayExpenses)
+                                 MoneyLeft, TodayExpenses, ExpensePeriod)
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -94,3 +94,15 @@ async def get_today_expenses(
     )
 
     return response_model
+
+
+@router.get('/periods', response_model=list[ExpensePeriod])
+async def get_years_and_months_with_expenses(
+        session: AsyncSession = Depends(get_async_session)
+):
+    """Gets the list of years and months with expenses."""
+    periods = await expense_crud.get_years_and_months_with_expenses(session)
+    periods = [
+        ExpensePeriod(year=year, month=month) for year, month in periods
+    ]
+    return periods

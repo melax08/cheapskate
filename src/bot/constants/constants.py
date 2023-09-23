@@ -16,6 +16,7 @@ CATEGORY_ENDPOINT_PATH = 'category/'
 EXPENSE_ADD_PATH = 'expense/'
 MONEY_LEFT_PATH = 'expense/money-left'
 TODAY_EXPENSES_PATH = 'expense/today'
+PERIODS_PATH = 'expense/periods'
 
 # Auth settings:
 ALLOWED_TELEGRAM_IDS = os.getenv('ALLOWED_TELEGRAM_IDS')

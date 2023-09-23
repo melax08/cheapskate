@@ -39,3 +39,8 @@ class MoneyLeft(BaseModel):
     money_left: float
     current_datetime: datetime
     categories: list[CategoryExpense]
+
+
+class ExpensePeriod(BaseModel):
+    year: int
+    month: int

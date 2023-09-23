@@ -102,3 +102,19 @@ def append_categories_expenses_info(
 
         wrap_list_to_monospace(category_items)
         message.extend(category_items)
+
+
+async def create_expense_periods_keyboard() -> list[InlineKeyboardButton]:
+    """Create keyboard with expense periods from API."""
+    async with get_api_client() as client:
+        periods = await client.get_expense_periods()
+
+    keyboard = []
+    for period in periods:
+        period_data = f'{period.get("year")} {period.get("month")}'
+        keyboard.append(InlineKeyboardButton(
+            period_data,
+            callback_data=f'REP {period_data}')
+        )
+
+    return keyboard

@@ -3,7 +3,7 @@ from typing import Union
 
 from app.core.config import settings
 from app.models.expense import Expense
-from sqlalchemy import Integer, and_, extract, func, select
+from sqlalchemy import Integer, and_, extract, func, select, distinct, desc, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base import CRUDBase
@@ -47,6 +47,16 @@ class CRUDExpense(CRUDBase):
             today_expenses = 0
 
         return round(today_expenses, 2)
+
+    async def get_years_and_months_with_expenses(self, session: AsyncSession):
+        """Gets unique years and months with expenses."""
+        periods = await session.execute(
+            select(
+                distinct(extract("year", self.model.date)).label('year'),
+                extract("month", self.model.date).label('month')
+            ).order_by(desc('year'), desc('month'))
+        )
+        return periods.all()
 
 
 expense_crud = CRUDExpense(Expense)

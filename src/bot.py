@@ -5,6 +5,7 @@ from bot.handlers.command_handlers import money_left_handler, today_handler
 from bot.handlers.expense_handlers import (add_expense_handler,
                                            delete_expense_handler,
                                            select_category_handler)
+from bot.handlers.report_handlers import expense_periods_handler, get_report_handler
 from bot.handlers.main_handlers import error_handler, start_handler
 from utils.configs import TOKEN
 from utils.logger import configure_logging
@@ -21,6 +22,8 @@ def start_bot() -> None:
             add_category_handler,
             money_left_handler,
             today_handler,
+            expense_periods_handler,
+            get_report_handler,
             add_expense_handler,
             delete_expense_handler,
             select_category_handler,
