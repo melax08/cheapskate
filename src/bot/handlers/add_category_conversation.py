@@ -10,7 +10,7 @@ from bot.constants.logging_messages import (ADDED_CATEGORY_LOG,
 from bot.constants.telegram_messages import (CATEGORY_ADD_SUCCESS,
                                              CATEGORY_ALREADY_EXISTS,
                                              ENTER_CATEGORY_NAME)
-from bot.utils import auth, get_user_info
+from bot.utils.utils import auth, get_user_info
 
 from .main_handlers import cancel
 

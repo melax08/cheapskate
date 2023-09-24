@@ -1,8 +1,15 @@
-from telegram import InlineKeyboardMarkup, Update
-from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler
+import calendar
 
-from bot.utils import auth, create_expense_periods_keyboard
-from bot.constants.telegram_messages import SELECT_EXPENSE_PERIOD
+from telegram import Update
+from telegram.constants import ParseMode
+from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
+
+from bot.api_requests import get_api_client
+from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL,
+                                             PERIOD_EXPENSES,
+                                             SELECT_EXPENSE_PERIOD)
+from bot.utils.keyboards import create_expense_periods_keyboard
+from bot.utils.utils import append_categories_expenses_info, auth
 
 
 @auth
@@ -14,7 +21,7 @@ async def get_periods_with_expenses(
     keyboard = await create_expense_periods_keyboard()
     await update.message.reply_text(
         SELECT_EXPENSE_PERIOD,
-        reply_markup=InlineKeyboardMarkup([keyboard])
+        reply_markup=keyboard
     )
 
 
@@ -22,14 +29,33 @@ async def get_periods_with_expenses(
 async def get_report_for_period(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
+    """Get the expense statistic about chosen month and year."""
     query = update.callback_query
     _, year, month = query.data.split()
 
+    async with get_api_client() as client:
+        statistic_data = await client.get_statistic(year, month)
+
+    message = [
+        PERIOD_EXPENSES.format(
+            calendar.month_name[int(month)],
+            year,
+            statistic_data['money_spent']
+        )
+    ]
+
+    append_categories_expenses_info(
+        statistic_data['categories'],
+        message,
+        IN_CATEGORIES_LABEL
+    )
+
     await query.edit_message_text(
-        text=f'Отчет за период: {year} {month}'
+        text='\n'.join(message),
+        parse_mode=ParseMode.HTML
     )
 
 expense_periods_handler = CommandHandler(
     'statistics', get_periods_with_expenses)
-get_report_handler = CallbackQueryHandler(
+statistic_handler = CallbackQueryHandler(
     get_report_for_period, pattern=r'REP \d+')

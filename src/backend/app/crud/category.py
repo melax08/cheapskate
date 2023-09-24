@@ -2,7 +2,7 @@ import datetime as dt
 from typing import Optional
 
 from app.models import Category, Expense
-from sqlalchemy import desc, func, select
+from sqlalchemy import Integer, and_, desc, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .base import CRUDBase
@@ -47,6 +47,19 @@ class CRUDCategory(CRUDBase):
             session,
             Expense.date >= dt.date(
                 dt.date.today().year, dt.date.today().month, 1
+            )
+        )
+
+    async def get_expenses_by_categories_for_period(
+            self, year: int, month: int, session: AsyncSession
+    ):
+        """Get the list of expenses by categories for specified
+        year and month."""
+        return await self._select_categories_expenses(
+            session,
+            and_(
+                func.cast(extract("month", Expense.date), Integer) == month,
+                func.cast(extract("year", Expense.date), Integer) == year
             )
         )
 

@@ -1,12 +1,13 @@
 import datetime as dt
 
-from app.api.validators import check_category_exists, check_expense_exists
+from app.api.validators import (check_category_exists, check_expense_exists,
+                                validate_month_year)
 from app.core.config import settings
 from app.core.db import get_async_session
 from app.crud import category_crud, expense_crud
 from app.schemas.category import CategoryDB
 from app.schemas.expense import (CategoryExpense, ExpenseCreate, ExpenseDB,
-                                 MoneyLeft, TodayExpenses, ExpensePeriod)
+                                 ExpensePeriod, ExpenseStatistic, MoneyLeft)
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,14 +69,14 @@ async def get_money_left(
     response_model = MoneyLeft(
         budget=settings.month_budget,
         money_left=money_left,
-        money_spend=money_spend,
+        money_spent=money_spend,
         current_datetime=dt.datetime.now(),
         categories=categories
     )
     return response_model
 
 
-@router.get('/today', response_model=TodayExpenses)
+@router.get('/today', response_model=ExpenseStatistic)
 async def get_today_expenses(
         session: AsyncSession = Depends(get_async_session)
 ):
@@ -88,8 +89,8 @@ async def get_today_expenses(
     categories = [CategoryExpense(name=name, amount=amount)
                   for name, amount in today_categories]
 
-    response_model = TodayExpenses(
-        money_spend=today_expenses_amount,
+    response_model = ExpenseStatistic(
+        money_spent=today_expenses_amount,
         categories=categories
     )
 
@@ -106,3 +107,27 @@ async def get_years_and_months_with_expenses(
         ExpensePeriod(year=year, month=month) for year, month in periods
     ]
     return periods
+
+
+@router.post('/statistic', response_model=ExpenseStatistic)
+async def get_statistic_for_period(
+        period: ExpensePeriod,
+        session: AsyncSession = Depends(get_async_session),
+):
+    """Get the information about expenses for specified month and year."""
+    validate_month_year(period.year, period.month)
+
+    money_spent = await expense_crud.get_expenses_sum_for_year_month(
+        period.year, period.month, session
+    )
+
+    categories = await category_crud.get_expenses_by_categories_for_period(
+        period.year, period.month, session)
+    categories = [CategoryExpense(name=name, amount=amount)
+                  for name, amount in categories]
+
+    response_model = ExpenseStatistic(
+        money_spent=money_spent,
+        categories=categories
+    )
+    return response_model

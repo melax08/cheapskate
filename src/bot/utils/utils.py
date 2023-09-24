@@ -1,40 +1,12 @@
 import logging
-from typing import Tuple, Union
+from typing import Tuple
 
-from telegram import InlineKeyboardButton, Update
+from telegram import Update
 
-from bot.constants.constants import ALLOWED_TELEGRAM_IDS, BUTTON_ROW_LEN
+from bot.constants.constants import ALLOWED_TELEGRAM_IDS
 from bot.constants.logging_messages import ACCESS_DENIED_LOG
 from bot.constants.telegram_messages import (ACCESS_DENIED, CATEGORY_ITEM,
                                              MONEY_LEFT_HAS, MONEY_RAN_OUT)
-
-from .api_requests import get_api_client
-
-
-async def create_category_keyboard(money: Union[float, int]) -> list:
-    """Create keyboard with categories from API."""
-    async with get_api_client() as client:
-        categories = await client.get_categories()
-
-    if len(categories) == 0:
-        raise ValueError
-
-    keyboard = []
-    row = []
-
-    for category in categories:
-        row.append(
-            InlineKeyboardButton(
-                category['name'], callback_data=f'{money} {category["id"]}'
-            )
-        )
-        if len(row) == BUTTON_ROW_LEN:
-            keyboard.append(row)
-            row = []
-    if len(row) > 0:
-        keyboard.append(row)
-
-    return keyboard
 
 
 def get_user_info(update: Update) -> str:
@@ -102,19 +74,3 @@ def append_categories_expenses_info(
 
         wrap_list_to_monospace(category_items)
         message.extend(category_items)
-
-
-async def create_expense_periods_keyboard() -> list[InlineKeyboardButton]:
-    """Create keyboard with expense periods from API."""
-    async with get_api_client() as client:
-        periods = await client.get_expense_periods()
-
-    keyboard = []
-    for period in periods:
-        period_data = f'{period.get("year")} {period.get("month")}'
-        keyboard.append(InlineKeyboardButton(
-            period_data,
-            callback_data=f'REP {period_data}')
-        )
-
-    return keyboard

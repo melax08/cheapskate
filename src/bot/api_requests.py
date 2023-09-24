@@ -9,7 +9,8 @@ from yarl import URL
 
 from bot.constants.constants import (API_URL, CATEGORY_ENDPOINT_PATH,
                                      EXPENSE_ADD_PATH, MONEY_LEFT_PATH,
-                                     TODAY_EXPENSES_PATH, PERIODS_PATH)
+                                     PERIODS_PATH, STATISTIC_PATH,
+                                     TODAY_EXPENSES_PATH)
 
 from .exceptions import APIError, BadRequest
 
@@ -120,6 +121,14 @@ class APIClient:
     async def get_expense_periods(self):
         """Get the list of years and months with expenses."""
         response_data = await self._get(PERIODS_PATH)
+        return response_data
+
+    async def get_statistic(self, year: int, month: int):
+        data = {
+            'year': year,
+            'month': month
+        }
+        response_data = await self._post(STATISTIC_PATH, data)
         return response_data
 
 

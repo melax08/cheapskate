@@ -7,7 +7,7 @@ from bot.constants.commands import COMMANDS
 from bot.constants.logging_messages import EXCEPTION_LOG, START_BOT_LOG
 from bot.constants.telegram_messages import (ACTION_CANCELED, API_ERROR,
                                              START_MESSAGE)
-from bot.utils import auth, get_user_info
+from bot.utils.utils import auth, get_user_info
 
 
 @auth

@@ -1,6 +1,6 @@
 import logging
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (CallbackQueryHandler, ContextTypes, MessageHandler,
                           filters)
@@ -14,9 +14,10 @@ from bot.constants.logging_messages import (CHOOSE_CATEGORY_LOG,
 from bot.constants.telegram_messages import (CHOOSE_CATEGORY, DELETE_MESSAGE,
                                              NO_CATEGORIES, UPDATE_MESSAGE,
                                              WRONG_REQUEST)
-from bot.utils import (auth, create_category_keyboard, get_user_info,
-                       money_left_calculate_message)
-from bot.validators import money_validator
+from bot.utils.keyboards import (create_category_keyboard,
+                                 create_delete_expense_keyboard)
+from bot.utils.utils import auth, get_user_info, money_left_calculate_message
+from bot.utils.validators import money_validator
 
 
 @auth
@@ -44,9 +45,7 @@ async def add_expense(
     logging.info(CHOOSE_CATEGORY_LOG.format(get_user_info(update), money))
     await update.message.reply_text(
         CHOOSE_CATEGORY.format(money),
-        reply_markup=InlineKeyboardMarkup(
-            keyboard
-        )
+        reply_markup=keyboard
     )
 
 
@@ -81,12 +80,7 @@ async def select_expense_category(
             response_data['category']['name'],
             money_left
         ),
-        reply_markup=InlineKeyboardMarkup.from_row(
-            [InlineKeyboardButton(
-                'Удалить',
-                callback_data=f'DEL {response_data["id"]}'
-            )]
-        ),
+        reply_markup=create_delete_expense_keyboard(response_data["id"]),
         parse_mode=ParseMode.HTML
     )
 

@@ -28,17 +28,15 @@ class CategoryExpense(BaseModel):
     amount: float
 
 
-class TodayExpenses(BaseModel):
-    money_spend: float
+class ExpenseStatistic(BaseModel):
+    money_spent: float
     categories: list[CategoryExpense]
 
 
-class MoneyLeft(BaseModel):
+class MoneyLeft(ExpenseStatistic):
     budget: float
-    money_spend: float
     money_left: float
     current_datetime: datetime
-    categories: list[CategoryExpense]
 
 
 class ExpensePeriod(BaseModel):

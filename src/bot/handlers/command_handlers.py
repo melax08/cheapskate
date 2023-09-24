@@ -9,8 +9,8 @@ from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL,
                                              MONTH_CATEGORIES_LABEL,
                                              NO_TODAY_EXPENSES, TODAY_EXPENSES,
                                              TOO_MUCH_MONEY_BRUH)
-from bot.utils import (append_categories_expenses_info, auth,
-                       money_left_calculate_message)
+from bot.utils.utils import (append_categories_expenses_info, auth,
+                             money_left_calculate_message)
 
 PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
 
@@ -38,7 +38,7 @@ async def get_money_left(
         message.format(
             current_month,
             response_data['budget'],
-            response_data['money_spend'],
+            response_data['money_spent'],
             money_left
         )
     ]
@@ -57,11 +57,10 @@ async def get_today_expenses(
         update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
     """Sends the user message with information about today expenses."""
-
     async with get_api_client() as client:
         response_data = await client.get_today_expenses()
 
-    today_expenses_amount = response_data['money_spend']
+    today_expenses_amount = response_data['money_spent']
 
     if today_expenses_amount == 0:
         await update.message.reply_text(NO_TODAY_EXPENSES)
