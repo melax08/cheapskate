@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+TOKEN = os.getenv("TOKEN")
+
 MINIMUM_MONEY_TO_ADD: Union[float, int] = 0.01
 BUTTON_ROW_LEN: int = 3
 
@@ -24,3 +26,5 @@ ALLOWED_TELEGRAM_IDS = os.getenv('ALLOWED_TELEGRAM_IDS')
 if ALLOWED_TELEGRAM_IDS is not None:
     ALLOWED_TELEGRAM_IDS = set(map(
         int, os.getenv('ALLOWED_TELEGRAM_IDS').split()))
+
+ECHO_MESSAGES = int(os.getenv('ECHO_MESSAGES', default=1))

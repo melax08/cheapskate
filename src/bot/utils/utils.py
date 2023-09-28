@@ -1,12 +1,16 @@
+import asyncio
 import logging
 from typing import Tuple
 
-from telegram import Update
+from telegram import Bot, Update
+from telegram.constants import ParseMode
 
-from bot.constants.constants import ALLOWED_TELEGRAM_IDS
+from bot.constants.constants import ALLOWED_TELEGRAM_IDS, ECHO_MESSAGES, TOKEN
 from bot.constants.logging_messages import ACCESS_DENIED_LOG
-from bot.constants.telegram_messages import (ACCESS_DENIED, CATEGORY_ITEM,
-                                             MONEY_LEFT_HAS, MONEY_RAN_OUT)
+from bot.constants.telegram_messages import (ACCESS_DENIED,
+                                             ANOTHER_USER_ACTION,
+                                             CATEGORY_ITEM, MONEY_LEFT_HAS,
+                                             MONEY_RAN_OUT)
 
 
 def get_user_info(update: Update) -> str:
@@ -74,3 +78,41 @@ def append_categories_expenses_info(
 
         wrap_list_to_monospace(category_items)
         message.extend(category_items)
+
+
+def get_humanreadable_username(user: Update.effective_user) -> str:
+    """
+    Gets humanreadable information about specified telegram `effective_user`.
+    Returns string of first_name + last_name,
+    or username, if first_name and last_name is empty.
+    """
+    author_name_surname = [
+        entry for entry in (user.first_name, user.last_name)
+        if entry is not None
+    ]
+    if not author_name_surname:
+        author_name_surname = [user.username]
+    return ' '.join(author_name_surname)
+
+
+async def reply_message_to_authorized_users(
+        source_message: str, update: Update
+) -> None:
+    """Sends the information about the user action to another telegram users,
+    whose telegram_id specified in the env variable `ALLOWED_TELEGRAM_IDS`"""
+    if not ECHO_MESSAGES:
+        return
+    author = update.effective_user
+    author_username = get_humanreadable_username(author)
+    message_to_send = (
+        ANOTHER_USER_ACTION.format(author_username, source_message)
+    )
+
+    authorized_ids_without_author = ALLOWED_TELEGRAM_IDS.copy()
+    authorized_ids_without_author.remove(author.id)
+
+    bot = Bot(token=TOKEN)
+
+    await asyncio.gather(*[bot.send_message(
+        telegram_id, message_to_send, parse_mode=ParseMode.HTML
+    ) for telegram_id in authorized_ids_without_author])

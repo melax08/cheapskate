@@ -14,8 +14,6 @@ LOG_LEVELS = {
     "CRITICAL": logging.CRITICAL,
 }
 
-TOKEN = os.getenv("TOKEN")
-
 BASE_DIR = Path(__file__).parent.parent
 
 LOG_DIR = BASE_DIR.parent / ".data" / os.getenv("LOG_DIR", default="logs")

@@ -64,6 +64,7 @@ jobs:
             # Bot token, you can get it from telegram bot @botfather, when you creating a new bot.
             TOKEN=${{ secrets.BOT_TG_TOKEN }}
             ALLOWED_TELEGRAM_IDS=${{ secrets.ALLOWED_TELEGRAM_IDS }}
+            ECHO_MESSAGES=1
             
             # API Settings
             API_APP_TITLE=Cheapskate

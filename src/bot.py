@@ -1,5 +1,6 @@
 from telegram.ext import Application
 
+from bot.constants.constants import TOKEN
 from bot.handlers.add_category_conversation import add_category_handler
 from bot.handlers.command_handlers import money_left_handler, today_handler
 from bot.handlers.expense_handlers import (add_expense_handler,
@@ -8,7 +9,6 @@ from bot.handlers.expense_handlers import (add_expense_handler,
 from bot.handlers.main_handlers import error_handler, start_handler
 from bot.handlers.report_handlers import (expense_periods_handler,
                                           statistic_handler)
-from utils.configs import TOKEN
 from utils.logger import configure_logging
 
 

@@ -16,7 +16,8 @@ from bot.constants.telegram_messages import (CHOOSE_CATEGORY, DELETE_MESSAGE,
                                              WRONG_REQUEST)
 from bot.utils.keyboards import (create_category_keyboard,
                                  create_delete_expense_keyboard)
-from bot.utils.utils import auth, get_user_info, money_left_calculate_message
+from bot.utils.utils import (auth, get_user_info, money_left_calculate_message,
+                             reply_message_to_authorized_users)
 from bot.utils.validators import money_validator
 
 
@@ -73,16 +74,18 @@ async def select_expense_category(
         UPDATE_MESSAGE
     )
 
-    await query.answer()
-    await query.edit_message_text(
-        text=message.format(
+    message = message.format(
             round(float(money), 2),
             response_data['category']['name'],
             money_left
-        ),
+        )
+    await query.answer()
+    await query.edit_message_text(
+        text=message,
         reply_markup=create_delete_expense_keyboard(response_data["id"]),
         parse_mode=ParseMode.HTML
     )
+    await reply_message_to_authorized_users(message, update)
 
 
 @auth
@@ -109,15 +112,17 @@ async def delete_expense(
         DELETE_MESSAGE
     )
 
-    await query.answer()
-    await query.edit_message_text(
-        text=message.format(
+    message = message.format(
             response_data['amount'],
             response_data['category']['name'],
             money_left
-        ),
+        )
+    await query.answer()
+    await query.edit_message_text(
+        text=message,
         parse_mode=ParseMode.HTML
     )
+    await reply_message_to_authorized_users(message, update)
 
 
 add_expense_handler = MessageHandler(filters.TEXT, add_expense)
