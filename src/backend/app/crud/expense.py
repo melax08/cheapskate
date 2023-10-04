@@ -1,10 +1,11 @@
 import datetime as dt
 from typing import Union
 
-from app.core.config import settings
-from app.models.expense import Expense
 from sqlalchemy import Integer, and_, desc, distinct, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.core.config import settings
+from backend.app.models.expense import Expense
 
 from .base import CRUDBase
 

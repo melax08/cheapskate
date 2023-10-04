@@ -1,10 +1,11 @@
 import datetime as dt
 from http import HTTPStatus
 
-from app.crud import category_crud, expense_crud
-from app.models import Category, Expense
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.crud import category_crud, expense_crud
+from backend.app.models import Category, Expense
 
 
 async def check_category_exists(

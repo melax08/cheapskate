@@ -1,9 +1,10 @@
 import datetime as dt
 from typing import Optional
 
-from app.models import Category, Expense
 from sqlalchemy import Integer, and_, desc, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.models import Category, Expense
 
 from .base import CRUDBase
 

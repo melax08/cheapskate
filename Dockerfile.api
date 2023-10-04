@@ -5,7 +5,9 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock src/backend src/.env entrypoint.sh ./
+COPY src/backend ./backend
+COPY src/utils ./utils
+COPY pyproject.toml poetry.lock src/.env entrypoint.sh src/api.py ./
 
 RUN pip3 install --upgrade pip
 RUN pip3 install poetry --no-cache-dir

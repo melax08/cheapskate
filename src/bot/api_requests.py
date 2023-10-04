@@ -7,10 +7,10 @@ import aiohttp
 from aiohttp.client_exceptions import ContentTypeError
 from yarl import URL
 
-from bot.constants.constants import (API_URL, CATEGORY_ENDPOINT_PATH,
-                                     EXPENSE_ADD_PATH, MONEY_LEFT_PATH,
-                                     PERIODS_PATH, STATISTIC_PATH,
-                                     TODAY_EXPENSES_PATH)
+from bot.constants.constants import REQUEST_API_TIMEOUT
+from utils.api_settings import (API_URL, CATEGORIES_PATH, EXPENSE_PATH,
+                                MONEY_LEFT_FULL_PATH, PERIOD_EXPENSE_FULL_PATH,
+                                STATISTIC_FULL_PATH, TODAY_EXPENSE_FULL_PATH)
 
 from .exceptions import APIError, BadRequest
 
@@ -19,7 +19,7 @@ class APIClient:
     """Client that sends async requests to REST API and returns results."""
     def __init__(self, api_url: URL):
         self._api_url = api_url
-        self._client = aiohttp.ClientSession()
+        self._client = aiohttp.ClientSession(conn_timeout=REQUEST_API_TIMEOUT)
 
     async def __aenter__(self):
         return self
@@ -83,7 +83,7 @@ class APIClient:
 
     async def get_categories(self) -> list:
         """Get all expense categories."""
-        categories = await self._get(CATEGORY_ENDPOINT_PATH)
+        categories = await self._get(CATEGORIES_PATH)
         return categories
 
     async def add_category(self, category_name: str):
@@ -91,7 +91,7 @@ class APIClient:
         data = {
             'name': category_name
         }
-        response_data = await self._post(CATEGORY_ENDPOINT_PATH, data)
+        response_data = await self._post(CATEGORIES_PATH, data)
         return response_data
 
     async def add_expense(self, money: str, category_id: str):
@@ -100,27 +100,27 @@ class APIClient:
             'category_id': category_id,
             'amount': money
         }
-        response_data = await self._post(EXPENSE_ADD_PATH, data)
+        response_data = await self._post(EXPENSE_PATH, data)
         return response_data
 
     async def delete_expense(self, expense_id: str):
         """Delete specified expense."""
-        response_data = await self._delete(EXPENSE_ADD_PATH + expense_id)
+        response_data = await self._delete(EXPENSE_PATH + '/' + expense_id)
         return response_data
 
     async def get_money_left(self):
         """Get money left for current month."""
-        response_data = await self._get(MONEY_LEFT_PATH)
+        response_data = await self._get(MONEY_LEFT_FULL_PATH)
         return response_data
 
     async def get_today_expenses(self):
         """Get today expenses information."""
-        response_data = await self._get(TODAY_EXPENSES_PATH)
+        response_data = await self._get(TODAY_EXPENSE_FULL_PATH)
         return response_data
 
     async def get_expense_periods(self):
         """Get the list of years and months with expenses."""
-        response_data = await self._get(PERIODS_PATH)
+        response_data = await self._get(PERIOD_EXPENSE_FULL_PATH)
         return response_data
 
     async def get_statistic(self, year: int, month: int):
@@ -128,7 +128,7 @@ class APIClient:
             'year': year,
             'month': month
         }
-        response_data = await self._post(STATISTIC_PATH, data)
+        response_data = await self._post(STATISTIC_FULL_PATH, data)
         return response_data
 
 

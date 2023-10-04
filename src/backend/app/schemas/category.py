@@ -1,9 +1,10 @@
-from app.core.constants import MAX_CATEGORY_LENGTH
 from pydantic import BaseModel, Field, field_validator
+
+from utils.constants import MAX_CATEGORY_NAME_LENGTH
 
 
 class CategoryCreate(BaseModel):
-    name: str = Field(..., max_length=MAX_CATEGORY_LENGTH)
+    name: str = Field(..., max_length=MAX_CATEGORY_NAME_LENGTH)
 
     @field_validator('name')
     def name_cant_be_null(cls, value: str):

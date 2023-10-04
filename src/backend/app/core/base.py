@@ -1,3 +1,2 @@
-from app.core.db import Base  # noqa
-from app.models import Category  # noqa
-from app.models import Expense  # noqa
+from backend.app.core.db import Base  # noqa
+from backend.app.models import Category, Expense  # noqa

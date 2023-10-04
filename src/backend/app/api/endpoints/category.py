@@ -1,9 +1,10 @@
-from app.api.validators import check_category_name_duplicate
-from app.core.db import get_async_session
-from app.crud import category_crud
-from app.schemas.category import CategoryCreate, CategoryDB
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.api.validators import check_category_name_duplicate
+from backend.app.core.db import get_async_session
+from backend.app.crud import category_crud
+from backend.app.schemas.category import CategoryCreate, CategoryDB
 
 router = APIRouter()
 

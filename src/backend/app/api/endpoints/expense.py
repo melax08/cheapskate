@@ -1,15 +1,20 @@
 import datetime as dt
 
-from app.api.validators import (check_category_exists, check_expense_exists,
-                                validate_month_year)
-from app.core.config import settings
-from app.core.db import get_async_session
-from app.crud import category_crud, expense_crud
-from app.schemas.category import CategoryDB
-from app.schemas.expense import (CategoryExpense, ExpenseCreate, ExpenseDB,
-                                 ExpensePeriod, ExpenseStatistic, MoneyLeft)
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.api.validators import (check_category_exists,
+                                        check_expense_exists,
+                                        validate_month_year)
+from backend.app.core.config import settings
+from backend.app.core.db import get_async_session
+from backend.app.crud import category_crud, expense_crud
+from backend.app.schemas.category import CategoryDB
+from backend.app.schemas.expense import (CategoryExpense, ExpenseCreate,
+                                         ExpenseDB, ExpensePeriod,
+                                         ExpenseStatistic, MoneyLeft)
+from utils.api_settings import (MONEY_LEFT_PATH, PERIOD_EXPENSE_PATH,
+                                STATISTIC_PATH, TODAY_EXPENSE_PATH)
 
 router = APIRouter()
 
@@ -52,7 +57,7 @@ async def delete_expense(
     return expense
 
 
-@router.get('/money-left', response_model=MoneyLeft)
+@router.get(MONEY_LEFT_PATH, response_model=MoneyLeft)
 async def get_money_left(
     session: AsyncSession = Depends(get_async_session)
 ):
@@ -76,7 +81,7 @@ async def get_money_left(
     return response_model
 
 
-@router.get('/today', response_model=ExpenseStatistic)
+@router.get(TODAY_EXPENSE_PATH, response_model=ExpenseStatistic)
 async def get_today_expenses(
         session: AsyncSession = Depends(get_async_session)
 ):
@@ -97,7 +102,7 @@ async def get_today_expenses(
     return response_model
 
 
-@router.get('/periods', response_model=list[ExpensePeriod])
+@router.get(PERIOD_EXPENSE_PATH, response_model=list[ExpensePeriod])
 async def get_years_and_months_with_expenses(
         session: AsyncSession = Depends(get_async_session)
 ):
@@ -109,7 +114,7 @@ async def get_years_and_months_with_expenses(
     return periods
 
 
-@router.post('/statistic', response_model=ExpenseStatistic)
+@router.post(STATISTIC_PATH, response_model=ExpenseStatistic)
 async def get_statistic_for_period(
         period: ExpensePeriod,
         session: AsyncSession = Depends(get_async_session),

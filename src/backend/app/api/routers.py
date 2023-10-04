@@ -1,16 +1,24 @@
-from app.api.endpoints import category_router, expense_router
 from fastapi import APIRouter
 
-main_router = APIRouter(prefix='/api/v1')
+from backend.app.api.endpoints import category_router, expense_router
+from utils.api_settings import API_PATH, CATEGORIES_PATH, EXPENSE_PATH
+
+main_router = APIRouter(prefix=API_PATH)
+
+
+def __make_root_path(path: str) -> str:
+    """Add a slash to the start of the string."""
+    return '/' + path
+
 
 main_router.include_router(
     category_router,
-    prefix='/category',
+    prefix=__make_root_path(CATEGORIES_PATH),
     tags=['Category']
 )
 
 main_router.include_router(
     expense_router,
-    prefix='/expense',
+    prefix=__make_root_path(EXPENSE_PATH),
     tags=['Expense']
 )
