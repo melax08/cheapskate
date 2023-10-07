@@ -1,5 +1,5 @@
 import calendar
-from typing import Union
+from typing import Optional, Union
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -35,10 +35,13 @@ async def create_category_keyboard(
     return InlineKeyboardMarkup(keyboard)
 
 
-async def create_expense_periods_keyboard() -> InlineKeyboardMarkup:
+async def create_expense_periods_keyboard() -> Optional[InlineKeyboardMarkup]:
     """Create keyboard with expense periods from API."""
     async with get_api_client() as client:
         periods = await client.get_expense_periods()
+
+    if not periods:
+        return None
 
     keyboard = []
     for period in periods:

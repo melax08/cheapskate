@@ -5,11 +5,12 @@ from telegram.constants import ParseMode
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from bot.api_requests import get_api_client
-from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL,
+from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL, NO_EXPENSES,
                                              PERIOD_EXPENSES,
                                              SELECT_EXPENSE_PERIOD)
 from bot.utils.keyboards import create_expense_periods_keyboard
-from bot.utils.utils import append_categories_expenses_info, auth
+from bot.utils.utils import (append_categories_expenses_info, auth,
+                             get_russian_month_name)
 
 
 @auth
@@ -19,10 +20,13 @@ async def get_periods_with_expenses(
     """Send to user the keyboard with all expense periods in database.
     The user can click on one of buttons and get a report about this period."""
     keyboard = await create_expense_periods_keyboard()
-    await update.message.reply_text(
-        SELECT_EXPENSE_PERIOD,
-        reply_markup=keyboard
-    )
+    if keyboard is not None:
+        await update.message.reply_text(
+            SELECT_EXPENSE_PERIOD,
+            reply_markup=keyboard
+        )
+    else:
+        await update.message.reply_text(NO_EXPENSES)
 
 
 @auth
@@ -38,7 +42,7 @@ async def get_report_for_period(
 
     message = [
         PERIOD_EXPENSES.format(
-            calendar.month_name[int(month)],
+            get_russian_month_name(calendar.month_name[int(month)]),
             year,
             statistic_data['money_spent']
         )

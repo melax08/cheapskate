@@ -5,7 +5,8 @@ from typing import Tuple
 from telegram import Bot, Update
 from telegram.constants import ParseMode
 
-from bot.constants.constants import ALLOWED_TELEGRAM_IDS, ECHO_MESSAGES, TOKEN
+from bot.constants.constants import (ALLOWED_TELEGRAM_IDS, ECHO_MESSAGES,
+                                     MONTH_NAME_MAP, TOKEN)
 from bot.constants.logging_messages import ACCESS_DENIED_LOG
 from bot.constants.telegram_messages import (ACCESS_DENIED,
                                              ANOTHER_USER_ACTION,
@@ -116,3 +117,8 @@ async def reply_message_to_authorized_users(
     await asyncio.gather(*[bot.send_message(
         telegram_id, message_to_send, parse_mode=ParseMode.HTML
     ) for telegram_id in authorized_ids_without_author])
+
+
+def get_russian_month_name(month_name: str) -> str:
+    """Returns the Russian name of the month."""
+    return MONTH_NAME_MAP.get(month_name, month_name)

@@ -70,11 +70,21 @@ docker-compose up -d
 
 ### Settings
 
-In progress
+Bot constants available in directory: `src/bot/constants/`
+
+API constants and some bot constants you can configure in `.env` file (see example in `src/.env.example` file).
+
+Common constants for bot and API you can find in `src/utils/constants.py` and `src/utils/configs.py`.
 
 ### Telegram commands and usage
 
 Only Telegram users whose IDs are listed in the `ALLOWED_TELEGRAM_IDS` (check the `.env.example` file for details) environment variable have access to the bot. If there is no ID in this environment variable, then all users have access to the bot (not recommended).
+
+<details>
+<summary>
+Create categories and expense management
+</summary>
+<br>
 
 First, you need to create spending categories so that you can add expenses to them in the future.
 
@@ -92,9 +102,43 @@ If an expense was added by mistake, or the wrong category was selected, you can 
 
 ![delete_expense.png](readme_files/example_screens/delete_expense.png)
 
+</details>
+
+<details>
+<summary>
+Obtaining spending statistics
+</summary>
+<br>
+
+There are several commands that allow you to get a variety of spending statistics.
+
+`/money_left` - shows statistics on spending for the current month, including statistics on spending categories and the balance of funds until the end of the month.
+
+![money_left.png](readme_files/example_screens/money_left.png)
+
+`/today` - shows the amount of money spent today, including information by spending category
+
+![today.png](readme_files/example_screens/today.png)
+
+`/statistics` - allows you to view spending statistics for a specific month of a specific year.
+
+![statistic_choose.png](readme_files/example_screens/statistic_choose.png)
+
+![statistic_chosen.png](readme_files/example_screens/statistic_chosen.png)
+
+</details>
+
 ### API documentation
 
-In progress
+If you run API locally by using `uvicorn`, you can get access to the swagger documentation of the API.
+
+If you run API by command (before run this command, you need to install virtual environment for python3 and needed dependencies):
+
+```shell
+cd cheapskate/src && uvicorn api:app
+```
+
+Documentation will be available on URL: http://127.0.0.1:8000/docs
 
 <!-- MARKDOWN LINKS & BADGES -->
 [Python-url]: https://www.python.org/

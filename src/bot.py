@@ -7,8 +7,8 @@ from bot.handlers.expense_handlers import (add_expense_handler,
                                            delete_expense_handler,
                                            select_category_handler)
 from bot.handlers.main_handlers import error_handler, start_handler
-from bot.handlers.report_handlers import (expense_periods_handler,
-                                          statistic_handler)
+from bot.handlers.statistic_handlers import (expense_periods_handler,
+                                             statistic_handler)
 from utils.logger import configure_logging
 
 

@@ -10,6 +10,7 @@ from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL,
                                              NO_TODAY_EXPENSES, TODAY_EXPENSES,
                                              TOO_MUCH_MONEY_BRUH)
 from bot.utils.utils import (append_categories_expenses_info, auth,
+                             get_russian_month_name,
                              money_left_calculate_message)
 
 PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
@@ -27,7 +28,8 @@ async def get_money_left(
     current_datetime = dt.datetime.fromisoformat(
         response_data['current_datetime']
     )
-    current_month = current_datetime.strftime('%B')
+
+    current_month = get_russian_month_name(current_datetime.strftime('%B'))
 
     money_left, message = money_left_calculate_message(
         response_data['money_left'],
