@@ -1,10 +1,12 @@
 import calendar
+from collections import defaultdict
 from typing import Optional, Union
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot.api_requests import get_api_client
 from bot.constants.constants import BUTTON_ROW_LEN
+from bot.utils.utils import get_russian_month_name
 
 
 async def create_category_keyboard(
@@ -35,22 +37,47 @@ async def create_category_keyboard(
     return InlineKeyboardMarkup(keyboard)
 
 
-async def create_expense_periods_keyboard() -> Optional[InlineKeyboardMarkup]:
-    """Create keyboard with expense periods from API."""
+async def create_statistic_years_keyboard() -> Optional[InlineKeyboardMarkup]:
+    """Create initial statistic keyboard with years and months in callback data."""
     async with get_api_client() as client:
         periods = await client.get_expense_periods()
 
     if not periods:
         return None
 
-    keyboard = []
+    year_months_map = defaultdict(list)
     for period in periods:
-        keyboard.append(InlineKeyboardButton(
-            f'{calendar.month_abbr[period.get("month")]} {period.get("year")}',
-            callback_data=f'REP {period.get("year")} {period.get("month")}')
+        year_months_map[period['year']].append(str(period['month']))
+
+    keyboard = []
+    for year, months in year_months_map.items():
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    str(year),
+                    callback_data=f'YEAR {year} {",".join(months)}'
+                )
+            ]
         )
 
-    return InlineKeyboardMarkup([keyboard])
+    return InlineKeyboardMarkup(keyboard)
+
+
+def create_statistic_months_keyboard(year, months) -> InlineKeyboardMarkup:
+    """Create a keyboard with the months of the selected year in which the expenses
+    occurred."""
+    keyboard = []
+    for month in months.split(','):
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    f'{get_russian_month_name(calendar.month_name[int(month)])} {year}',
+                    callback_data=f'REP {year} {month}'
+                )
+            ]
+        )
+
+    return InlineKeyboardMarkup(keyboard)
 
 
 def create_delete_expense_keyboard(expense_id: int) -> InlineKeyboardMarkup:

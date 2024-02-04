@@ -27,12 +27,7 @@ class CRUDExpense(CRUDBase):
         money_spent = await session.execute(
             select(func.sum(self.model.amount)).where(where_stmt)
         )
-        money_spent = money_spent.scalars().first()
-
-        if not money_spent:
-            money_spent = 0
-
-        return money_spent
+        return money_spent.scalars().first() or 0
 
     async def calculate_money_left(
             self, session: AsyncSession
