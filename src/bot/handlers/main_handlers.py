@@ -39,10 +39,11 @@ async def error_handler(
     """Log the error and send a telegram message to notify the current user
     about the problem."""
     logging.error(EXCEPTION_LOG, exc_info=context.error)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=API_ERROR
-    )
+    if update is not None:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=API_ERROR
+        )
 
 
 start_handler = CommandHandler('start', start)
