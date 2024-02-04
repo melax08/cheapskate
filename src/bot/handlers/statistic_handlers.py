@@ -5,22 +5,14 @@ from telegram.constants import ParseMode
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from bot.api_requests import get_api_client
-from bot.constants.telegram_messages import (
-    IN_CATEGORIES_LABEL,
-    NO_EXPENSES,
-    PERIOD_EXPENSES,
-    STATISTIC_YEAR_MESSAGE,
-    STATISTIC_MONTH_MESSAGE
-)
-from bot.utils.keyboards import (
-    create_statistic_years_keyboard,
-    create_statistic_months_keyboard
-)
-from bot.utils.utils import (
-    append_categories_expenses_info,
-    auth,
-    get_russian_month_name
-)
+from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL, NO_EXPENSES,
+                                             PERIOD_EXPENSES,
+                                             STATISTIC_MONTH_MESSAGE,
+                                             STATISTIC_YEAR_MESSAGE)
+from bot.utils.keyboards import (create_statistic_months_keyboard,
+                                 create_statistic_years_keyboard)
+from bot.utils.utils import (append_categories_expenses_info, auth,
+                             get_russian_month_name)
 
 
 @auth

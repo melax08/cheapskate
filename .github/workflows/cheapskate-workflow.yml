@@ -94,4 +94,4 @@ jobs:
         with:
           to: ${{ secrets.SEND_MESSAGE_TO_ID }}
           token: ${{ secrets.SEND_MESSAGE_TG_TOKEN }}
-          message: ${{ github.workflow }} успешно выполнен!
+          message: 💸 ${{ github.workflow }} успешно выполнен!
