@@ -1,7 +1,7 @@
 # cheapskate - telegram bot and API for financial control
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Actions status](https://github.com/melax08/cheapskate/actions/workflows/petalert-workflow.yml/badge.svg)](https://github.com/melax08/cheapskate/actions)
+[![Actions status](https://github.com/melax08/cheapskate/actions/workflows/cheapskate-workflow.yml/badge.svg)](https://github.com/melax08/cheapskate/actions)
 
 ## Information
 
