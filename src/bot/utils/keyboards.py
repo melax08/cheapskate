@@ -105,7 +105,8 @@ async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:
         for currency in currencies:
             row.append(
                 InlineKeyboardButton(
-                    currency['name'], callback_data=f'CURC {expense_id} {currency.get("id")}'
+                    currency['name'],
+                    callback_data=f'CURC {expense_id} {currency.get("id")}'
                 )
             )
             if len(row) == 2:

@@ -1,10 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 
-from utils.constants import (
-    MAX_CURRENCY_NAME_LENGTH,
-    CURRENCY_LETTER_CODE_LENGTH,
-    COUNTRY_LENGTH
-)
+from utils.constants import (COUNTRY_LENGTH, CURRENCY_LETTER_CODE_LENGTH,
+                             MAX_CURRENCY_NAME_LENGTH)
 
 
 class CurrencyCreate(BaseModel):

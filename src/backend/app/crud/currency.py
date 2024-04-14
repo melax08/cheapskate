@@ -1,5 +1,6 @@
-from .base import CRUDBase
 from backend.app.models import Currency
+
+from .base import CRUDBase
 
 
 class CRUDCurrency(CRUDBase):

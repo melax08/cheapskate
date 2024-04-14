@@ -8,11 +8,10 @@ from aiohttp.client_exceptions import ContentTypeError
 from yarl import URL
 
 from bot.constants.constants import REQUEST_API_TIMEOUT
-from utils.api_settings import (API_URL, CATEGORIES_PATH, EXPENSE_PATH,
-                                MONEY_LEFT_FULL_PATH, PERIOD_EXPENSE_FULL_PATH,
-                                STATISTIC_FULL_PATH, TODAY_EXPENSE_FULL_PATH,
-                                CURRENCY_PATH
-                                )
+from utils.api_settings import (API_URL, CATEGORIES_PATH, CURRENCY_PATH,
+                                EXPENSE_PATH, MONEY_LEFT_FULL_PATH,
+                                PERIOD_EXPENSE_FULL_PATH, STATISTIC_FULL_PATH,
+                                TODAY_EXPENSE_FULL_PATH)
 
 from .exceptions import APIError, BadRequest
 
@@ -151,7 +150,8 @@ class APIClient:
         data = {
             "currency_id": currency_id
         }
-        response_data = await self._post(f"{EXPENSE_PATH}/{expense_id}/{CURRENCY_PATH}", data)
+        response_data = await self._post(
+            f"{EXPENSE_PATH}/{expense_id}/{CURRENCY_PATH}", data)
         return response_data
 
 

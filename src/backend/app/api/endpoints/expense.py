@@ -4,18 +4,18 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.validators import (check_category_exists,
+                                        check_currency_exists,
                                         check_expense_exists,
-                                        validate_month_year,
-                                        check_currency_exists)
+                                        validate_month_year)
 from backend.app.core.config import settings
 from backend.app.core.db import get_async_session
 from backend.app.crud import category_crud, expense_crud
 from backend.app.schemas.category import CategoryDB
+from backend.app.schemas.currency import CurrencyDB, CurrencySet
 from backend.app.schemas.expense import (CategoryExpense, ExpenseCreate,
-                                         ExpenseDB, ExpensePeriod,
-                                         ExpenseStatistic, MoneyLeft, ExpenseMoneyLeftDB)
-from backend.app.schemas.currency import CurrencyDB
-from backend.app.schemas.currency import CurrencySet
+                                         ExpenseDB, ExpenseMoneyLeftDB,
+                                         ExpensePeriod, ExpenseStatistic,
+                                         MoneyLeft)
 from utils.api_settings import (MONEY_LEFT_PATH, PERIOD_EXPENSE_PATH,
                                 STATISTIC_PATH, TODAY_EXPENSE_PATH)
 

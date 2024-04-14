@@ -4,8 +4,8 @@ from http import HTTPStatus
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.crud import category_crud, expense_crud, currency_crud
-from backend.app.models import Category, Expense, Currency
+from backend.app.crud import category_crud, currency_crud, expense_crud
+from backend.app.models import Category, Currency, Expense
 
 
 async def check_category_exists(

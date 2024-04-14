@@ -12,7 +12,8 @@ from bot.constants.telegram_messages import (CATEGORY_ADD_SUCCESS,
                                              CATEGORY_ALREADY_EXISTS,
                                              CATEGORY_NAME_TOO_LONG,
                                              ENTER_CATEGORY_NAME)
-from bot.utils.utils import auth, get_user_info, reply_message_to_authorized_users
+from bot.utils.utils import (auth, get_user_info,
+                             reply_message_to_authorized_users)
 from bot.utils.validators import category_name_validator
 
 from .main_handlers import cancel

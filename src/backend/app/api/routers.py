@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 
-from backend.app.api.endpoints import category_router, expense_router, currency_router
-from utils.api_settings import API_PATH, CATEGORIES_PATH, EXPENSE_PATH, CURRENCY_PATH
+from backend.app.api.endpoints import (category_router, currency_router,
+                                       expense_router)
+from utils.api_settings import (API_PATH, CATEGORIES_PATH, CURRENCY_PATH,
+                                EXPENSE_PATH)
 
 main_router = APIRouter(prefix=API_PATH)
 

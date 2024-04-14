@@ -3,6 +3,9 @@ from telegram.ext import Application
 from bot.constants.constants import TOKEN
 from bot.handlers.add_category_conversation import add_category_handler
 from bot.handlers.command_handlers import money_left_handler, today_handler
+from bot.handlers.currency_handlers import (add_currency_handler,
+                                            change_currency_handler,
+                                            set_currency_handler)
 from bot.handlers.expense_handlers import (add_expense_handler,
                                            delete_expense_handler,
                                            select_category_handler)
@@ -10,7 +13,6 @@ from bot.handlers.main_handlers import error_handler, start_handler
 from bot.handlers.statistic_handlers import (statistic_initial_handler,
                                              statistic_report_handler,
                                              statistic_year_handler)
-from bot.handlers.currency_handlers import add_currency_handler, change_currency_handler, set_currency_handler
 from utils.logger import configure_logging
 
 

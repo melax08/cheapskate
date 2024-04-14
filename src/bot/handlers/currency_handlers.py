@@ -1,23 +1,36 @@
 import logging
 
-from telegram import Update, ReplyKeyboardRemove
-from telegram.ext import CallbackQueryHandler, ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
+from telegram import ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
+from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
+                          ConversationHandler, MessageHandler, filters)
 
-from bot.utils.utils import auth, reply_message_to_authorized_users, get_user_info
-from bot.utils.validators import currency_code_validator, currency_name_validator, currency_country_validator
 from bot.api_requests import BadRequest, get_api_client
-from bot.utils.keyboards import create_currency_keyboard, create_delete_expense_keyboard
-from bot.constants.telegram_messages import (
-    ENTER_CURRENCY_NAME, ENTER_CURRENCY_CODE, VALIDATION_ERROR_CURRENCY_CODE,
-    ENTER_CURRENCY_COUNTRY, CURRENCY_ADD_SUCCESS, CURRENCY_NOT_UNIQUE,
-    VALIDATION_ERROR_CURRENCY_NAME, VALIDATION_ERROR_COUNTRY, CHOOSE_CURRENCY, NO_CURRENCIES,
-    CURRENCY_SET
-)
-from utils.constants import MAX_CURRENCY_NAME_LENGTH, COUNTRY_LENGTH
-from bot.constants.logging_messages import (
-    CURRENCY_NAME_TOO_LONG_LOG, CURRENCY_INCORRECT_CODE_LOG, CURRENCY_ADDED_NEW_LOG,
-    CURRENCY_NOT_UNIQUE_LOG, CURRENCY_COUNTRY_TOO_LONG_LOG, NO_CURRENCIES_LOG, SET_CURRENCY_LOG)
+from bot.constants.logging_messages import (CURRENCY_ADDED_NEW_LOG,
+                                            CURRENCY_COUNTRY_TOO_LONG_LOG,
+                                            CURRENCY_INCORRECT_CODE_LOG,
+                                            CURRENCY_NAME_TOO_LONG_LOG,
+                                            CURRENCY_NOT_UNIQUE_LOG,
+                                            NO_CURRENCIES_LOG,
+                                            SET_CURRENCY_LOG)
+from bot.constants.telegram_messages import (CHOOSE_CURRENCY,
+                                             CURRENCY_ADD_SUCCESS,
+                                             CURRENCY_NOT_UNIQUE, CURRENCY_SET,
+                                             ENTER_CURRENCY_CODE,
+                                             ENTER_CURRENCY_COUNTRY,
+                                             ENTER_CURRENCY_NAME,
+                                             NO_CURRENCIES,
+                                             VALIDATION_ERROR_COUNTRY,
+                                             VALIDATION_ERROR_CURRENCY_CODE,
+                                             VALIDATION_ERROR_CURRENCY_NAME)
+from bot.utils.keyboards import (create_currency_keyboard,
+                                 create_delete_expense_keyboard)
+from bot.utils.utils import (auth, get_user_info,
+                             reply_message_to_authorized_users)
+from bot.utils.validators import (currency_code_validator,
+                                  currency_country_validator,
+                                  currency_name_validator)
+from utils.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 
 from .main_handlers import cancel
 
@@ -158,7 +171,13 @@ async def set_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         response_data["amount"],
         response_data["category"]["name"],
     )
-    logging.info(SET_CURRENCY_LOG.format(get_user_info(update), response_data["currency"]["name"], response_data["id"]))
+    logging.info(
+        SET_CURRENCY_LOG.format(
+            get_user_info(update),
+            response_data["currency"]["name"],
+            response_data["id"]
+        )
+    )
     await query.edit_message_text(
         message,
         reply_markup=create_delete_expense_keyboard(
