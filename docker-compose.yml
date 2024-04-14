@@ -10,6 +10,8 @@ services:
       - src/.env
     environment:
       - TZ=Europe/Moscow
+#    ports:
+#      - '5432:5432'
 
   cheapskate_api:
     build:
@@ -21,6 +23,8 @@ services:
       - src/.env
     environment:
       - TZ=Europe/Moscow
+#    ports:
+#      - '8000:8000'
 
   cheapskate_bot:
     build:

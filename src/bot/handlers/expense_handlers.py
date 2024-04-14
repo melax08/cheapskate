@@ -74,15 +74,12 @@ async def select_expense_category(
         UPDATE_MESSAGE
     )
 
-    message = message.format(
-            round(float(money), 2),
-            response_data['category']['name'],
-            money_left
-        )
+    money = round(float(money), 2)
+    message = message.format(money, response_data['category']['name'], money_left)
     await query.answer()
     await query.edit_message_text(
         text=message,
-        reply_markup=create_delete_expense_keyboard(response_data["id"]),
+        reply_markup=create_delete_expense_keyboard(response_data["id"], money),
         parse_mode=ParseMode.HTML
     )
     await reply_message_to_authorized_users(message, update)

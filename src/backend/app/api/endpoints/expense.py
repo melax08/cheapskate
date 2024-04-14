@@ -5,56 +5,65 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.validators import (check_category_exists,
                                         check_expense_exists,
-                                        validate_month_year)
+                                        validate_month_year,
+                                        check_currency_exists)
 from backend.app.core.config import settings
 from backend.app.core.db import get_async_session
 from backend.app.crud import category_crud, expense_crud
 from backend.app.schemas.category import CategoryDB
 from backend.app.schemas.expense import (CategoryExpense, ExpenseCreate,
                                          ExpenseDB, ExpensePeriod,
-                                         ExpenseStatistic, MoneyLeft)
+                                         ExpenseStatistic, MoneyLeft, ExpenseMoneyLeftDB)
+from backend.app.schemas.currency import CurrencyDB
+from backend.app.schemas.currency import CurrencySet
 from utils.api_settings import (MONEY_LEFT_PATH, PERIOD_EXPENSE_PATH,
                                 STATISTIC_PATH, TODAY_EXPENSE_PATH)
 
 router = APIRouter()
 
 
-@router.post('/', response_model=ExpenseDB)
+@router.post('/', response_model=ExpenseMoneyLeftDB)
 async def add_expense(
         expense: ExpenseCreate,
         session: AsyncSession = Depends(get_async_session)
 ):
     """Add expense."""
-    category = await check_category_exists(expense.category_id, session)
-    category_pydantic = CategoryDB(id=category.id, name=category.name)
-    new_expense = await expense_crud.create(expense, session)
+    await check_category_exists(expense.category_id, session)
+    expense = await expense_crud.create(expense, session)
     money_left = await expense_crud.calculate_money_left(session)
-    new_expense = ExpenseDB(
-        **new_expense.__dict__,
-        category=category_pydantic,
-        money_left=money_left
-    )
-    return new_expense
+    expense.__dict__["money_left"] = money_left
+    return expense
 
 
-@router.delete('/{expense_id}', response_model=ExpenseDB)
+@router.delete('/{expense_id}', response_model=ExpenseMoneyLeftDB)
 async def delete_expense(
         expense_id: int,
         session: AsyncSession = Depends(get_async_session)
 ):
     """Delete expense by expense id."""
     expense = await check_expense_exists(expense_id, session)
-    category = await check_category_exists(expense.category_id, session)
-    category_pydantic = CategoryDB(id=category.id, name=category.name)
-    expense = await expense_crud.remove(expense, session)
+
+    category = CategoryDB(
+        id=expense.__dict__['category'].id, name=expense.__dict__['category'].name
+    )
+    currency = CurrencyDB(
+        id=expense.__dict__['currency'].id,
+        name=expense.__dict__['currency'].name,
+        letter_code=expense.__dict__['currency'].letter_code,
+        country=expense.__dict__['currency'].country,
+
+    ) if expense.currency else None
+
+    await expense_crud.remove(expense, session)
     money_left = await expense_crud.calculate_money_left(session)
-    expense = ExpenseDB(
+    response_data = ExpenseMoneyLeftDB(
         id=expense.__dict__['id'],
         amount=expense.__dict__['amount'],
-        category=category_pydantic,
+        category=category,
+        currency=currency,
         money_left=money_left
     )
-    return expense
+    return response_data
 
 
 @router.get(MONEY_LEFT_PATH, response_model=MoneyLeft)
@@ -136,3 +145,15 @@ async def get_statistic_for_period(
         categories=categories
     )
     return response_model
+
+
+@router.post('/{expense_id}/currency', response_model=ExpenseDB)
+async def set_currency(
+    expense_id: int,
+    currency: CurrencySet,
+    session: AsyncSession = Depends(get_async_session),
+):
+    expense = await check_expense_exists(expense_id, session)
+    currency = await check_currency_exists(currency.currency_id, session)
+    expense = await expense_crud.set_currency(expense, currency.id, session)
+    return expense

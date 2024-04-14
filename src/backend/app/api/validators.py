@@ -4,8 +4,8 @@ from http import HTTPStatus
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.crud import category_crud, expense_crud
-from backend.app.models import Category, Expense
+from backend.app.crud import category_crud, expense_crud, currency_crud
+from backend.app.models import Category, Expense, Currency
 
 
 async def check_category_exists(
@@ -53,3 +53,15 @@ def validate_month_year(year: int, month: int) -> None:
             status_code=HTTPStatus.BAD_REQUEST,
             detail='Bad month/year'
         )
+
+
+async def check_currency_exists(
+        currency_id: int, session: AsyncSession
+) -> Currency:
+    currency = await currency_crud.get(currency_id, session)
+    if currency is None:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="Currency not found"
+        )
+    return currency

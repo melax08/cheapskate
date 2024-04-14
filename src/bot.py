@@ -10,6 +10,7 @@ from bot.handlers.main_handlers import error_handler, start_handler
 from bot.handlers.statistic_handlers import (statistic_initial_handler,
                                              statistic_report_handler,
                                              statistic_year_handler)
+from bot.handlers.currency_handlers import add_currency_handler, change_currency_handler, set_currency_handler
 from utils.logger import configure_logging
 
 
@@ -21,7 +22,10 @@ def start_bot() -> None:
     application.add_handlers(
         (
             start_handler,
+            change_currency_handler,
+            set_currency_handler,
             add_category_handler,
+            add_currency_handler,
             money_left_handler,
             today_handler,
             statistic_initial_handler,

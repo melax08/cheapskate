@@ -3,7 +3,7 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-from app.core.base import Base
+from backend.app.core.base import Base
 from dotenv import load_dotenv
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -51,7 +51,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        dialect_opts={"paramstyle": "named"}
     )
 
     with context.begin_transaction():

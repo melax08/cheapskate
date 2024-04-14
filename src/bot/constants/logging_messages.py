@@ -18,3 +18,27 @@ CATEGORY_NAME_TOO_LONG_LOG = (
     'User {} tried to add category with too long name: {}'
 )
 EXCEPTION_LOG = 'Exception while handling an update:'
+
+# Currencies
+
+CURRENCY_NAME_TOO_LONG_LOG = (
+    "User {} tried to add currency with too long name: {}"
+)
+
+CURRENCY_INCORRECT_CODE_LOG = (
+    "User {} tried to add currency with incorrect currency code: {}"
+)
+CURRENCY_ADDED_NEW_LOG: str = (
+    "User {} added the new currency: {}"
+)
+
+CURRENCY_NOT_UNIQUE_LOG: str = (
+    "User {} tried to add not unique currency"
+)
+CURRENCY_COUNTRY_TOO_LONG_LOG: str = (
+    "User {} tried to add currency with too long country name: {}"
+)
+
+NO_CURRENCIES_LOG: str = "User {} can't set currency to expense, no currencies!"
+
+SET_CURRENCY_LOG: str = "User {} set currency {} to the expense {}"

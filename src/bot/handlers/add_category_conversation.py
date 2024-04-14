@@ -12,7 +12,7 @@ from bot.constants.telegram_messages import (CATEGORY_ADD_SUCCESS,
                                              CATEGORY_ALREADY_EXISTS,
                                              CATEGORY_NAME_TOO_LONG,
                                              ENTER_CATEGORY_NAME)
-from bot.utils.utils import auth, get_user_info
+from bot.utils.utils import auth, get_user_info, reply_message_to_authorized_users
 from bot.utils.validators import category_name_validator
 
 from .main_handlers import cancel
@@ -47,9 +47,9 @@ async def _category_confirmation(
             get_user_info(update),
             category_name)
         )
-        await update.message.reply_text(
-            CATEGORY_ADD_SUCCESS.format(response_data['name'])
-        )
+        message = CATEGORY_ADD_SUCCESS.format(response_data['name'])
+        await update.message.reply_text(message)
+        await reply_message_to_authorized_users(message, update)
         return ConversationHandler.END
     except BadRequest:
         logging.warning(CATEGORY_ALREADY_EXISTS_LOG.format(

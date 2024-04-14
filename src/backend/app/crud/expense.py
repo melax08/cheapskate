@@ -1,7 +1,7 @@
 import datetime as dt
 from typing import Union
 
-from sqlalchemy import Integer, and_, desc, distinct, extract, func, select
+from sqlalchemy import Integer, and_, desc, distinct, extract, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
@@ -72,6 +72,14 @@ class CRUDExpense(CRUDBase):
             session
         )
         return round(money_spent, 2)
+
+    async def set_currency(self, expense: Expense, currency_id: int, session: AsyncSession):
+        await session.execute(
+            update(self.model).where(self.model.id == expense.id).values(currency_id=currency_id)
+        )
+        await session.commit()
+        await session.refresh(expense)
+        return expense
 
 
 expense_crud = CRUDExpense(Expense)

@@ -1,10 +1,12 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from utils.constants import MINIMUM_EXPENSE_AMOUNT
 
 from .category import CategoryDB
+from .currency import CurrencyDB
 
 
 class ExpenseBase(BaseModel):
@@ -18,6 +20,13 @@ class ExpenseCreate(ExpenseBase):
 class ExpenseDB(ExpenseBase):
     id: int
     category: CategoryDB
+    currency: Optional[CurrencyDB]
+
+    class Config:
+        orm_mode = True
+
+
+class ExpenseMoneyLeftDB(ExpenseDB):
     money_left: float
 
     class Config:

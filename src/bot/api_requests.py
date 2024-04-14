@@ -10,7 +10,9 @@ from yarl import URL
 from bot.constants.constants import REQUEST_API_TIMEOUT
 from utils.api_settings import (API_URL, CATEGORIES_PATH, EXPENSE_PATH,
                                 MONEY_LEFT_FULL_PATH, PERIOD_EXPENSE_FULL_PATH,
-                                STATISTIC_FULL_PATH, TODAY_EXPENSE_FULL_PATH)
+                                STATISTIC_FULL_PATH, TODAY_EXPENSE_FULL_PATH,
+                                CURRENCY_PATH
+                                )
 
 from .exceptions import APIError, BadRequest
 
@@ -129,6 +131,27 @@ class APIClient:
             'month': month
         }
         response_data = await self._post(STATISTIC_FULL_PATH, data)
+        return response_data
+
+    async def add_currency(self, name: str, letter_code: str, country: str):
+        data = {
+          "name": name,
+          "letter_code": letter_code,
+          "country": country,
+        }
+        response_data = await self._post(CURRENCY_PATH, data)
+        return response_data
+
+    async def get_currencies(self):
+        response_data = await self._get(CURRENCY_PATH)
+        return response_data
+
+    async def set_currency(self, expense_id: int, currency_id: int):
+        """Set specified currency for the specified expense."""
+        data = {
+            "currency_id": currency_id
+        }
+        response_data = await self._post(f"{EXPENSE_PATH}/{expense_id}/{CURRENCY_PATH}", data)
         return response_data
 
 

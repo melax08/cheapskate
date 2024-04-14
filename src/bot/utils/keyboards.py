@@ -80,7 +80,38 @@ def create_statistic_months_keyboard(year, months) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-def create_delete_expense_keyboard(expense_id: int) -> InlineKeyboardMarkup:
+def create_delete_expense_keyboard(
+        expense_id: int, money: int | float = None
+) -> InlineKeyboardMarkup:
     """Creates delete expense button."""
     return InlineKeyboardMarkup.from_row(
-        [InlineKeyboardButton('Удалить', callback_data=f'DEL {expense_id}')])
+        [
+            InlineKeyboardButton('Удалить', callback_data=f'DEL {expense_id}'),
+            InlineKeyboardButton('Валюта', callback_data=f'CUR {expense_id} {money}'),
+        ]
+    )
+
+
+async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:
+    async with get_api_client() as client:
+        currencies = await client.get_currencies()
+
+        if len(currencies) == 0:
+            raise ValueError
+
+        keyboard = []
+        row = []
+
+        for currency in currencies:
+            row.append(
+                InlineKeyboardButton(
+                    currency['name'], callback_data=f'CURC {expense_id} {currency.get("id")}'
+                )
+            )
+            if len(row) == 2:
+                keyboard.append(row)
+                row = []
+        if len(row) > 0:
+            keyboard.append(row)
+
+        return InlineKeyboardMarkup(keyboard)
