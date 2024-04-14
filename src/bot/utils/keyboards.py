@@ -9,9 +9,7 @@ from bot.constants.constants import BUTTON_ROW_LEN
 from bot.utils.utils import get_russian_month_name
 
 
-async def create_category_keyboard(
-        money: Union[float, int]
-) -> InlineKeyboardMarkup:
+async def create_category_keyboard(money: Union[float, int]) -> InlineKeyboardMarkup:
     """Create keyboard with categories from API."""
     async with get_api_client() as client:
         categories = await client.get_categories()
@@ -25,7 +23,7 @@ async def create_category_keyboard(
     for category in categories:
         row.append(
             InlineKeyboardButton(
-                category['name'], callback_data=f'{money} {category["id"]}'
+                category["name"], callback_data=f'{money} {category["id"]}'
             )
         )
         if len(row) == BUTTON_ROW_LEN:
@@ -47,15 +45,14 @@ async def create_statistic_years_keyboard() -> Optional[InlineKeyboardMarkup]:
 
     year_months_map = defaultdict(list)
     for period in periods:
-        year_months_map[period['year']].append(str(period['month']))
+        year_months_map[period["year"]].append(str(period["month"]))
 
     keyboard = []
     for year, months in year_months_map.items():
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    str(year),
-                    callback_data=f'YEAR {year} {",".join(months)}'
+                    str(year), callback_data=f'YEAR {year} {",".join(months)}'
                 )
             ]
         )
@@ -67,12 +64,12 @@ def create_statistic_months_keyboard(year, months) -> InlineKeyboardMarkup:
     """Create a keyboard with the months of the selected year in which the expenses
     occurred."""
     keyboard = []
-    for month in months.split(','):
+    for month in months.split(","):
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    f'{get_russian_month_name(calendar.month_name[int(month)])} {year}',
-                    callback_data=f'REP {year} {month}'
+                    f"{get_russian_month_name(calendar.month_name[int(month)])} {year}",
+                    callback_data=f"REP {year} {month}",
                 )
             ]
         )
@@ -81,13 +78,13 @@ def create_statistic_months_keyboard(year, months) -> InlineKeyboardMarkup:
 
 
 def create_delete_expense_keyboard(
-        expense_id: int, money: int | float = None
+    expense_id: int, money: int | float = None
 ) -> InlineKeyboardMarkup:
     """Creates delete expense button."""
     return InlineKeyboardMarkup.from_row(
         [
-            InlineKeyboardButton('Удалить', callback_data=f'DEL {expense_id}'),
-            InlineKeyboardButton('Валюта', callback_data=f'CUR {expense_id} {money}'),
+            InlineKeyboardButton("Удалить", callback_data=f"DEL {expense_id}"),
+            InlineKeyboardButton("Валюта", callback_data=f"CUR {expense_id} {money}"),
         ]
     )
 
@@ -105,8 +102,8 @@ async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:
         for currency in currencies:
             row.append(
                 InlineKeyboardButton(
-                    currency['name'],
-                    callback_data=f'CURC {expense_id} {currency.get("id")}'
+                    currency["name"],
+                    callback_data=f'CURC {expense_id} {currency.get("id")}',
                 )
             )
             if len(row) == 2:

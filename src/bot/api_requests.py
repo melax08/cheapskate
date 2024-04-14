@@ -5,19 +5,26 @@ from typing import Optional, Type
 
 import aiohttp
 from aiohttp.client_exceptions import ContentTypeError
+from utils.api_settings import (
+    API_URL,
+    CATEGORIES_PATH,
+    CURRENCY_PATH,
+    EXPENSE_PATH,
+    MONEY_LEFT_FULL_PATH,
+    PERIOD_EXPENSE_FULL_PATH,
+    STATISTIC_FULL_PATH,
+    TODAY_EXPENSE_FULL_PATH,
+)
 from yarl import URL
 
 from bot.constants.constants import REQUEST_API_TIMEOUT
-from utils.api_settings import (API_URL, CATEGORIES_PATH, CURRENCY_PATH,
-                                EXPENSE_PATH, MONEY_LEFT_FULL_PATH,
-                                PERIOD_EXPENSE_FULL_PATH, STATISTIC_FULL_PATH,
-                                TODAY_EXPENSE_FULL_PATH)
 
 from .exceptions import APIError, BadRequest
 
 
 class APIClient:
     """Client that sends async requests to REST API and returns results."""
+
     def __init__(self, api_url: URL):
         self._api_url = api_url
         self._client = aiohttp.ClientSession(conn_timeout=REQUEST_API_TIMEOUT)
@@ -45,9 +52,7 @@ class APIClient:
     async def _post(self, path, data):
         """Make POST-requests to the specified API path with specified request
         data."""
-        async with self._client.post(
-                self._make_url(path), json=data
-        ) as response:
+        async with self._client.post(self._make_url(path), json=data) as response:
             return await self._response_processing(response)
 
     async def _get(self, path):
@@ -75,11 +80,11 @@ class APIClient:
             try:
                 response_data = await response.json()
             except ContentTypeError:
-                response_data = 'No JSON data returned'
+                response_data = "No JSON data returned"
             raise APIError(
-                f'Wrong API status code: {response.status}. '
-                f'Requested URL: {response.url}. '
-                f'Response data: {response_data}'
+                f"Wrong API status code: {response.status}. "
+                f"Requested URL: {response.url}. "
+                f"Response data: {response_data}"
             )
 
     async def get_categories(self) -> list:
@@ -89,24 +94,19 @@ class APIClient:
 
     async def add_category(self, category_name: str):
         """Add new expense category."""
-        data = {
-            'name': category_name
-        }
+        data = {"name": category_name}
         response_data = await self._post(CATEGORIES_PATH, data)
         return response_data
 
     async def add_expense(self, money: str, category_id: str):
         """Add new expense."""
-        data = {
-            'category_id': category_id,
-            'amount': money
-        }
+        data = {"category_id": category_id, "amount": money}
         response_data = await self._post(EXPENSE_PATH, data)
         return response_data
 
     async def delete_expense(self, expense_id: str):
         """Delete specified expense."""
-        response_data = await self._delete(EXPENSE_PATH + '/' + expense_id)
+        response_data = await self._delete(EXPENSE_PATH + "/" + expense_id)
         return response_data
 
     async def get_money_left(self):
@@ -125,18 +125,15 @@ class APIClient:
         return response_data
 
     async def get_statistic(self, year: int, month: int):
-        data = {
-            'year': year,
-            'month': month
-        }
+        data = {"year": year, "month": month}
         response_data = await self._post(STATISTIC_FULL_PATH, data)
         return response_data
 
     async def add_currency(self, name: str, letter_code: str, country: str):
         data = {
-          "name": name,
-          "letter_code": letter_code,
-          "country": country,
+            "name": name,
+            "letter_code": letter_code,
+            "country": country,
         }
         response_data = await self._post(CURRENCY_PATH, data)
         return response_data
@@ -147,11 +144,10 @@ class APIClient:
 
     async def set_currency(self, expense_id: int, currency_id: int):
         """Set specified currency for the specified expense."""
-        data = {
-            "currency_id": currency_id
-        }
+        data = {"currency_id": currency_id}
         response_data = await self._post(
-            f"{EXPENSE_PATH}/{expense_id}/{CURRENCY_PATH}", data)
+            f"{EXPENSE_PATH}/{expense_id}/{CURRENCY_PATH}", data
+        )
         return response_data
 
 

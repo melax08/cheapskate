@@ -5,21 +5,16 @@ from telegram.ext import CommandHandler, ContextTypes, ConversationHandler
 
 from bot.constants.commands import COMMANDS
 from bot.constants.logging_messages import EXCEPTION_LOG, START_BOT_LOG
-from bot.constants.telegram_messages import (ACTION_CANCELED, API_ERROR,
-                                             START_MESSAGE)
+from bot.constants.telegram_messages import ACTION_CANCELED, API_ERROR, START_MESSAGE
 from bot.utils.utils import auth, get_user_info
 
 
 @auth
-async def start(
-        update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Occurs when someone starts the bot with /start command."""
     logging.info(START_BOT_LOG.format(get_user_info(update)))
     await context.bot.set_my_commands(commands=COMMANDS)
-    await context.bot.set_chat_menu_button(
-        menu_button=MenuButtonCommands()
-    )
+    await context.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
     await update.message.reply_html(
         START_MESSAGE.format(update.effective_user.mention_html())
     )
@@ -33,17 +28,12 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
-async def error_handler(
-        update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log the error and send a telegram message to notify the current user
     about the problem."""
     logging.error(EXCEPTION_LOG, exc_info=context.error)
     if update is not None:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=API_ERROR
-        )
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=API_ERROR)
 
 
-start_handler = CommandHandler('start', start)
+start_handler = CommandHandler("start", start)

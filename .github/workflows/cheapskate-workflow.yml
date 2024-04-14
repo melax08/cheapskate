@@ -24,13 +24,13 @@ jobs:
         run: |
           poetry install
 
-      - name: Test with flake8
+      - name: Test with ruff linter
         run: |
-          poetry run flake8 .
+          poetry run ruff check .
 
-      - name: Test with isort
+      - name: Test with pytest
         run: |
-          poetry run isort . --check --diff
+          poetry run pytest .
 
   deploy:
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -59,22 +59,22 @@ jobs:
             LOG_DIR=logs
             # Level of logging. Available options: DEBUG, INFO, WARNING, ERROR, CRITICAL
             LOG_LEVEL=INFO
-            
+
             # Telegram bot settings
             # Bot token, you can get it from telegram bot @botfather, when you creating a new bot.
             TOKEN=${{ secrets.BOT_TG_TOKEN }}
             ALLOWED_TELEGRAM_IDS=${{ secrets.ALLOWED_TELEGRAM_IDS }}
             ECHO_MESSAGES=1
-            
+
             # API Settings
             API_APP_TITLE=Cheapskate
             API_APP_DESCRIPTION=<Application for financial control>
             API_DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}
             API_SECRET=${{ secrets.API_SECRET }}
             API_MONTH_BUDGET=${{ secrets.MONTH_BUDGET }}
-            
+
             HOST_API=${{ secrets.HOST_API }}
-            
+
             # PostgreSQL settings
             DB_NAME=${{ secrets.DB_NAME }}
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}

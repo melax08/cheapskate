@@ -1,5 +1,8 @@
 # cheapskate - telegram bot and API for financial control
 
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Actions status](https://github.com/melax08/cheapskate/actions/workflows/petalert-workflow.yml/badge.svg)](https://github.com/melax08/cheapskate/actions)
+
 ## Information
 
 ### Description
@@ -139,6 +142,25 @@ cd cheapskate/src && uvicorn api:app
 ```
 
 Documentation will be available on URL: http://127.0.0.1:8000/docs
+
+### For developers
+
+Before starting development and creating new commits, apply git hooks by running the command:
+
+```shell
+pre-commit install
+```
+
+Now, when creating a new commit, the following will be automatically launched:
+
+- [Ruff linter](https://docs.astral.sh/ruff/linter/);
+- [Ruff formatter](https://docs.astral.sh/ruff/formatter/);
+- [Pytest](https://docs.pytest.org/en/8.0.x/);
+- [Poetry check](https://python-poetry.org/docs/pre-commit-hooks/#poetry-check);
+- [check-yaml, end-of-file-fixer, trailing-whitespace](https://github.com/pre-commit/pre-commit-hooks).
+
+You can manage the pre-commit hooks in a file: `.pre-commit-config.yaml`
+
 
 <!-- MARKDOWN LINKS & BADGES -->
 [Python-url]: https://www.python.org/

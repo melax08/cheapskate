@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
-
 from utils.constants import MINIMUM_EXPENSE_AMOUNT
 
 from .category import CategoryDB

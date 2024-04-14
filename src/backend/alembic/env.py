@@ -3,12 +3,11 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
+from backend.app.core.base import Base
 from dotenv import load_dotenv
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from backend.app.core.base import Base
 
 load_dotenv()
 
@@ -16,7 +15,7 @@ load_dotenv()
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option('sqlalchemy.url', os.environ['API_DATABASE_URL'])
+config.set_main_option("sqlalchemy.url", os.environ["API_DATABASE_URL"])
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -52,7 +51,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"}
+        dialect_opts={"paramstyle": "named"},
     )
 
     with context.begin_transaction():

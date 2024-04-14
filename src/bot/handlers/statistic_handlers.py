@@ -5,14 +5,22 @@ from telegram.constants import ParseMode
 from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from bot.api_requests import get_api_client
-from bot.constants.telegram_messages import (IN_CATEGORIES_LABEL, NO_EXPENSES,
-                                             PERIOD_EXPENSES,
-                                             STATISTIC_MONTH_MESSAGE,
-                                             STATISTIC_YEAR_MESSAGE)
-from bot.utils.keyboards import (create_statistic_months_keyboard,
-                                 create_statistic_years_keyboard)
-from bot.utils.utils import (append_categories_expenses_info, auth,
-                             get_russian_month_name)
+from bot.constants.telegram_messages import (
+    IN_CATEGORIES_LABEL,
+    NO_EXPENSES,
+    PERIOD_EXPENSES,
+    STATISTIC_MONTH_MESSAGE,
+    STATISTIC_YEAR_MESSAGE,
+)
+from bot.utils.keyboards import (
+    create_statistic_months_keyboard,
+    create_statistic_years_keyboard,
+)
+from bot.utils.utils import (
+    append_categories_expenses_info,
+    auth,
+    get_russian_month_name,
+)
 
 
 @auth
@@ -22,10 +30,7 @@ async def get_years_with_expenses(
     """Send the user a keyboard with years with expenses."""
     keyboard = await create_statistic_years_keyboard()
     if keyboard:
-        await update.message.reply_text(
-            STATISTIC_YEAR_MESSAGE,
-            reply_markup=keyboard
-        )
+        await update.message.reply_text(STATISTIC_YEAR_MESSAGE, reply_markup=keyboard)
     else:
         await update.message.reply_text(NO_EXPENSES)
 
@@ -40,10 +45,7 @@ async def get_months_in_year_with_expenses(
     _, year, months = query.data.split()
 
     keyboard = create_statistic_months_keyboard(year, months)
-    await query.edit_message_text(
-        text=STATISTIC_MONTH_MESSAGE,
-        reply_markup=keyboard
-    )
+    await query.edit_message_text(text=STATISTIC_MONTH_MESSAGE, reply_markup=keyboard)
 
 
 @auth
@@ -61,25 +63,21 @@ async def get_report_for_period(
         PERIOD_EXPENSES.format(
             get_russian_month_name(calendar.month_name[int(month)]),
             year,
-            statistic_data['money_spent']
+            statistic_data["money_spent"],
         )
     ]
 
     append_categories_expenses_info(
-        statistic_data['categories'],
-        message,
-        IN_CATEGORIES_LABEL
+        statistic_data["categories"], message, IN_CATEGORIES_LABEL
     )
 
-    await query.edit_message_text(
-        text='\n'.join(message),
-        parse_mode=ParseMode.HTML
-    )
+    await query.edit_message_text(text="\n".join(message), parse_mode=ParseMode.HTML)
 
-statistic_initial_handler = CommandHandler(
-    'statistics', get_years_with_expenses)
+
+statistic_initial_handler = CommandHandler("statistics", get_years_with_expenses)
 statistic_year_handler = CallbackQueryHandler(
-    get_months_in_year_with_expenses, pattern=r'YEAR \d+'
+    get_months_in_year_with_expenses, pattern=r"YEAR \d+"
 )
 statistic_report_handler = CallbackQueryHandler(
-    get_report_for_period, pattern=r'REP \d+')
+    get_report_for_period, pattern=r"REP \d+"
+)

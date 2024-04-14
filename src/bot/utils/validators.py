@@ -1,6 +1,10 @@
-from utils.constants import (COUNTRY_LENGTH, CURRENCY_LETTER_CODE_LENGTH,
-                             MAX_CATEGORY_NAME_LENGTH,
-                             MAX_CURRENCY_NAME_LENGTH, MINIMUM_EXPENSE_AMOUNT)
+from utils.constants import (
+    COUNTRY_LENGTH,
+    CURRENCY_LETTER_CODE_LENGTH,
+    MAX_CATEGORY_NAME_LENGTH,
+    MAX_CURRENCY_NAME_LENGTH,
+    MINIMUM_EXPENSE_AMOUNT,
+)
 
 
 def money_validator(money: str) -> float:

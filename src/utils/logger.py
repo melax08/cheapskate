@@ -1,9 +1,17 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-from utils.configs import (LOG_BACKUP_COUNT, LOG_DIR, LOG_DT_FORMAT,
-                           LOG_ENCODING, LOG_FILE_PATH, LOG_FORMAT,
-                           LOG_INTERVAL, LOG_LEVEL, LOG_WHEN)
+from utils.configs import (
+    LOG_BACKUP_COUNT,
+    LOG_DIR,
+    LOG_DT_FORMAT,
+    LOG_ENCODING,
+    LOG_FILE_PATH,
+    LOG_FORMAT,
+    LOG_INTERVAL,
+    LOG_LEVEL,
+    LOG_WHEN,
+)
 
 
 def configure_logging() -> None:
