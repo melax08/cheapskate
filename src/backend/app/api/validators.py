@@ -51,6 +51,7 @@ def validate_month_year(year: int, month: int) -> None:
 
 
 async def check_currency_exists(currency_id: int, session: AsyncSession) -> Currency:
+    """Checks if currency with specified id exists in database."""
     currency = await currency_crud.get(currency_id, session)
     if currency is None:
         raise HTTPException(

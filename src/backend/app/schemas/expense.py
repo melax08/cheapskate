@@ -14,6 +14,7 @@ class ExpenseBase(BaseModel):
 
 class ExpenseCreate(ExpenseBase):
     category_id: int
+    currency_id: Optional[int] = None
 
 
 class ExpenseDB(ExpenseBase):

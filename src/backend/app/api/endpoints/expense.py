@@ -15,9 +15,8 @@ from backend.app.api.validators import (
     check_expense_exists,
     validate_month_year,
 )
-from backend.app.core.config import settings
 from backend.app.core.db import get_async_session
-from backend.app.crud import category_crud, expense_crud
+from backend.app.crud import category_crud, expense_crud, setting_crud
 from backend.app.schemas.category import CategoryDB
 from backend.app.schemas.currency import CurrencyDB, CurrencySet
 from backend.app.schemas.expense import (
@@ -39,6 +38,11 @@ async def add_expense(
 ):
     """Add expense."""
     await check_category_exists(expense.category_id, session)
+    if expense.currency_id is not None:
+        await check_currency_exists(expense.currency_id, session)
+    else:
+        default_currency = await setting_crud.get_default_currency(session)
+        expense.currency_id = default_currency.id
     expense = await expense_crud.create(expense, session)
     money_left = await expense_crud.calculate_money_left(session)
     expense.__dict__["money_left"] = money_left
@@ -82,8 +86,9 @@ async def delete_expense(
 async def get_money_left(session: AsyncSession = Depends(get_async_session)):
     """Gets information about month budget, money left for month,
     money spend in current month."""
-    money_left = await expense_crud.calculate_money_left(session)
-    money_spend = round(settings.month_budget - money_left, 2)
+    budget = await setting_crud.get_budget(session)
+    money_left = await expense_crud.calculate_money_left(session=session, budget=budget)
+    money_spend = round(budget - money_left, 2)
 
     categories = await category_crud.get_this_month_expenses_by_categories(session)
     categories = [
@@ -91,7 +96,7 @@ async def get_money_left(session: AsyncSession = Depends(get_async_session)):
     ]
 
     response_model = MoneyLeft(
-        budget=settings.month_budget,
+        budget=budget,
         money_left=money_left,
         money_spent=money_spend,
         current_datetime=dt.datetime.now(),
@@ -156,6 +161,7 @@ async def set_currency(
     currency: CurrencySet,
     session: AsyncSession = Depends(get_async_session),
 ):
+    """Set specified currency for the specified expense."""
     expense = await check_expense_exists(expense_id, session)
     currency = await check_currency_exists(currency.currency_id, session)
     expense = await expense_crud.set_currency(expense, currency.id, session)

@@ -18,6 +18,9 @@ class Currency(Base):
     )
     country = Column(String(COUNTRY_LENGTH), nullable=False, unique=True)
     expenses = relationship("Expense", back_populates="currency")
+    default_currency = relationship(
+        "Setting", uselist=False, back_populates="default_currency"
+    )
 
     def __repr__(self):
         return f"<Currency {self.name} ({self.letter_code}) from {self.country}>"
