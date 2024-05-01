@@ -32,3 +32,6 @@ CURRENCY_COUNTRY_TOO_LONG_LOG: str = (
 NO_CURRENCIES_LOG: str = "User {} can't set currency to expense, no currencies!"
 
 SET_CURRENCY_LOG: str = "User {} set currency {} to the expense {}"
+
+SET_NEW_DEFAULT_CURRENCY_LOG: str = "User {} set new default currency: {}"
+WRONG_CURRENCY_LOG: str = "User: {} tried to select nonexistent currency: {}"

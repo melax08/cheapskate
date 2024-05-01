@@ -115,6 +115,32 @@ async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:
         return InlineKeyboardMarkup(keyboard)
 
 
+async def select_default_currency_keyboard() -> InlineKeyboardMarkup:
+    async with get_api_client() as client:
+        currencies = await client.get_currencies()
+
+        if len(currencies) == 0:
+            raise ValueError
+
+    keyboard = []
+    row = []
+
+    for currency in currencies:
+        row.append(
+            InlineKeyboardButton(
+                currency["name"],
+                callback_data=f'DEFAULT_CUR {currency.get("id")}',
+            )
+        )
+        if len(row) == 2:
+            keyboard.append(row)
+            row = []
+    if len(row) > 0:
+        keyboard.append(row)
+
+    return InlineKeyboardMarkup(keyboard)
+
+
 def create_settings_keyboard() -> InlineKeyboardMarkup:
     """Create settings keyboard markup."""
     return InlineKeyboardMarkup.from_row(

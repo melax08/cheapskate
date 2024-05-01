@@ -12,6 +12,7 @@ from utils.api_settings import (
     EXPENSE_PATH,
     MONEY_LEFT_FULL_PATH,
     PERIOD_EXPENSE_FULL_PATH,
+    SET_DEFAULT_CURRENCY_FULL_PATH,
     SETTINGS_PATH,
     STATISTIC_FULL_PATH,
     TODAY_EXPENSE_FULL_PATH,
@@ -154,6 +155,11 @@ class APIClient:
     async def get_settings(self):
         """Get the information about application settings."""
         response_data = await self._get(SETTINGS_PATH)
+        return response_data
+
+    async def set_default_currency(self, currency_id: int):
+        data = {"currency_id": currency_id}
+        response_data = await self._post(SET_DEFAULT_CURRENCY_FULL_PATH, data)
         return response_data
 
 
