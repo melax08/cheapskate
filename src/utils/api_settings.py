@@ -14,6 +14,7 @@ API_URL = f"http://{API_HOST}:8000{API_PATH}/"
 CATEGORIES_PATH = "category"
 EXPENSE_PATH = "expense"
 CURRENCY_PATH = "currency"
+SETTINGS_PATH = "settings"
 
 # Relative paths
 MONEY_LEFT_PATH = "/money_left"

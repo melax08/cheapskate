@@ -113,3 +113,16 @@ async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:
             keyboard.append(row)
 
         return InlineKeyboardMarkup(keyboard)
+
+
+def create_settings_keyboard() -> InlineKeyboardMarkup:
+    """Create settings keyboard markup."""
+    return InlineKeyboardMarkup.from_row(
+        [
+            InlineKeyboardButton("Поменять валюту", callback_data="change_currency"),
+            InlineKeyboardButton("Поменять бюджет", callback_data="change_budget"),
+        ]
+    )
+
+
+settings_markup = create_settings_keyboard()

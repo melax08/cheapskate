@@ -12,6 +12,7 @@ from bot.handlers.expense_handlers import (
     select_category_handler,
 )
 from bot.handlers.main_handlers import error_handler, start_handler
+from bot.handlers.settings_handlers import settings_handler
 from bot.handlers.statistic_handlers import (
     statistic_initial_handler,
     statistic_report_handler,
@@ -29,6 +30,7 @@ def start_bot() -> None:
     application.add_handlers(
         (
             start_handler,
+            settings_handler,
             change_currency_handler,
             set_currency_handler,
             add_category_handler,
