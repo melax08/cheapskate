@@ -33,5 +33,10 @@ NO_CURRENCIES_LOG: str = "User {} can't set currency to expense, no currencies!"
 
 SET_CURRENCY_LOG: str = "User {} set currency {} to the expense {}"
 
+# Settings
+
 SET_NEW_DEFAULT_CURRENCY_LOG: str = "User {} set new default currency: {}"
 WRONG_CURRENCY_LOG: str = "User: {} tried to select nonexistent currency: {}"
+
+SET_NEW_BUDGET_LOG: str = "User {} set new month budget: {}"
+WRONG_BUDGET_LOG: str = "User: {} tried to set wrong budget value: {}"

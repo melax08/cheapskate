@@ -14,6 +14,7 @@ from bot.handlers.expense_handlers import (
 from bot.handlers.main_handlers import error_handler, start_handler
 from bot.handlers.settings_handlers import (
     change_default_currency_handler,
+    set_budget_handler,
     set_default_currency_handler,
     settings_handler,
 )
@@ -38,6 +39,7 @@ def start_bot() -> None:
             change_default_currency_handler,
             set_default_currency_handler,
             change_currency_handler,
+            set_budget_handler,
             set_currency_handler,
             add_category_handler,
             add_currency_handler,

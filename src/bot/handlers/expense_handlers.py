@@ -80,7 +80,12 @@ async def select_expense_category(
     )
 
     money = round(float(money), 2)
-    message = message.format(money, response_data["category"]["name"], money_left)
+    message = message.format(
+        money,
+        response_data["currency"]["letter_code"],
+        response_data["category"]["name"],
+        money_left,
+    )
     await query.answer()
     await query.edit_message_text(
         text=message,
@@ -114,7 +119,10 @@ async def delete_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
 
     message = message.format(
-        response_data["amount"], response_data["category"]["name"], money_left
+        response_data["amount"],
+        response_data["currency"]["letter_code"],
+        response_data["category"]["name"],
+        money_left,
     )
     await query.answer()
     await query.edit_message_text(text=message, parse_mode=ParseMode.HTML)

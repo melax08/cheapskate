@@ -12,6 +12,7 @@ from utils.api_settings import (
     EXPENSE_PATH,
     MONEY_LEFT_FULL_PATH,
     PERIOD_EXPENSE_FULL_PATH,
+    SET_BUDGET_FULL_PATH,
     SET_DEFAULT_CURRENCY_FULL_PATH,
     SETTINGS_PATH,
     STATISTIC_FULL_PATH,
@@ -22,6 +23,7 @@ from yarl import URL
 from bot.constants.constants import REQUEST_API_TIMEOUT
 
 from .exceptions import APIError, BadRequest
+from .serializers import Settings
 
 
 class APIClient:
@@ -152,15 +154,20 @@ class APIClient:
         )
         return response_data
 
-    async def get_settings(self):
+    async def get_settings(self) -> Settings:
         """Get the information about application settings."""
         response_data = await self._get(SETTINGS_PATH)
-        return response_data
+        return Settings.from_api_response(response_data)
 
-    async def set_default_currency(self, currency_id: int):
+    async def set_default_currency(self, currency_id: int) -> Settings:
         data = {"currency_id": currency_id}
         response_data = await self._post(SET_DEFAULT_CURRENCY_FULL_PATH, data)
-        return response_data
+        return Settings.from_api_response(response_data)
+
+    async def set_budget(self, budget: int | float) -> Settings:
+        data = {"budget": budget}
+        response_data = await self._post(SET_BUDGET_FULL_PATH, data)
+        return Settings.from_api_response(response_data)
 
 
 @asynccontextmanager
