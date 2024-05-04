@@ -5,7 +5,3 @@ from fastapi import FastAPI
 app = FastAPI(title=settings.app_title, description=settings.app_description)
 
 app.include_router(main_router)
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -5,17 +5,13 @@ from backend.app.models import Currency, Setting
 
 from .base import CRUDBase
 
-_ONLY_ONE_SETTING_ID: int = 1
-
 
 class CRUDSetting(CRUDBase):
     """Class with DB CRUD operations for `Setting` model."""
 
     async def get_settings(self, session: AsyncSession) -> Setting:
         """Get settings instance."""
-        db_obj = await session.execute(
-            select(self.model).where(self.model.id == _ONLY_ONE_SETTING_ID)
-        )
+        db_obj = await session.execute(select(self.model))
         return db_obj.scalars().first()
 
     async def get_default_currency(self, session: AsyncSession) -> Currency:
