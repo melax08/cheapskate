@@ -1,17 +1,35 @@
 import logging
+import os
 from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
 
-from utils.configs import (
-    LOG_BACKUP_COUNT,
-    LOG_DIR,
-    LOG_DT_FORMAT,
-    LOG_ENCODING,
-    LOG_FILE_PATH,
-    LOG_FORMAT,
-    LOG_INTERVAL,
-    LOG_LEVEL,
-    LOG_WHEN,
+from dotenv import load_dotenv
+
+load_dotenv()
+
+LOG_LEVELS = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+}
+
+BASE_DIR = Path(__file__).parent.parent
+
+LOG_DIR = BASE_DIR.parent / ".data" / os.getenv("LOG_DIR", default="logs")
+LOG_FILE_PATH = LOG_DIR / "bot.log"
+LOG_LEVEL = LOG_LEVELS.get(os.getenv("LOG_LEVEL", default="INFO"), logging.INFO)
+
+LOG_FORMAT = (
+    "[%(asctime)s,%(msecs)d] %(levelname)s " "[%(name)s:%(lineno)s] %(message)s"
 )
+LOG_DT_FORMAT = "%d.%m.%y %H:%M:%S"
+
+LOG_WHEN = "midnight"
+LOG_INTERVAL = 1
+LOG_BACKUP_COUNT = 30
+LOG_ENCODING = "UTF-8"
 
 
 def configure_logging() -> None:

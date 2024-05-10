@@ -1,10 +1,10 @@
-from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship, validates
-from utils.constants import (
+from configs.constants import (
     COUNTRY_LENGTH,
     CURRENCY_LETTER_CODE_LENGTH,
     MAX_CURRENCY_NAME_LENGTH,
 )
+from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship, validates
 
 from backend.app.core.db import Base
 

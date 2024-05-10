@@ -1,5 +1,6 @@
 import logging
 
+from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 from telegram import ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -10,7 +11,6 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from utils.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 
 from bot.api_requests import BadRequest, get_api_client
 from bot.constants.logging_messages import (

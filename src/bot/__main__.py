@@ -1,7 +1,7 @@
+from configs.logger import configure_logging
 from telegram.ext import Application
-from utils.logger import configure_logging
 
-from bot.constants.constants import TOKEN
+from bot.config import bot_settings
 from bot.handlers.add_category_conversation import add_category_handler
 from bot.handlers.command_handlers import money_left_handler, today_handler
 from bot.handlers.currency_handlers import (
@@ -31,7 +31,7 @@ from bot.handlers.statistic_handlers import (
 def start_bot() -> None:
     """Configure telegram bot application, add telegram handlers and run
     polling."""
-    application = Application.builder().token(TOKEN).build()
+    application = Application.builder().token(bot_settings.token).build()
     application.add_error_handler(error_handler)
     application.add_handlers(
         (

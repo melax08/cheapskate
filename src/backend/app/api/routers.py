@@ -1,11 +1,11 @@
-from fastapi import APIRouter
-from utils.api_settings import (
+from configs.api_settings import (
     API_PATH,
     CATEGORIES_PATH,
     CURRENCY_PATH,
     EXPENSE_PATH,
     SETTINGS_PATH,
 )
+from fastapi import APIRouter
 
 from backend.app.api.endpoints import (
     category_router,

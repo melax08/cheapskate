@@ -5,7 +5,7 @@ from typing import Optional, Type
 
 import aiohttp
 from aiohttp.client_exceptions import ContentTypeError
-from utils.api_settings import (
+from configs.api_settings import (
     API_URL,
     CATEGORIES_PATH,
     CURRENCY_PATH,

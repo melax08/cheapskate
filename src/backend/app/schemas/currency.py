@@ -1,9 +1,9 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from utils.constants import (
+from configs.constants import (
     COUNTRY_LENGTH,
     CURRENCY_LETTER_CODE_LENGTH,
     MAX_CURRENCY_NAME_LENGTH,
 )
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CurrencyCreate(BaseModel):

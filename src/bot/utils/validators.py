@@ -1,4 +1,4 @@
-from utils.constants import (
+from configs.constants import (
     COUNTRY_LENGTH,
     CURRENCY_LETTER_CODE_LENGTH,
     MAX_CATEGORY_NAME_LENGTH,

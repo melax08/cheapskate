@@ -5,12 +5,8 @@ from typing import Tuple
 from telegram import Bot, Update
 from telegram.constants import ParseMode
 
-from bot.constants.constants import (
-    ALLOWED_TELEGRAM_IDS,
-    ECHO_MESSAGES,
-    MONTH_NAME_MAP,
-    TOKEN,
-)
+from bot.config import bot_settings
+from bot.constants.constants import MONTH_NAME_MAP
 from bot.constants.logging_messages import ACCESS_DENIED_LOG
 from bot.constants.telegram_messages import (
     ACCESS_DENIED,
@@ -38,8 +34,8 @@ def auth(func):
     async def wrapper(*args, **kwargs):
         update = args[0]
         if (
-            ALLOWED_TELEGRAM_IDS is not None
-            and update.effective_user.id not in ALLOWED_TELEGRAM_IDS
+            bot_settings.allowed_telegram_ids
+            and update.effective_user.id not in bot_settings.allowed_telegram_ids
         ):
             logging.warning(ACCESS_DENIED_LOG.format(get_user_info(update)))
             await update.message.reply_html(ACCESS_DENIED)
@@ -110,16 +106,16 @@ async def reply_message_to_authorized_users(
 ) -> None:
     """Sends the information about the user action to another telegram users,
     whose telegram_id specified in the env variable `ALLOWED_TELEGRAM_IDS`"""
-    if not ECHO_MESSAGES:
+    if not bot_settings.echo_messages or not bot_settings.allowed_telegram_ids:
         return
     author = update.effective_user
     author_username = get_humanreadable_username(author)
     message_to_send = ANOTHER_USER_ACTION.format(author_username, source_message)
 
-    authorized_ids_without_author = ALLOWED_TELEGRAM_IDS.copy()
+    authorized_ids_without_author = bot_settings.allowed_telegram_ids.copy()
     authorized_ids_without_author.remove(author.id)
 
-    bot = Bot(token=TOKEN)
+    bot = Bot(token=bot_settings.token)
 
     await asyncio.gather(
         *[

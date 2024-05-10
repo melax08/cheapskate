@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
+from configs.constants import MINIMUM_EXPENSE_AMOUNT
 from pydantic import BaseModel, ConfigDict, Field
-from utils.constants import MINIMUM_EXPENSE_AMOUNT
 
 from .category import CategoryDB
 from .currency import CurrencyDB
