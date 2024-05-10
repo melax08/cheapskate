@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 COPY src/backend ./backend
-COPY src/utils ./utils
+COPY src/configs ./configs
 COPY pyproject.toml poetry.lock src/.env entrypoint.sh src/api.py ./
 
 RUN pip3 install --upgrade pip
