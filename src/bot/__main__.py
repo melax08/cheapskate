@@ -1,3 +1,6 @@
+from telegram.ext import Application
+from utils.logger import configure_logging
+
 from bot.constants.constants import TOKEN
 from bot.handlers.add_category_conversation import add_category_handler
 from bot.handlers.command_handlers import money_left_handler, today_handler
@@ -23,8 +26,6 @@ from bot.handlers.statistic_handlers import (
     statistic_report_handler,
     statistic_year_handler,
 )
-from telegram.ext import Application
-from utils.logger import configure_logging
 
 
 def start_bot() -> None:

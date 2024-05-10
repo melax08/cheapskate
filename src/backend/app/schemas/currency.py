@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from utils.constants import (
     COUNTRY_LENGTH,
     CURRENCY_LETTER_CODE_LENGTH,
@@ -23,10 +23,9 @@ class CurrencyCreate(BaseModel):
 
 
 class CurrencyDB(CurrencyCreate):
-    id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True
+    id: int
 
 
 class CurrencySet(BaseModel):
