@@ -43,6 +43,7 @@ async def get_money_left(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             response_data["budget"],
             response_data["money_spent"],
             money_left,
+            currency_code=response_data["default_currency"]["letter_code"],
         )
     ]
 

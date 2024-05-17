@@ -71,7 +71,6 @@ jobs:
             API_APP_DESCRIPTION=<Application for financial control>
             API_DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}
             API_SECRET=${{ secrets.API_SECRET }}
-            API_MONTH_BUDGET=${{ secrets.MONTH_BUDGET }}
 
             HOST_API=${{ secrets.HOST_API }}
 

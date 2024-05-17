@@ -43,6 +43,7 @@ class MoneyLeft(ExpenseStatistic):
     budget: float
     money_left: float
     current_datetime: datetime
+    default_currency: CurrencyDB
 
 
 class ExpensePeriod(BaseModel):

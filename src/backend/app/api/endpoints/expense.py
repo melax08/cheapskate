@@ -86,8 +86,12 @@ async def delete_expense(
 async def get_money_left(session: AsyncSession = Depends(get_async_session)):
     """Gets information about month budget, money left for month,
     money spend in current month."""
-    budget = await setting_crud.get_budget(session)
-    money_left = await expense_crud.calculate_money_left(session=session, budget=budget)
+    settings = await setting_crud.get_settings(session)
+    budget = settings.budget
+    default_currency = settings.default_currency
+    money_left = await expense_crud.calculate_money_left(
+        session=session, budget=budget, default_currency=default_currency
+    )
     money_spend = round(budget - money_left, 2)
 
     categories = await category_crud.get_this_month_expenses_by_categories(session)
@@ -101,6 +105,7 @@ async def get_money_left(session: AsyncSession = Depends(get_async_session)):
         money_spent=money_spend,
         current_datetime=dt.datetime.now(),
         categories=categories,
+        default_currency=default_currency,
     )
     return response_model
 

@@ -4,19 +4,25 @@ from typing import Optional, Union
 from sqlalchemy import Integer, and_, desc, distinct, extract, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.app.crud.setting import setting_crud
+from backend.app.models.currency import Currency
 from backend.app.models.expense import Expense
 
 from .base import CRUDBase
-from .setting import setting_crud
 
 
 class CRUDExpense(CRUDBase):
     """Class with DB CRUD operations for `Expense` model."""
 
-    def _get_period_stmt(self, year: int, month: int):
+    def _get_period_stmt(
+        self, year: int, month: int, additional_stmts: Optional[list[bool]] = None
+    ):
+        if additional_stmts is None:
+            additional_stmts = []
         return and_(
             func.cast(extract("month", self.model.date), Integer) == month,
             func.cast(extract("year", self.model.date), Integer) == year,
+            *additional_stmts,
         )
 
     async def calculate_money_expense_sum(
@@ -30,14 +36,25 @@ class CRUDExpense(CRUDBase):
         return money_spent.scalars().first() or 0
 
     async def calculate_money_left(
-        self, session: AsyncSession, budget: Optional[int] = None
+        self,
+        session: AsyncSession,
+        budget: Optional[int] = None,
+        default_currency: Optional[Currency] = None,
     ) -> Union[float, int]:
         """Calculates how much money is left from the budget for
-        the current month."""
+        the current month in current default currency."""
         current_date = dt.datetime.now()
 
+        if not default_currency:
+            default_currency = await setting_crud.get_default_currency(session)
+
         money_spent = await self.calculate_money_expense_sum(
-            self._get_period_stmt(current_date.year, current_date.month), session
+            self._get_period_stmt(
+                year=current_date.year,
+                month=current_date.month,
+                additional_stmts=[Expense.currency_id == default_currency.id],
+            ),
+            session,
         )
 
         if budget is None:
