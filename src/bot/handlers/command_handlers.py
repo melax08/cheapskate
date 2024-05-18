@@ -5,21 +5,20 @@ from telegram.ext import CommandHandler, ContextTypes
 
 from bot.api_requests import get_api_client
 from bot.constants.telegram_messages import (
-    IN_CATEGORIES_LABEL,
     MONEY_LEFT_MESSAGE,
     MONTH_CATEGORIES_LABEL,
     NO_TODAY_EXPENSES,
     TODAY_EXPENSES,
-    TOO_MUCH_MONEY_BRUH,
 )
 from bot.utils.utils import (
-    append_categories_expenses_info,
+    append_currencies_categories_expenses_info,
     auth,
     get_russian_month_name,
     money_left_calculate_message,
 )
 
-PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
+# ToDo: refactor this or remove
+# PSYCHOLOGICAL_EXPENSE_LIMIT: int = 100
 
 
 @auth
@@ -47,8 +46,8 @@ async def get_money_left(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
     ]
 
-    append_categories_expenses_info(
-        response_data["categories"], message, MONTH_CATEGORIES_LABEL
+    append_currencies_categories_expenses_info(
+        response_data["currencies"], message, MONTH_CATEGORIES_LABEL
     )
 
     await update.message.reply_html("\n".join(message))
@@ -62,22 +61,16 @@ async def get_today_expenses(
     async with get_api_client() as client:
         response_data = await client.get_today_expenses()
 
-    today_expenses_amount = response_data["money_spent"]
+    currencies = response_data["currencies"]
 
-    if today_expenses_amount == 0:
+    if not currencies:
         await update.message.reply_text(NO_TODAY_EXPENSES)
-        return
+    else:
+        message = [TODAY_EXPENSES]
 
-    message = [TODAY_EXPENSES.format(today_expenses_amount)]
+        append_currencies_categories_expenses_info(currencies, message)
 
-    if today_expenses_amount >= PSYCHOLOGICAL_EXPENSE_LIMIT:
-        message[0] += TOO_MUCH_MONEY_BRUH
-
-    append_categories_expenses_info(
-        response_data["categories"], message, IN_CATEGORIES_LABEL
-    )
-
-    await update.message.reply_html("\n".join(message))
+        await update.message.reply_html("\n".join(message))
 
 
 money_left_handler = CommandHandler("money_left", get_money_left)

@@ -16,17 +16,16 @@ from backend.app.api.validators import (
     validate_month_year,
 )
 from backend.app.core.db import get_async_session
-from backend.app.crud import category_crud, expense_crud, setting_crud
+from backend.app.crud import currency_crud, expense_crud, setting_crud
 from backend.app.schemas.category import CategoryDB
 from backend.app.schemas.currency import CurrencyDB, CurrencySet
 from backend.app.schemas.expense import (
-    CategoryExpense,
     ExpenseCreate,
     ExpenseDB,
     ExpenseMoneyLeftDB,
     ExpensePeriod,
     ExpenseStatistic,
-    MoneyLeft,
+    MoneyLeftNew,
 )
 
 router = APIRouter()
@@ -82,7 +81,7 @@ async def delete_expense(
     return response_data
 
 
-@router.get(MONEY_LEFT_PATH, response_model=MoneyLeft)
+@router.get(MONEY_LEFT_PATH, response_model=MoneyLeftNew)
 async def get_money_left(session: AsyncSession = Depends(get_async_session)):
     """Gets information about month budget, money left for month,
     money spend in current month."""
@@ -92,39 +91,29 @@ async def get_money_left(session: AsyncSession = Depends(get_async_session)):
     money_left = await expense_crud.calculate_money_left(
         session=session, budget=budget, default_currency=default_currency
     )
-    money_spend = round(budget - money_left, 2)
+    money_spent = round(budget - money_left, 2)
 
-    categories = await category_crud.get_this_month_expenses_by_categories(session)
-    categories = [
-        CategoryExpense(name=name, amount=amount) for name, amount in categories
-    ]
+    expenses = await currency_crud.get_this_month_expenses_by_currencies_and_categories(
+        session
+    )
 
-    response_model = MoneyLeft(
+    return MoneyLeftNew.from_db_query(
+        crud_result=expenses,
         budget=budget,
         money_left=money_left,
-        money_spent=money_spend,
+        money_spent=money_spent,
         current_datetime=dt.datetime.now(),
-        categories=categories,
         default_currency=default_currency,
     )
-    return response_model
 
 
 @router.get(TODAY_EXPENSE_PATH, response_model=ExpenseStatistic)
 async def get_today_expenses(session: AsyncSession = Depends(get_async_session)):
     """Gets information about today expenses."""
-    today_expenses_amount = await expense_crud.calculate_today_expenses(session)
-    today_categories = await category_crud.get_today_expenses_by_categories(session)
-
-    categories = [
-        CategoryExpense(name=name, amount=amount) for name, amount in today_categories
-    ]
-
-    response_model = ExpenseStatistic(
-        money_spent=today_expenses_amount, categories=categories
+    expenses = await currency_crud.get_today_expenses_by_currencies_and_categories(
+        session
     )
-
-    return response_model
+    return ExpenseStatistic.from_db_query(crud_result=expenses)
 
 
 @router.get(PERIOD_EXPENSE_PATH, response_model=list[ExpensePeriod])
@@ -144,20 +133,10 @@ async def get_statistic_for_period(
 ):
     """Get the information about expenses for specified month and year."""
     validate_month_year(period.year, period.month)
-
-    money_spent = await expense_crud.get_expenses_sum_for_year_month(
+    expenses = await currency_crud.get_expenses_by_currencies_and_categories_for_period(
         period.year, period.month, session
     )
-
-    categories = await category_crud.get_expenses_by_categories_for_period(
-        period.year, period.month, session
-    )
-    categories = [
-        CategoryExpense(name=name, amount=amount) for name, amount in categories
-    ]
-
-    response_model = ExpenseStatistic(money_spent=money_spent, categories=categories)
-    return response_model
+    return ExpenseStatistic.from_db_query(crud_result=expenses)
 
 
 @router.post("/{expense_id}/currency", response_model=ExpenseDB)

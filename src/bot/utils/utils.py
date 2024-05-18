@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Tuple
+from typing import Optional, Tuple
 
 from telegram import Bot, Update
 from telegram.constants import ParseMode
@@ -71,20 +71,30 @@ def wrap_list_to_monospace(message_array: list) -> None:
     message_array[-1] = message_array[-1] + "</code>"
 
 
-def append_categories_expenses_info(
-    categories: list, message: list, category_label: str
+def append_currencies_categories_expenses_info(
+    currencies: list, message: list, category_label: Optional[str] = None
 ) -> None:
-    """Adds expenses information by categories to the message."""
-    if categories:
-        message.append(category_label)
+    """Adds expenses information by currencies and categories to the message."""
+    if currencies:
+        if category_label:
+            message.append(category_label)
 
-        category_items = [
-            CATEGORY_ITEM.format(category.get("name"), category.get("amount"))
-            for category in categories
-        ]
+        for currency in currencies:
+            currency_label = [
+                (
+                    f"{currency['currency_amount']:g} "
+                    f"{currency['currency']['name']} "
+                    f"({currency['currency']['letter_code']})"
+                )
+            ]
 
-        wrap_list_to_monospace(category_items)
-        message.extend(category_items)
+            category_items = [
+                CATEGORY_ITEM.format(category.get("name"), category.get("amount"))
+                for category in currency["categories"]
+            ]
+
+            wrap_list_to_monospace(category_items)
+            message.extend(currency_label + category_items)
 
 
 def get_humanreadable_username(user: Update.effective_user) -> str:

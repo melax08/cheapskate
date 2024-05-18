@@ -6,7 +6,6 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, ContextTypes
 
 from bot.api_requests import get_api_client
 from bot.constants.telegram_messages import (
-    IN_CATEGORIES_LABEL,
     NO_EXPENSES,
     PERIOD_EXPENSES,
     STATISTIC_MONTH_MESSAGE,
@@ -17,7 +16,7 @@ from bot.utils.keyboards import (
     create_statistic_years_keyboard,
 )
 from bot.utils.utils import (
-    append_categories_expenses_info,
+    append_currencies_categories_expenses_info,
     auth,
     get_russian_month_name,
 )
@@ -63,13 +62,10 @@ async def get_report_for_period(
         PERIOD_EXPENSES.format(
             get_russian_month_name(calendar.month_name[int(month)]),
             year,
-            statistic_data["money_spent"],
         )
     ]
 
-    append_categories_expenses_info(
-        statistic_data["categories"], message, IN_CATEGORIES_LABEL
-    )
+    append_currencies_categories_expenses_info(statistic_data["currencies"], message)
 
     await query.edit_message_text(text="\n".join(message), parse_mode=ParseMode.HTML)
 

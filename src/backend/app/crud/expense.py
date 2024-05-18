@@ -17,12 +17,10 @@ class CRUDExpense(CRUDBase):
     def _get_period_stmt(
         self, year: int, month: int, additional_stmts: Optional[list[bool]] = None
     ):
-        if additional_stmts is None:
-            additional_stmts = []
         return and_(
             func.cast(extract("month", self.model.date), Integer) == month,
             func.cast(extract("year", self.model.date), Integer) == year,
-            *additional_stmts,
+            *(additional_stmts or []),
         )
 
     async def calculate_money_expense_sum(
