@@ -35,9 +35,8 @@ class CRUDCurrency(CRUDBase):
         self, session: AsyncSession
     ):
         """Gets the list of this month expenses by currencies and categories."""
-        return await self._select_currencies_categories_expenses(
-            session,
-            Expense.date >= dt.date(dt.date.today().year, dt.date.today().month, 1),
+        return await self.get_expenses_by_currencies_and_categories_for_period(
+            dt.date.today().year, dt.date.today().month, session
         )
 
     async def get_today_expenses_by_currencies_and_categories(
