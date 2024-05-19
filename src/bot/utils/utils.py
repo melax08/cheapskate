@@ -12,6 +12,7 @@ from bot.constants.telegram_messages import (
     ACCESS_DENIED,
     ANOTHER_USER_ACTION,
     CATEGORY_ITEM,
+    CURRENCY_STATISTIC_LABEL,
     MONEY_LEFT_HAS,
     MONEY_RAN_OUT,
 )
@@ -81,10 +82,10 @@ def append_currencies_categories_expenses_info(
 
         for currency in currencies:
             currency_label = [
-                (
-                    f"{currency['currency_amount']:g} "
-                    f"{currency['currency']['name']} "
-                    f"({currency['currency']['letter_code']})"
+                CURRENCY_STATISTIC_LABEL.format(
+                    currency["currency"]["name"],
+                    currency["currency"]["letter_code"],
+                    currency["currency_amount"],
                 )
             ]
 
