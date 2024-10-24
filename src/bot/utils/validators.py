@@ -9,7 +9,7 @@ from configs.constants import (
 )
 
 
-def money_validator(money: str) -> Decimal:
+def money_validator(money: str | Decimal) -> Decimal:
     """Validate the amount of entered money."""
     money = Decimal(money)
 

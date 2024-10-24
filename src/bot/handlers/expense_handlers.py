@@ -20,6 +20,7 @@ from bot.constants.telegram_messages import (
     UPDATE_MESSAGE,
     WRONG_REQUEST,
 )
+from bot.services.expense import parse_and_sum_expenses_from_message
 from bot.utils.keyboards import create_category_keyboard, create_delete_expense_keyboard
 from bot.utils.utils import (
     auth,
@@ -35,7 +36,8 @@ from bot.utils.validators import money_validator
 async def add_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """The user has to write the amount of money he spent."""
     try:
-        money = money_validator(update.message.text)
+        money = parse_and_sum_expenses_from_message(update.message.text)
+        money = money_validator(money)
     except (ValueError, InvalidOperation):
         logging.info(
             WRONG_EXPENSE_LOG.format(get_user_info(update), update.message.text)
