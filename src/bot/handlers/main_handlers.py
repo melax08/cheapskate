@@ -13,8 +13,10 @@ from bot.utils.utils import auth, get_user_info
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Occurs when someone starts the bot with /start command."""
     logging.info(START_BOT_LOG.format(get_user_info(update)))
+    # ToDo: move to on startup function
     await context.bot.set_my_commands(commands=COMMANDS)
     await context.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+    # end ToDo
     await update.message.reply_html(
         START_MESSAGE.format(update.effective_user.mention_html())
     )

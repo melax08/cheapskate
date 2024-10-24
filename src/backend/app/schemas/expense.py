@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 from configs.constants import MINIMUM_EXPENSE_AMOUNT
@@ -9,7 +10,7 @@ from .currency import CurrencyDB
 
 
 class ExpenseBase(BaseModel):
-    amount: float = Field(..., ge=MINIMUM_EXPENSE_AMOUNT)
+    amount: Decimal = Field(..., ge=MINIMUM_EXPENSE_AMOUNT)
 
 
 class ExpenseCreate(ExpenseBase):
@@ -26,18 +27,18 @@ class ExpenseDB(ExpenseBase):
 
 
 class ExpenseMoneyLeftDB(ExpenseDB):
-    money_left: float
+    money_left: Decimal
 
 
 class CategoryExpense(BaseModel):
     name: str
-    amount: float
+    amount: Decimal
 
 
 class CurrencyCategoryExpense(BaseModel):
     currency: CurrencyDB
     categories: list[CategoryExpense]
-    currency_amount: float
+    currency_amount: Decimal
 
 
 class ExpenseStatistic(BaseModel):
@@ -77,19 +78,19 @@ class ExpenseStatistic(BaseModel):
 
 
 class ExpenseStatisticSpent(ExpenseStatistic):
-    money_spent: float
+    money_spent: Decimal
 
 
 class MoneyLeft(ExpenseStatisticSpent):
-    budget: float
-    money_left: float
+    budget: Decimal
+    money_left: Decimal
     current_datetime: datetime
     default_currency: CurrencyDB
 
 
 class MoneyLeftNew(ExpenseStatisticSpent):
-    budget: float
-    money_left: float
+    budget: Decimal
+    money_left: Decimal
     current_datetime: datetime
     default_currency: CurrencyDB
 

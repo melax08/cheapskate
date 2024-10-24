@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from decimal import Decimal
 from http import HTTPStatus
 from types import TracebackType
 from typing import Optional, Type
@@ -164,8 +165,8 @@ class APIClient:
         response_data = await self._post(SET_DEFAULT_CURRENCY_FULL_PATH, data)
         return Settings.from_api_response(response_data)
 
-    async def set_budget(self, budget: int | float) -> Settings:
-        data = {"budget": budget}
+    async def set_budget(self, budget: Decimal | str) -> Settings:
+        data = {"budget": str(budget)}
         response_data = await self._post(SET_BUDGET_FULL_PATH, data)
         return Settings.from_api_response(response_data)
 

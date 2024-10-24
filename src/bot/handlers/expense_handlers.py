@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal, InvalidOperation
 
 from telegram import Update
 from telegram.constants import ParseMode
@@ -22,6 +23,7 @@ from bot.constants.telegram_messages import (
 from bot.utils.keyboards import create_category_keyboard, create_delete_expense_keyboard
 from bot.utils.utils import (
     auth,
+    custom_round,
     get_user_info,
     money_left_calculate_message,
     reply_message_to_authorized_users,
@@ -34,7 +36,7 @@ async def add_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     """The user has to write the amount of money he spent."""
     try:
         money = money_validator(update.message.text)
-    except ValueError:
+    except (ValueError, InvalidOperation):
         logging.info(
             WRONG_EXPENSE_LOG.format(get_user_info(update), update.message.text)
         )
@@ -79,19 +81,19 @@ async def select_expense_category(
         response_data["money_left"], UPDATE_MESSAGE
     )
 
-    money = round(float(money), 2)
+    money = custom_round(Decimal(money)).normalize()
     message = message.format(
         money,
         response_data["currency"]["letter_code"],
         response_data["category"]["name"],
         money_left,
     )
-    await query.answer()
     await query.edit_message_text(
         text=message,
         reply_markup=create_delete_expense_keyboard(response_data["id"], money),
         parse_mode=ParseMode.HTML,
     )
+    await query.answer()
     await reply_message_to_authorized_users(message, update)
 
 
@@ -119,13 +121,13 @@ async def delete_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
 
     message = message.format(
-        response_data["amount"],
+        Decimal(response_data["amount"]).normalize(),
         response_data["currency"]["letter_code"],
         response_data["category"]["name"],
         money_left,
     )
-    await query.answer()
     await query.edit_message_text(text=message, parse_mode=ParseMode.HTML)
+    await query.answer()
     await reply_message_to_authorized_users(message, update)
 
 

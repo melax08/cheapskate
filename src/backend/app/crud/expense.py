@@ -1,5 +1,6 @@
 import datetime as dt
-from typing import Optional, Union
+from decimal import Decimal
+from typing import Optional
 
 from sqlalchemy import Integer, and_, desc, distinct, extract, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,20 +26,20 @@ class CRUDExpense(CRUDBase):
 
     async def calculate_money_expense_sum(
         self, where_stmt, session: AsyncSession
-    ) -> Union[float, int]:
+    ) -> Decimal:
         """Calculates how much money was spent with specified
         WHERE statement."""
         money_spent = await session.execute(
             select(func.sum(self.model.amount)).where(where_stmt)
         )
-        return money_spent.scalars().first() or 0
+        return money_spent.scalars().first() or Decimal("0")
 
     async def calculate_money_left(
         self,
         session: AsyncSession,
         budget: Optional[int] = None,
         default_currency: Optional[Currency] = None,
-    ) -> Union[float, int]:
+    ) -> Decimal:
         """Calculates how much money is left from the budget for
         the current month in current default currency."""
         current_date = dt.datetime.now()
@@ -58,16 +59,14 @@ class CRUDExpense(CRUDBase):
         if budget is None:
             budget = await setting_crud.get_budget(session)
 
-        return round(budget - money_spent, 2)
+        return round(budget - money_spent, 3)
 
-    async def calculate_today_expenses(
-        self, session: AsyncSession
-    ) -> Union[float, int]:
+    async def calculate_today_expenses(self, session: AsyncSession) -> Decimal:
         """Calculates how much money was spent today."""
         today_expenses = await self.calculate_money_expense_sum(
             self.model.date >= dt.date.today(), session
         )
-        return round(today_expenses, 2)
+        return round(today_expenses, 3)
 
     async def get_years_and_months_with_expenses(self, session: AsyncSession):
         """Gets unique years and months with expenses."""

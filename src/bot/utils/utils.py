@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from decimal import Decimal
 from typing import Optional, Tuple
 
 from telegram import Bot, Update
@@ -48,15 +49,17 @@ def auth(func):
 
 def money_left_calculate_message(
     money_left: str, first_message_part: str
-) -> Tuple[float, str]:
+) -> Tuple[Decimal, str]:
     """Checks the money left value and generates a final message for the
     user."""
-    money_left = float(money_left)
+    money_left = Decimal(money_left).normalize()
+
     if money_left >= 0:
         message = first_message_part + MONEY_LEFT_HAS
     else:
         money_left = abs(money_left)
         message = first_message_part + MONEY_RAN_OUT
+
     return money_left, message
 
 
@@ -85,12 +88,14 @@ def append_currencies_categories_expenses_info(
                 CURRENCY_STATISTIC_LABEL.format(
                     currency["currency"]["name"],
                     currency["currency"]["letter_code"],
-                    currency["currency_amount"],
+                    Decimal(currency["currency_amount"]).normalize(),
                 )
             ]
 
             category_items = [
-                CATEGORY_ITEM.format(category.get("name"), category.get("amount"))
+                CATEGORY_ITEM.format(
+                    category.get("name"), Decimal(category.get("amount")).normalize()
+                )
                 for category in currency["categories"]
             ]
 
@@ -139,3 +144,8 @@ async def reply_message_to_authorized_users(
 def get_russian_month_name(month_name: str) -> str:
     """Returns the Russian name of the month."""
     return MONTH_NAME_MAP.get(month_name, month_name)
+
+
+def custom_round(amount: float | Decimal) -> float | Decimal:
+    """Round a number to the desired number of decimal places."""
+    return round(amount, 3)

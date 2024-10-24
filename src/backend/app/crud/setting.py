@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +21,7 @@ class CRUDSetting(CRUDBase):
         settings_instance = await self.get_settings(session)
         return settings_instance.default_currency
 
-    async def get_budget(self, session: AsyncSession) -> int:
+    async def get_budget(self, session: AsyncSession) -> Decimal:
         """Get current budget."""
         settings_instance = await self.get_settings(session)
         return settings_instance.budget

@@ -1,15 +1,16 @@
 import calendar
 from collections import defaultdict
-from typing import Optional, Union
+from decimal import Decimal
+from typing import Optional
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot.api_requests import get_api_client
 from bot.constants.constants import BUTTON_ROW_LEN
-from bot.utils.utils import get_russian_month_name
+from bot.utils.utils import custom_round, get_russian_month_name
 
 
-async def create_category_keyboard(money: Union[float, int]) -> InlineKeyboardMarkup:
+async def create_category_keyboard(money: Decimal) -> InlineKeyboardMarkup:
     """Create keyboard with categories from API."""
     async with get_api_client() as client:
         categories = await client.get_categories()
@@ -19,6 +20,7 @@ async def create_category_keyboard(money: Union[float, int]) -> InlineKeyboardMa
 
     keyboard = []
     row = []
+    money = custom_round(money)
 
     for category in categories:
         row.append(
@@ -78,7 +80,7 @@ def create_statistic_months_keyboard(year, months) -> InlineKeyboardMarkup:
 
 
 def create_delete_expense_keyboard(
-    expense_id: int, money: int | float = None
+    expense_id: int, money: Decimal = None
 ) -> InlineKeyboardMarkup:
     """Creates delete expense button."""
     return InlineKeyboardMarkup.from_row(

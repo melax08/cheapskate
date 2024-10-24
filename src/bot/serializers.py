@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from decimal import Decimal
 
 from bot.constants.telegram_messages import SETTINGS_INFO
 
@@ -9,7 +10,7 @@ class Settings:
 
     currency_name: str
     currency_code: str
-    budget: int | float
+    budget: Decimal
 
     def get_settings_message(self) -> str:
         """Get telegram message with settings information."""
@@ -25,5 +26,5 @@ class Settings:
         return cls(
             response_data["default_currency"]["name"],
             response_data["default_currency"]["letter_code"],
-            response_data["budget"],
+            Decimal(response_data["budget"]).normalize(),
         )

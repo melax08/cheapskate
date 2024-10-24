@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal, InvalidOperation
 
 from telegram import Update
 from telegram.constants import ParseMode
@@ -130,9 +131,11 @@ async def _budget_confirmation(
 ) -> int:
     """Confirm changing of month budget of expenses in application."""
     new_budget = update.message.text.strip()
+
     try:
         async with get_api_client() as client:
-            settings = await client.set_budget(int(new_budget))
+            settings = await client.set_budget(Decimal(new_budget))
+
         await update.message.reply_html(
             settings.get_settings_message_with_info(NEW_BUDGET_SET_SUCCESS),
             reply_markup=settings_markup,
@@ -140,9 +143,10 @@ async def _budget_confirmation(
         await reply_message_to_authorized_users(
             source_message=f"{NEW_BUDGET_SET_SUCCESS} {settings.budget}", update=update
         )
+
         logging.info(SET_NEW_BUDGET_LOG.format(get_user_info(update), new_budget))
         return ConversationHandler.END
-    except ValueError:
+    except (ValueError, InvalidOperation):
         logging.warning(WRONG_BUDGET_LOG.format(get_user_info(update), new_budget))
         await update.message.reply_html(WRONG_NEW_BUDGET)
         return _CONFIRMATION

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from configs.constants import (
     COUNTRY_LENGTH,
     CURRENCY_LETTER_CODE_LENGTH,
@@ -7,11 +9,13 @@ from configs.constants import (
 )
 
 
-def money_validator(money: str) -> float:
+def money_validator(money: str) -> Decimal:
     """Validate the amount of entered money."""
-    money = float(money)
+    money = Decimal(money)
+
     if money < MINIMUM_EXPENSE_AMOUNT:
         raise ValueError
+
     return money
 
 

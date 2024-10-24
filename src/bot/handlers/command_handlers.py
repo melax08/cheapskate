@@ -1,4 +1,5 @@
 import datetime as dt
+from decimal import Decimal
 
 from telegram import Update
 from telegram.ext import CommandHandler, ContextTypes
@@ -39,8 +40,8 @@ async def get_money_left(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     message = [
         message.format(
             current_month,
-            response_data["budget"],
-            response_data["money_spent"],
+            Decimal(response_data["budget"]).normalize(),
+            Decimal(response_data["money_spent"]).normalize(),
             money_left,
             currency_code=response_data["default_currency"]["letter_code"],
         )

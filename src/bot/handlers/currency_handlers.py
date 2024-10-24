@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 
 from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 from telegram import ReplyKeyboardRemove, Update
@@ -36,7 +37,12 @@ from bot.constants.telegram_messages import (
     VALIDATION_ERROR_CURRENCY_NAME,
 )
 from bot.utils.keyboards import create_currency_keyboard, create_delete_expense_keyboard
-from bot.utils.utils import auth, get_user_info, reply_message_to_authorized_users
+from bot.utils.utils import (
+    auth,
+    custom_round,
+    get_user_info,
+    reply_message_to_authorized_users,
+)
 from bot.utils.validators import (
     currency_code_validator,
     currency_country_validator,
@@ -147,8 +153,9 @@ async def change_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Change the expense's currency."""
     query = update.callback_query
     await query.answer()
+
     _, expense_id, money = query.data.split()
-    money = round(float(money), 2)
+    money = custom_round(Decimal(money))
 
     try:
         currency_keyboard = await create_currency_keyboard(expense_id)
@@ -158,7 +165,7 @@ async def change_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     await query.edit_message_text(
-        text=CHOOSE_CURRENCY.format(money),
+        text=CHOOSE_CURRENCY.format(money.normalize()),
         reply_markup=currency_keyboard,
         parse_mode=ParseMode.HTML,
     )
@@ -169,7 +176,6 @@ async def set_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Set the specified currency for specified expense."""
     query = update.callback_query
     _, expense_id, currency_id = query.data.split()
-    await query.answer()
 
     async with get_api_client() as client:
         response_data = await client.set_currency(expense_id, currency_id)
@@ -177,7 +183,7 @@ async def set_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     message = CURRENCY_SET.format(
         response_data["currency"]["name"],
         response_data["currency"]["letter_code"],
-        response_data["amount"],
+        Decimal(response_data["amount"]).normalize(),
         response_data["category"]["name"],
     )
     logging.info(
@@ -187,6 +193,7 @@ async def set_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             response_data["id"],
         )
     )
+    await query.answer()
     await query.edit_message_text(
         message,
         reply_markup=create_delete_expense_keyboard(
