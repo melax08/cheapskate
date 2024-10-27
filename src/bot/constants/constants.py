@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+AMOUNT_DECIMAL_PLACES: int = 3
+
 BUTTON_ROW_LEN: int = 3
 
 MONTH_NAME_MAP = {

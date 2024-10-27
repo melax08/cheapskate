@@ -29,10 +29,11 @@ from bot.constants.telegram_messages import (
     SELECT_NEW_DEFAULT_CURRENCY,
     WRONG_NEW_BUDGET,
 )
+from bot.decorators import auth
 from bot.exceptions import APIError
 from bot.handlers.main_handlers import cancel
 from bot.utils.keyboards import select_default_currency_keyboard, settings_markup
-from bot.utils.utils import auth, get_user_info, reply_message_to_authorized_users
+from bot.utils.utils import get_user_info, reply_message_to_authorized_users
 
 
 @auth

@@ -11,9 +11,9 @@ from bot.constants.telegram_messages import (
     NO_TODAY_EXPENSES,
     TODAY_EXPENSES,
 )
+from bot.decorators import auth
 from bot.utils.utils import (
     append_currencies_categories_expenses_info,
-    auth,
     get_russian_month_name,
     money_left_calculate_message,
 )

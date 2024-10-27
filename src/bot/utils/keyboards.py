@@ -7,10 +7,10 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot.api_requests import get_api_client
 from bot.constants.constants import BUTTON_ROW_LEN
-from bot.utils.utils import custom_round, get_russian_month_name
+from bot.utils.utils import get_russian_month_name
 
 
-async def create_category_keyboard(money: Decimal) -> InlineKeyboardMarkup:
+async def create_category_keyboard(expense_amount: Decimal) -> InlineKeyboardMarkup:
     """Create keyboard with categories from API."""
     async with get_api_client() as client:
         categories = await client.get_categories()
@@ -20,12 +20,11 @@ async def create_category_keyboard(money: Decimal) -> InlineKeyboardMarkup:
 
     keyboard = []
     row = []
-    money = custom_round(money)
 
     for category in categories:
         row.append(
             InlineKeyboardButton(
-                category["name"], callback_data=f'{money} {category["id"]}'
+                category["name"], callback_data=f"{expense_amount:f} {category['id']}"
             )
         )
         if len(row) == BUTTON_ROW_LEN:

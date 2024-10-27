@@ -1,5 +1,4 @@
 import logging
-from decimal import Decimal
 
 from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 from telegram import ReplyKeyboardRemove, Update
@@ -36,11 +35,11 @@ from bot.constants.telegram_messages import (
     VALIDATION_ERROR_CURRENCY_CODE,
     VALIDATION_ERROR_CURRENCY_NAME,
 )
+from bot.decorators import auth
 from bot.utils.keyboards import create_currency_keyboard, create_delete_expense_keyboard
 from bot.utils.utils import (
-    auth,
-    custom_round,
     get_user_info,
+    normalize_amount,
     reply_message_to_authorized_users,
 )
 from bot.utils.validators import (
@@ -154,8 +153,8 @@ async def change_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     query = update.callback_query
     await query.answer()
 
-    _, expense_id, money = query.data.split()
-    money = custom_round(Decimal(money))
+    _, expense_id, expense_amount = query.data.split()
+    expense_amount = normalize_amount(expense_amount)
 
     try:
         currency_keyboard = await create_currency_keyboard(expense_id)
@@ -165,7 +164,7 @@ async def change_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     await query.edit_message_text(
-        text=CHOOSE_CURRENCY.format(money.normalize()),
+        text=CHOOSE_CURRENCY.format(expense_amount),
         reply_markup=currency_keyboard,
         parse_mode=ParseMode.HTML,
     )
@@ -183,7 +182,7 @@ async def set_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     message = CURRENCY_SET.format(
         response_data["currency"]["name"],
         response_data["currency"]["letter_code"],
-        Decimal(response_data["amount"]).normalize(),
+        normalize_amount(response_data["amount"]),
         response_data["category"]["name"],
     )
     logging.info(

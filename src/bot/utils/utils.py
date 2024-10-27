@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from decimal import Decimal
 from typing import Optional, Tuple
 
@@ -7,10 +6,8 @@ from telegram import Bot, Update
 from telegram.constants import ParseMode
 
 from bot.config import bot_settings
-from bot.constants.constants import MONTH_NAME_MAP
-from bot.constants.logging_messages import ACCESS_DENIED_LOG
+from bot.constants.constants import AMOUNT_DECIMAL_PLACES, MONTH_NAME_MAP
 from bot.constants.telegram_messages import (
-    ACCESS_DENIED,
     ANOTHER_USER_ACTION,
     CATEGORY_ITEM,
     CURRENCY_STATISTIC_LABEL,
@@ -25,34 +22,12 @@ def get_user_info(update: Update) -> str:
     return f"{user.username}, {user.first_name} {user.last_name}, {user.id}"
 
 
-def auth(func):
-    """
-    Decorator that can be used in telegram handlers.
-    Allows access only to those telegram ids that are listed in the
-    ALLOWED_TELEGRAM_IDS environment variable. If ALLOWED_TELEGRAM_IDS is
-    empty, then allows access to all.
-    """
-
-    async def wrapper(*args, **kwargs):
-        update = args[0]
-        if (
-            bot_settings.allowed_telegram_ids
-            and update.effective_user.id not in bot_settings.allowed_telegram_ids
-        ):
-            logging.warning(ACCESS_DENIED_LOG.format(get_user_info(update)))
-            await update.message.reply_html(ACCESS_DENIED)
-            return
-        return await func(*args, **kwargs)
-
-    return wrapper
-
-
 def money_left_calculate_message(
     money_left: str, first_message_part: str
 ) -> Tuple[Decimal, str]:
     """Checks the money left value and generates a final message for the
     user."""
-    money_left = Decimal(money_left).normalize()
+    money_left = normalize_amount(money_left)
 
     if money_left >= 0:
         message = first_message_part + MONEY_LEFT_HAS
@@ -88,7 +63,7 @@ def append_currencies_categories_expenses_info(
                 CURRENCY_STATISTIC_LABEL.format(
                     currency["currency"]["name"],
                     currency["currency"]["letter_code"],
-                    Decimal(currency["currency_amount"]).normalize(),
+                    normalize_amount(currency["currency_amount"]),
                 )
             ]
 
@@ -146,6 +121,9 @@ def get_russian_month_name(month_name: str) -> str:
     return MONTH_NAME_MAP.get(month_name, month_name)
 
 
-def custom_round(amount: float | Decimal) -> float | Decimal:
-    """Round a number to the desired number of decimal places."""
-    return round(amount, 3)
+def normalize_amount(amount: float | Decimal | str | int) -> Decimal:
+    """
+    Cast string, integer or float to decimal.
+    Round a number to the desired number of decimal places.
+    """
+    return round(Decimal(amount), AMOUNT_DECIMAL_PLACES).normalize()

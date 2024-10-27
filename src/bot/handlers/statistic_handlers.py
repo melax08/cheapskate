@@ -11,13 +11,13 @@ from bot.constants.telegram_messages import (
     STATISTIC_MONTH_MESSAGE,
     STATISTIC_YEAR_MESSAGE,
 )
+from bot.decorators import auth
 from bot.utils.keyboards import (
     create_statistic_months_keyboard,
     create_statistic_years_keyboard,
 )
 from bot.utils.utils import (
     append_currencies_categories_expenses_info,
-    auth,
     get_russian_month_name,
 )
 

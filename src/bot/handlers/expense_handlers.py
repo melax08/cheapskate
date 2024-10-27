@@ -20,24 +20,25 @@ from bot.constants.telegram_messages import (
     UPDATE_MESSAGE,
     WRONG_REQUEST,
 )
+from bot.decorators import auth
 from bot.services.expense import parse_and_sum_expenses_from_message
 from bot.utils.keyboards import create_category_keyboard, create_delete_expense_keyboard
 from bot.utils.utils import (
-    auth,
-    custom_round,
     get_user_info,
     money_left_calculate_message,
+    normalize_amount,
     reply_message_to_authorized_users,
 )
-from bot.utils.validators import money_validator
+from bot.utils.validators import expense_amount_validator
 
 
 @auth
 async def add_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """The user has to write the amount of money he spent."""
     try:
-        money = parse_and_sum_expenses_from_message(update.message.text)
-        money = money_validator(money)
+        expense_amount = parse_and_sum_expenses_from_message(update.message.text)
+        expense_amount_validator(expense_amount)
+        expense_amount = normalize_amount(expense_amount)
     except (ValueError, InvalidOperation):
         logging.info(
             WRONG_EXPENSE_LOG.format(get_user_info(update), update.message.text)
@@ -46,15 +47,15 @@ async def add_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     try:
-        keyboard = await create_category_keyboard(money)
+        keyboard = await create_category_keyboard(expense_amount)
     except ValueError:
         logging.warning(NO_CATEGORIES_LOG.format(get_user_info(update)))
         await update.message.reply_text(NO_CATEGORIES)
         return
 
-    logging.info(CHOOSE_CATEGORY_LOG.format(get_user_info(update), money))
+    logging.info(CHOOSE_CATEGORY_LOG.format(get_user_info(update), expense_amount))
     await update.message.reply_text(
-        CHOOSE_CATEGORY.format(money), reply_markup=keyboard
+        CHOOSE_CATEGORY.format(expense_amount), reply_markup=keyboard
     )
 
 
@@ -65,15 +66,15 @@ async def select_expense_category(
     """The user must select the expense category by clicking
     on one of the buttons."""
     query = update.callback_query
-    money, category_id = query.data.split()
+    expense_amount, category_id = query.data.split()
 
     async with get_api_client() as client:
-        response_data = await client.add_expense(money, category_id)
+        response_data = await client.add_expense(expense_amount, category_id)
 
     logging.info(
         SPEND_EXPENSE_TO_API_LOG.format(
             get_user_info(update),
-            money,
+            expense_amount,
             response_data["category"]["name"],
             response_data["money_left"],
         )
@@ -83,16 +84,18 @@ async def select_expense_category(
         response_data["money_left"], UPDATE_MESSAGE
     )
 
-    money = custom_round(Decimal(money)).normalize()
+    expense_amount = normalize_amount(expense_amount)
     message = message.format(
-        money,
+        expense_amount,
         response_data["currency"]["letter_code"],
         response_data["category"]["name"],
         money_left,
     )
     await query.edit_message_text(
         text=message,
-        reply_markup=create_delete_expense_keyboard(response_data["id"], money),
+        reply_markup=create_delete_expense_keyboard(
+            response_data["id"], expense_amount
+        ),
         parse_mode=ParseMode.HTML,
     )
     await query.answer()
