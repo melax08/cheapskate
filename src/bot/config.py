@@ -17,6 +17,9 @@ class Settings(BaseSettings):
         env_file=Path(__file__).parent.parent / ".env",
         extra="allow",
     )
+    redis_host: str = "127.0.0.1"
+    redis_port: int = 6379
+    redis_db: int = 0
 
     @field_validator("allowed_telegram_ids")
     @classmethod

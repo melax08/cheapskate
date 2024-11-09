@@ -1,7 +1,6 @@
 import logging
 
-from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
-from telegram import ReplyKeyboardRemove, Update
+from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import (
     CallbackQueryHandler,
@@ -12,28 +11,15 @@ from telegram.ext import (
     filters,
 )
 
-from bot.api_requests import BadRequest, get_api_client
+from bot.api_requests import get_api_client
 from bot.constants.logging_messages import (
-    CURRENCY_ADDED_NEW_LOG,
-    CURRENCY_COUNTRY_TOO_LONG_LOG,
-    CURRENCY_INCORRECT_CODE_LOG,
-    CURRENCY_NAME_TOO_LONG_LOG,
-    CURRENCY_NOT_UNIQUE_LOG,
     NO_CURRENCIES_LOG,
     SET_CURRENCY_LOG,
 )
 from bot.constants.telegram_messages import (
     CHOOSE_CURRENCY,
-    CURRENCY_ADD_SUCCESS,
-    CURRENCY_NOT_UNIQUE,
     CURRENCY_SET,
-    ENTER_CURRENCY_CODE,
-    ENTER_CURRENCY_COUNTRY,
-    ENTER_CURRENCY_NAME,
     NO_CURRENCIES,
-    VALIDATION_ERROR_COUNTRY,
-    VALIDATION_ERROR_CURRENCY_CODE,
-    VALIDATION_ERROR_CURRENCY_NAME,
 )
 from bot.decorators import auth
 from bot.utils.keyboards import create_currency_keyboard, create_delete_expense_keyboard
@@ -41,11 +27,6 @@ from bot.utils.utils import (
     get_user_info,
     normalize_amount,
     reply_message_to_authorized_users,
-)
-from bot.utils.validators import (
-    currency_code_validator,
-    currency_country_validator,
-    currency_name_validator,
 )
 
 from .main_handlers import cancel
@@ -55,96 +36,96 @@ COUNTRY_NAME: int = 1
 CONFIRMATION: int = 2
 
 
-@auth
-async def add_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Start add currency conversation handler."""
-    await update.message.reply_html(
-        ENTER_CURRENCY_NAME,
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    return LETTER_CODE
+# @auth
+# async def add_currency(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+#     """Start add currency conversation handler."""
+#     await update.message.reply_html(
+#         ENTER_CURRENCY_NAME,
+#         reply_markup=ReplyKeyboardRemove(),
+#     )
+#     return LETTER_CODE
 
 
-@auth
-async def _letter_code(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Ask user to write the currency letter code."""
-    currency_name = update.message.text.strip()
-
-    try:
-        currency_name_validator(currency_name)
-    except ValueError:
-        logging.warning(
-            CURRENCY_NAME_TOO_LONG_LOG.format(get_user_info(update), currency_name)
-        )
-        await update.message.reply_html(
-            VALIDATION_ERROR_CURRENCY_NAME.format(MAX_CURRENCY_NAME_LENGTH)
-        )
-        return LETTER_CODE
-
-    context.user_data["currency_name"] = currency_name
-    await update.message.reply_html(ENTER_CURRENCY_CODE)
-    return COUNTRY_NAME
-
-
-@auth
-async def _country_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Ask user to write the currency country."""
-    currency_code = update.message.text.strip().upper()
-
-    try:
-        currency_code_validator(update.message.text)
-    except ValueError:
-        logging.warning(
-            CURRENCY_INCORRECT_CODE_LOG.format(get_user_info(update), currency_code)
-        )
-        await update.message.reply_html(VALIDATION_ERROR_CURRENCY_CODE)
-        return COUNTRY_NAME
-
-    context.user_data["currency_letter_code"] = currency_code
-    await update.message.reply_html(ENTER_CURRENCY_COUNTRY)
-
-    return CONFIRMATION
+# @auth
+# async def _letter_code(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+#     """Ask user to write the currency letter code."""
+#     currency_name = update.message.text.strip()
+#
+#     try:
+#         currency_name_validator(currency_name)
+#     except ValueError:
+#         logging.warning(
+#             CURRENCY_NAME_TOO_LONG_LOG.format(get_user_info(update), currency_name)
+#         )
+#         await update.message.reply_html(
+#             VALIDATION_ERROR_CURRENCY_NAME.format(MAX_CURRENCY_NAME_LENGTH)
+#         )
+#         return LETTER_CODE
+#
+#     context.user_data["currency_name"] = currency_name
+#     await update.message.reply_html(ENTER_CURRENCY_CODE)
+#     return COUNTRY_NAME
 
 
-@auth
-async def _confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Add currency to backend."""
-    country_name = update.message.text.strip()
+# @auth
+# async def _country_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+#     """Ask user to write the currency country."""
+#     currency_code = update.message.text.strip().upper()
+#
+#     try:
+#         currency_code_validator(update.message.text)
+#     except ValueError:
+#         logging.warning(
+#             CURRENCY_INCORRECT_CODE_LOG.format(get_user_info(update), currency_code)
+#         )
+#         await update.message.reply_html(VALIDATION_ERROR_CURRENCY_CODE)
+#         return COUNTRY_NAME
+#
+#     context.user_data["currency_letter_code"] = currency_code
+#     await update.message.reply_html(ENTER_CURRENCY_COUNTRY)
+#
+#     return CONFIRMATION
 
-    try:
-        currency_country_validator(country_name)
-        async with get_api_client() as client:
-            response_data = await client.add_currency(
-                context.user_data.get("currency_name"),
-                context.user_data.get("currency_letter_code"),
-                country_name,
-            )
 
-        message = CURRENCY_ADD_SUCCESS.format(
-            response_data.get("name"),
-            response_data.get("letter_code"),
-            response_data.get("country"),
-        )
-
-        logging.info(
-            CURRENCY_ADDED_NEW_LOG.format(
-                get_user_info(update), response_data.get("name")
-            )
-        )
-        await update.message.reply_text(message, parse_mode=ParseMode.HTML)
-        await reply_message_to_authorized_users(message, update)
-        return ConversationHandler.END
-
-    except BadRequest:
-        logging.warning(CURRENCY_NOT_UNIQUE_LOG.format(get_user_info(update)))
-        await update.message.reply_html(CURRENCY_NOT_UNIQUE)
-        return ConversationHandler.END
-    except ValueError:
-        logging.warning(
-            CURRENCY_COUNTRY_TOO_LONG_LOG.format(get_user_info(update), country_name)
-        )
-        await update.message.reply_html(VALIDATION_ERROR_COUNTRY.format(COUNTRY_LENGTH))
-        return CONFIRMATION
+# @auth
+# async def _confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+#     """Add currency to backend."""
+#     country_name = update.message.text.strip()
+#
+#     try:
+#         currency_country_validator(country_name)
+#         async with get_api_client() as client:
+#             response_data = await client.add_currency(
+#                 context.user_data.get("currency_name"),
+#                 context.user_data.get("currency_letter_code"),
+#                 country_name,
+#             )
+#
+#         message = CURRENCY_ADD_SUCCESS.format(
+#             response_data.get("name"),
+#             response_data.get("letter_code"),
+#             response_data.get("country"),
+#         )
+#
+#         logging.info(
+#             CURRENCY_ADDED_NEW_LOG.format(
+#                 get_user_info(update), response_data.get("name")
+#             )
+#         )
+#         await update.message.reply_text(message, parse_mode=ParseMode.HTML)
+#         await reply_message_to_authorized_users(message, update)
+#         return ConversationHandler.END
+#
+#     except BadRequest:
+#         logging.warning(CURRENCY_NOT_UNIQUE_LOG.format(get_user_info(update)))
+#         await update.message.reply_html(CURRENCY_NOT_UNIQUE)
+#         return ConversationHandler.END
+#     except ValueError:
+#         logging.warning(
+#             CURRENCY_COUNTRY_TOO_LONG_LOG.format(get_user_info(update), country_name)
+#         )
+#         await update.message.reply_html(VALIDATION_ERROR_COUNTRY.format(COUNTRY_LENGTH))
+#         return CONFIRMATION
 
 
 @auth

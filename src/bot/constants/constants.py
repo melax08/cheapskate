@@ -1,5 +1,3 @@
-from typing import Union
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,4 +22,4 @@ MONTH_NAME_MAP = {
 }
 
 # Request to API settings
-REQUEST_API_TIMEOUT: Union[int, float] = 5
+REQUEST_API_TIMEOUT: int | float = 5

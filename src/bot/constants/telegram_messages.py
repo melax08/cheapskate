@@ -46,7 +46,7 @@ ENTER_CATEGORY_NAME = (
     "Введите название категории трат, которую хотите создать, для отмены /cancel"
 )
 
-CATEGORY_ADD_SUCCESS = '✅ Категория с названием "{}" была успешно добавлена!'
+CATEGORY_ADD_SUCCESS = '✅ Категория с названием "<b>{}</b>" была успешно добавлена!'
 
 CATEGORY_ALREADY_EXISTS = (
     '❗️ Категория с названием "{}" уже существует. '
@@ -102,7 +102,7 @@ CURRENCY_ADD_SUCCESS: str = (
 
 CURRENCY_NOT_UNIQUE: str = (
     f"❗ Валюта с таким названием/кодом/страной уже существует, "
-    f"попробуйте снова: {ADD_CURRENCY_COMMAND}"
+    f"попробуйте снова: /{ADD_CURRENCY_COMMAND}"
 )
 
 CHOOSE_CURRENCY: str = (

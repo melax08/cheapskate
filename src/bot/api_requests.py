@@ -1,13 +1,11 @@
-from contextlib import asynccontextmanager
 from decimal import Decimal
 from http import HTTPStatus
 from types import TracebackType
 from typing import Optional, Type
 
-import aiohttp
+from aiohttp import ClientSession
 from aiohttp.client_exceptions import ContentTypeError
 from configs.api_settings import (
-    API_URL,
     CATEGORIES_PATH,
     CURRENCY_PATH,
     EXPENSE_PATH,
@@ -21,8 +19,6 @@ from configs.api_settings import (
 )
 from yarl import URL
 
-from bot.constants.constants import REQUEST_API_TIMEOUT
-
 from .exceptions import APIError, BadRequest
 from .serializers import Settings
 
@@ -30,9 +26,9 @@ from .serializers import Settings
 class APIClient:
     """Client that sends async requests to REST API and returns results."""
 
-    def __init__(self, api_url: URL):
+    def __init__(self, api_url: URL, session: ClientSession):
         self._api_url = api_url
-        self._client = aiohttp.ClientSession(conn_timeout=REQUEST_API_TIMEOUT)
+        self._client = session
 
     async def __aenter__(self):
         return self
@@ -169,11 +165,3 @@ class APIClient:
         data = {"budget": str(budget)}
         response_data = await self._post(SET_BUDGET_FULL_PATH, data)
         return Settings.from_api_response(response_data)
-
-
-@asynccontextmanager
-async def get_api_client():
-    """Creates API client with aiohttp session that allows to send API
-    requests."""
-    async with APIClient(URL(API_URL)) as client:
-        yield client
