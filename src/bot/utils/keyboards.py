@@ -1,35 +1,33 @@
-from decimal import Decimal
-
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from bot.constants.constants import BUTTON_ROW_LEN
+# from bot.constants.constants import BUTTON_ROW_LEN
 
 
-async def create_category_keyboard(expense_amount: Decimal) -> InlineKeyboardMarkup:
-    """Create keyboard with categories from API."""
-    async with get_api_client() as client:
-        categories = await client.get_categories()
-
-    if len(categories) == 0:
-        raise ValueError
-
-    keyboard = []
-    row = []
-
-    for category in categories:
-        row.append(
-            InlineKeyboardButton(
-                category["name"], callback_data=f"{expense_amount:f} {category['id']}"
-            )
-        )
-        if len(row) == BUTTON_ROW_LEN:
-            keyboard.append(row)
-            row = []
-    if len(row) > 0:
-        keyboard.append(row)
-
-    return InlineKeyboardMarkup(keyboard)
+# async def create_category_keyboard(expense_amount: Decimal) -> InlineKeyboardMarkup:
+#     """Create keyboard with categories from API."""
+#     async with get_api_client() as client:
+#         categories = await client.get_categories()
+#
+#     if len(categories) == 0:
+#         raise ValueError
+#
+#     keyboard = []
+#     row = []
+#
+#     for category in categories:
+#         row.append(
+#             InlineKeyboardButton(
+#                 category["name"], callback_data=f"{expense_amount:f} {category['id']}"
+#             )
+#         )
+#         if len(row) == BUTTON_ROW_LEN:
+#             keyboard.append(row)
+#             row = []
+#     if len(row) > 0:
+#         keyboard.append(row)
+#
+#     return InlineKeyboardMarkup(keyboard)
 
 
 # async def create_statistic_years_keyboard(client: APIClient) -> InlineKeyboardMarkup | None:
@@ -73,16 +71,16 @@ async def create_category_keyboard(expense_amount: Decimal) -> InlineKeyboardMar
 #     return InlineKeyboardMarkup(keyboard)
 
 
-def create_delete_expense_keyboard(
-    expense_id: int, money: Decimal = None
-) -> InlineKeyboardMarkup:
-    """Creates delete expense button."""
-    return InlineKeyboardMarkup.from_row(
-        [
-            InlineKeyboardButton("Удалить", callback_data=f"DEL {expense_id}"),
-            InlineKeyboardButton("Валюта", callback_data=f"CUR {expense_id} {money}"),
-        ]
-    )
+# def create_delete_expense_keyboard(
+#     expense_id: int, money: Decimal = None
+# ) -> InlineKeyboardMarkup:
+#     """Creates delete expense button."""
+#     return InlineKeyboardMarkup.from_row(
+#         [
+#             InlineKeyboardButton("Удалить", callback_data=f"DEL {expense_id}"),
+#             InlineKeyboardButton("Валюта", callback_data=f"CUR {expense_id} {money}"),
+#         ]
+#     )
 
 
 async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:

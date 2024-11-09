@@ -13,6 +13,7 @@ from bot.handlers.categories import router as categories_router
 from bot.handlers.common import router as common_router
 from bot.handlers.currencies import router as currencies_router
 from bot.handlers.errors import router as errors_router
+from bot.handlers.expenses import router as expenses_router
 from bot.handlers.statistic import router as statistic_router
 from bot.middlewares.auth import AuthMiddleware
 from bot.middlewares.http_client import HTTPClientMiddleware
@@ -50,6 +51,7 @@ async def start_bot() -> None:
         statistic_router,
         categories_router,
         currencies_router,
+        expenses_router,
     )
 
     dp.startup.register(on_startup)

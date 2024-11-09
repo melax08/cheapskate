@@ -99,15 +99,15 @@ class APIClient:
         response_data = await self._post(CATEGORIES_PATH, data)
         return response_data
 
-    async def add_expense(self, money: str, category_id: str):
+    async def add_expense(self, money: Decimal, category_id: int):
         """Add new expense."""
-        data = {"category_id": category_id, "amount": money}
+        data = {"category_id": category_id, "amount": str(money)}
         response_data = await self._post(EXPENSE_PATH, data)
         return response_data
 
-    async def delete_expense(self, expense_id: str):
+    async def delete_expense(self, expense_id: int):
         """Delete specified expense."""
-        response_data = await self._delete(EXPENSE_PATH + "/" + expense_id)
+        response_data = await self._delete(f"{EXPENSE_PATH}/{expense_id}")
         return response_data
 
     async def get_money_left(self):
