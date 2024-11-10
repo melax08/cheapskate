@@ -83,30 +83,30 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 #     )
 
 
-async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:
-    async with get_api_client() as client:
-        currencies = await client.get_currencies()
-
-        if len(currencies) == 0:
-            raise ValueError
-
-        keyboard = []
-        row = []
-
-        for currency in currencies:
-            row.append(
-                InlineKeyboardButton(
-                    currency["name"],
-                    callback_data=f'CURC {expense_id} {currency.get("id")}',
-                )
-            )
-            if len(row) == 2:
-                keyboard.append(row)
-                row = []
-        if len(row) > 0:
-            keyboard.append(row)
-
-        return InlineKeyboardMarkup(keyboard)
+# async def create_currency_keyboard(expense_id: int) -> InlineKeyboardMarkup:
+#     async with get_api_client() as client:
+#         currencies = await client.get_currencies()
+#
+#         if len(currencies) == 0:
+#             raise ValueError
+#
+#         keyboard = []
+#         row = []
+#
+#         for currency in currencies:
+#             row.append(
+#                 InlineKeyboardButton(
+#                     currency["name"],
+#                     callback_data=f'CURC {expense_id} {currency.get("id")}',
+#                 )
+#             )
+#             if len(row) == 2:
+#                 keyboard.append(row)
+#                 row = []
+#         if len(row) > 0:
+#             keyboard.append(row)
+#
+#         return InlineKeyboardMarkup(keyboard)
 
 
 async def select_default_currency_keyboard() -> InlineKeyboardMarkup:

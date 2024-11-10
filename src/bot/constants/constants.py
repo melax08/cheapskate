@@ -5,6 +5,7 @@ load_dotenv()
 AMOUNT_DECIMAL_PLACES: int = 3
 
 CATEGORIES_NUMBER_IN_ROW: int = 3
+CURRENCIES_NUMBER_IN_ROW: int = 2
 
 MONTH_NAME_MAP = {
     "January": "Январь",
