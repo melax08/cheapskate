@@ -14,102 +14,93 @@ from telegram.ext import (
 
 from bot.api_requests import get_api_client
 from bot.constants.logging_messages import (
-    NO_CURRENCIES_LOG,
     SET_NEW_BUDGET_LOG,
-    SET_NEW_DEFAULT_CURRENCY_LOG,
     WRONG_BUDGET_LOG,
-    WRONG_CURRENCY_LOG,
 )
 from bot.constants.telegram_messages import (
     ENTER_NEW_BUDGET,
     NEW_BUDGET_SET_SUCCESS,
-    NEW_DEFAULT_CURRENCY_SET_SUCCESS,
-    NO_CURRENCIES,
-    NONEXISTENT_CURRENCY,
-    SELECT_NEW_DEFAULT_CURRENCY,
     WRONG_NEW_BUDGET,
 )
 from bot.decorators import auth
-from bot.exceptions import APIError
 from bot.handlers.main_handlers import cancel
-from bot.utils.keyboards import select_default_currency_keyboard, settings_markup
+from bot.utils.keyboards import settings_markup
 from bot.utils.utils import get_user_info, reply_message_to_authorized_users
 
-
-@auth
-async def get_settings_handler(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """Command to get information about current application settings."""
-    async with get_api_client() as client:
-        settings = await client.get_settings()
-
-    await update.message.reply_html(
-        settings.get_settings_message(),
-        reply_markup=settings_markup,
-    )
-
-
-@auth
-async def change_default_currency(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """Show the list of available currencies to set as default currency."""
-    query = update.callback_query
-
-    try:
-        currency_keyboard = await select_default_currency_keyboard()
-    except ValueError:
-        logging.warning(NO_CURRENCIES_LOG.format(get_user_info(update)))
-        await query.edit_message_text(text=NO_CURRENCIES, reply_markup=None)
-        return
-
-    await query.edit_message_text(
-        text=SELECT_NEW_DEFAULT_CURRENCY,
-        reply_markup=currency_keyboard,
-    )
+# @auth
+# async def get_settings_handler(
+#     update: Update, context: ContextTypes.DEFAULT_TYPE
+# ) -> None:
+#     """Command to get information about current application settings."""
+#     async with get_api_client() as client:
+#         settings = await client.get_settings()
+#
+#     await update.message.reply_html(
+#         settings.get_settings_message(),
+#         reply_markup=settings_markup,
+#     )
 
 
-@auth
-async def set_default_currency(
-    update: Update, context: ContextTypes.DEFAULT_TYPE
-) -> None:
-    """Set the new default currency for future expenses in the application."""
-    query = update.callback_query
-    _, currency_id = query.data.split()
+# @auth
+# async def change_default_currency(
+#     update: Update, context: ContextTypes.DEFAULT_TYPE
+# ) -> None:
+#     """Show the list of available currencies to set as default currency."""
+#     query = update.callback_query
+#
+#     try:
+#         currency_keyboard = await select_default_currency_keyboard()
+#     except ValueError:
+#         logging.warning(NO_CURRENCIES_LOG.format(get_user_info(update)))
+#         await query.edit_message_text(text=NO_CURRENCIES, reply_markup=None)
+#         return
+#
+#     await query.edit_message_text(
+#         text=SELECT_NEW_DEFAULT_CURRENCY,
+#         reply_markup=currency_keyboard,
+#     )
 
-    async with get_api_client() as client:
-        try:
-            settings = await client.set_default_currency(int(currency_id))
-        except APIError:
-            logging.warning(
-                WRONG_CURRENCY_LOG.format(get_user_info(update), currency_id)
-            )
-            currency_keyboard = await select_default_currency_keyboard()
-            await query.edit_message_text(
-                text=NONEXISTENT_CURRENCY,
-                reply_markup=currency_keyboard,
-            )
-            return
 
-    await query.answer()
-    logging.info(
-        SET_NEW_DEFAULT_CURRENCY_LOG.format(
-            get_user_info(update), settings.currency_name
-        )
-    )
-    await query.edit_message_text(
-        text=settings.get_settings_message_with_info(NEW_DEFAULT_CURRENCY_SET_SUCCESS),
-        reply_markup=settings_markup,
-        parse_mode=ParseMode.HTML,
-    )
-    await reply_message_to_authorized_users(
-        (
-            f"{NEW_DEFAULT_CURRENCY_SET_SUCCESS} {settings.currency_name} "
-            f"({settings.currency_code})"
-        ),
-        update,
-    )
+# @auth
+# async def set_default_currency(
+#     update: Update, context: ContextTypes.DEFAULT_TYPE
+# ) -> None:
+#     """Set the new default currency for future expenses in the application."""
+#     query = update.callback_query
+#     _, currency_id = query.data.split()
+#
+#     async with get_api_client() as client:
+#         try:
+#             settings = await client.set_default_currency(int(currency_id))
+#         except APIError:
+#             logging.warning(
+#                 WRONG_CURRENCY_LOG.format(get_user_info(update), currency_id)
+#             )
+#             currency_keyboard = await select_default_currency_keyboard()
+#             await query.edit_message_text(
+#                 text=NONEXISTENT_CURRENCY,
+#                 reply_markup=currency_keyboard,
+#             )
+#             return
+#
+#     await query.answer()
+#     logging.info(
+#         SET_NEW_DEFAULT_CURRENCY_LOG.format(
+#             get_user_info(update), settings.currency_name
+#         )
+#     )
+#     await query.edit_message_text(
+#         text=settings.get_settings_message_with_info(NEW_DEFAULT_CURRENCY_SET_SUCCESS),
+#         reply_markup=settings_markup,
+#         parse_mode=ParseMode.HTML,
+#     )
+#     await reply_message_to_authorized_users(
+#         (
+#             f"{NEW_DEFAULT_CURRENCY_SET_SUCCESS} {settings.currency_name} "
+#             f"({settings.currency_code})"
+#         ),
+#         update,
+#     )
 
 
 _CONFIRMATION = 0

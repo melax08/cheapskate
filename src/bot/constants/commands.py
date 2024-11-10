@@ -6,6 +6,7 @@ MONEY_LEFT_COMMAND = "money_left"
 TODAY_COMMAND = "today"
 ADD_CATEGORY_COMMAND = "add_category"
 CANCEL_COMMAND = "cancel"
+SETTINGS_COMMAND = "settings"
 
 COMMANDS = [
     BotCommand(command=MONEY_LEFT_COMMAND, description="Остаток средств на месяц"),
@@ -15,6 +16,6 @@ COMMANDS = [
     ),
     BotCommand(command=ADD_CATEGORY_COMMAND, description="Добавить категорию трат"),
     BotCommand(command=ADD_CURRENCY_COMMAND, description="Добавить валюту"),
-    BotCommand(command="settings", description="Настройки приложения"),
+    BotCommand(command=SETTINGS_COMMAND, description="Настройки приложения"),
     BotCommand(command=CANCEL_COMMAND, description="Отменить действие"),
 ]
