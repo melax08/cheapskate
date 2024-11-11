@@ -13,6 +13,12 @@ services:
 #    ports:
 #      - '5432:5432'
 
+  cheapskate_redis:
+    image: redis
+    restart: always
+#    ports:
+#      - '6379:6379'
+
   cheapskate_api:
     build:
       dockerfile: Dockerfile.api
@@ -34,6 +40,7 @@ services:
       - ./.data/:/.data/
     depends_on:
       - cheapskate_api
+      - cheapskate_redis
     env_file:
       - src/.env
     environment:

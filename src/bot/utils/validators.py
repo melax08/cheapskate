@@ -1,10 +1,11 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from configs.constants import (
     COUNTRY_LENGTH,
     CURRENCY_LETTER_CODE_LENGTH,
     MAX_CATEGORY_NAME_LENGTH,
     MAX_CURRENCY_NAME_LENGTH,
+    MINIMUM_BUDGET_AMOUNT,
     MINIMUM_EXPENSE_AMOUNT,
 )
 
@@ -36,3 +37,14 @@ def currency_name_validator(currency_name: str) -> None:
 def currency_country_validator(currency_country: str) -> None:
     if len(currency_country) > COUNTRY_LENGTH:
         raise ValueError
+
+
+def budget_validator(amount: Decimal | int | str) -> Decimal:
+    try:
+        amount = Decimal(amount)
+        if amount < MINIMUM_BUDGET_AMOUNT:
+            raise ValueError
+    except InvalidOperation as e:
+        raise ValueError from e
+
+    return amount

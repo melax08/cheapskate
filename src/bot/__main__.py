@@ -20,6 +20,9 @@ from bot.middlewares.auth import AuthMiddleware
 from bot.middlewares.http_client import HTTPClientMiddleware
 
 # ToDo: test error handler on messages, callbacks
+# ToDo: move utils and validators outside utils package
+# ToDo: update README.md
+# ToDo: change name of state to InstanceState (like in settings state)
 
 
 async def on_startup(bot: Bot) -> None:
