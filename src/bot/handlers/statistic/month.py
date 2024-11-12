@@ -7,7 +7,7 @@ from aiogram.types import Message
 from bot.api_requests import APIClient
 from bot.constants import telegram_messages
 from bot.constants.commands import MONEY_LEFT_COMMAND
-from bot.utils.utils import (
+from bot.utils import (
     append_currencies_categories_expenses_info,
     get_russian_month_name,
     money_left_calculate_message,

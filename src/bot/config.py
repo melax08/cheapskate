@@ -31,3 +31,5 @@ class Settings(BaseSettings):
 
 
 bot_settings = Settings()
+
+redis_url: str = f"redis://{bot_settings.redis_host}:{bot_settings.redis_port}/{bot_settings.redis_db}"

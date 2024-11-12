@@ -11,7 +11,7 @@ from bot.callbacks.settings import (
 from bot.constants import logging_messages, telegram_messages
 from bot.exceptions import APIError
 from bot.keyboards.settings import create_default_currency_keyboard, settings_markup
-from bot.utils.utils import (
+from bot.utils import (
     get_user_info,
     reply_message_to_authorized_users,
 )
@@ -79,8 +79,8 @@ async def default_currency_chosen(
 
     await reply_message_to_authorized_users(
         (
-            f"{telegram_messages.NEW_DEFAULT_CURRENCY_SET_SUCCESS} {settings.currency_name} "
-            f"({settings.currency_code})"
+            f"{telegram_messages.NEW_DEFAULT_CURRENCY_SET_SUCCESS} "
+            f"{settings.currency_name} ({settings.currency_code})"
         ),
         callback.from_user,
         bot,

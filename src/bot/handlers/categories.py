@@ -9,9 +9,9 @@ from bot.api_requests import APIClient
 from bot.constants import logging_messages, telegram_messages
 from bot.constants.commands import ADD_CATEGORY_COMMAND
 from bot.exceptions import BadRequest
-from bot.states.categories import AddCategory
-from bot.utils.utils import get_user_info, reply_message_to_authorized_users
-from bot.utils.validators import category_name_validator
+from bot.states.categories import AddCategoryState
+from bot.utils import get_user_info, reply_message_to_authorized_users
+from bot.validators import category_name_validator
 
 router = Router()
 
@@ -20,11 +20,11 @@ router = Router()
 async def add_category_cmd(message: Message, state: FSMContext) -> None:
     """Add category conversation entrypoint."""
     await message.answer(text=telegram_messages.ENTER_CATEGORY_NAME)
-    await state.set_state(AddCategory.writing_category_name)
+    await state.set_state(AddCategoryState.writing_category_name)
 
 
 # ToDo: no commands (only messages accept)
-@router.message(AddCategory.writing_category_name)
+@router.message(AddCategoryState.writing_category_name)
 async def add_category_name_chosen(
     message: Message, state: FSMContext, client: APIClient, bot: Bot
 ) -> None:

@@ -7,7 +7,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from bot.constants import logging_messages, telegram_messages
 from bot.constants.commands import CANCEL_COMMAND
-from bot.utils.utils import get_user_info
+from bot.utils import get_user_info
 
 router = Router()
 

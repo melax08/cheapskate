@@ -12,13 +12,13 @@ from bot.keyboards.expenses import (
     create_expense_manage_keyboard,
 )
 from bot.services.expenses import parse_and_sum_expenses_from_message
-from bot.utils.utils import (
+from bot.utils import (
     get_user_info,
     money_left_calculate_message,
     normalize_amount,
     reply_message_to_authorized_users,
 )
-from bot.utils.validators import expense_amount_validator
+from bot.validators import expense_amount_validator
 
 router = Router()
 

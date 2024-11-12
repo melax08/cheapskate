@@ -7,7 +7,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types.menu_button_commands import MenuButtonCommands
 from configs.logger import configure_logging
 
-from bot.config import bot_settings
+from bot.config import bot_settings, redis_url
 from bot.constants.commands import COMMANDS
 from bot.handlers.categories import router as categories_router
 from bot.handlers.common import router as common_router
@@ -19,10 +19,7 @@ from bot.handlers.statistic import router as statistic_router
 from bot.middlewares.auth import AuthMiddleware
 from bot.middlewares.http_client import HTTPClientMiddleware
 
-# ToDo: test error handler on messages, callbacks
-# ToDo: move utils and validators outside utils package
 # ToDo: update README.md
-# ToDo: change name of state to InstanceState (like in settings state)
 
 
 async def on_startup(bot: Bot) -> None:
@@ -35,9 +32,7 @@ async def on_startup(bot: Bot) -> None:
 async def start_bot() -> None:
     """Configure telegram bot application, add telegram handlers and run
     polling."""
-    storage = RedisStorage.from_url(
-        f"redis://{bot_settings.redis_host}:{bot_settings.redis_port}/{bot_settings.redis_db}"
-    )
+    storage = RedisStorage.from_url(redis_url)
     dp = Dispatcher(storage=storage)
 
     dp.message.middleware(HTTPClientMiddleware())
@@ -66,31 +61,6 @@ async def start_bot() -> None:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     await dp.start_polling(bot)
-
-    # application = Application.builder().token(bot_settings.token).build()
-    # application.add_error_handler(error_handler)
-    # application.add_handlers(
-    #     (
-    #         start_handler,
-    #         settings_handler,
-    #         change_default_currency_handler,
-    #         set_default_currency_handler,
-    #         change_currency_handler,
-    #         set_budget_handler,
-    #         set_currency_handler,
-    #         add_category_handler,
-    #         add_currency_handler,
-    #         money_left_handler,
-    #         today_handler,
-    #         statistic_initial_handler,
-    #         statistic_year_handler,
-    #         statistic_report_handler,
-    #         add_expense_handler,
-    #         delete_expense_handler,
-    #         select_category_handler,
-    #     )
-    # )
-    # application.run_polling()
 
 
 if __name__ == "__main__":

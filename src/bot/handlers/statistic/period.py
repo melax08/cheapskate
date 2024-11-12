@@ -12,7 +12,7 @@ from bot.keyboards.statistic import (
     create_statistic_months_keyboard,
     create_statistic_years_keyboard,
 )
-from bot.utils.utils import (
+from bot.utils import (
     append_currencies_categories_expenses_info,
     get_russian_month_name,
 )

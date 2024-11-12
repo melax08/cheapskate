@@ -9,7 +9,7 @@ from bot.callbacks.expenses import ExpenseChangeCurrencyCallback
 from bot.constants import logging_messages, telegram_messages
 from bot.keyboards.currencies import create_currency_keyboard
 from bot.keyboards.expenses import create_expense_manage_keyboard
-from bot.utils.utils import (
+from bot.utils import (
     get_user_info,
     normalize_amount,
     reply_message_to_authorized_users,

@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 from bot.api_requests import APIClient
 from bot.callbacks.expenses import ExpenseDeleteCallback
 from bot.constants import logging_messages, telegram_messages
-from bot.utils.utils import (
+from bot.utils import (
     get_user_info,
     money_left_calculate_message,
     normalize_amount,

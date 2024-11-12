@@ -6,7 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.api_requests import APIClient
 from bot.callbacks.statistic import MonthCallback, YearCallback
-from bot.utils.utils import get_russian_month_name
+from bot.utils import get_russian_month_name
 
 
 async def create_statistic_years_keyboard(

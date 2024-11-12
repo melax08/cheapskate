@@ -5,7 +5,7 @@ from aiogram.types import Message
 from bot.api_requests import APIClient
 from bot.constants import telegram_messages
 from bot.constants.commands import TODAY_COMMAND
-from bot.utils.utils import append_currencies_categories_expenses_info
+from bot.utils import append_currencies_categories_expenses_info
 
 router = Router()
 

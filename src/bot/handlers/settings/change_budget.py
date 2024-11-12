@@ -9,8 +9,8 @@ from bot.callbacks.settings import ChangeBudgetCallback
 from bot.constants import logging_messages, telegram_messages
 from bot.keyboards.settings import settings_markup
 from bot.states.settings import ChangeBudgetState
-from bot.utils.utils import get_user_info, reply_message_to_authorized_users
-from bot.utils.validators import budget_validator
+from bot.utils import get_user_info, reply_message_to_authorized_users
+from bot.validators import budget_validator
 
 router = Router()
 

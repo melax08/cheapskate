@@ -5,7 +5,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
 
 from bot.constants import logging_messages, telegram_messages
-from bot.utils.utils import get_user_info
+from bot.utils import get_user_info
 
 
 class AuthMiddleware(BaseMiddleware):

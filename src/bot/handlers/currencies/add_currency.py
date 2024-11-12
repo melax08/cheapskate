@@ -9,9 +9,9 @@ from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 from bot.api_requests import APIClient, BadRequest
 from bot.constants import logging_messages, telegram_messages
 from bot.constants.commands import ADD_CURRENCY_COMMAND
-from bot.states.currencies import AddCurrency
-from bot.utils.utils import get_user_info, reply_message_to_authorized_users
-from bot.utils.validators import (
+from bot.states.currencies import AddCurrencyState
+from bot.utils import get_user_info, reply_message_to_authorized_users
+from bot.validators import (
     currency_code_validator,
     currency_country_validator,
     currency_name_validator,
@@ -24,10 +24,10 @@ router = Router()
 async def add_currency_cmd(message: Message, state: FSMContext) -> None:
     """Start add currency conversation handler."""
     await message.answer(text=telegram_messages.ENTER_CURRENCY_NAME)
-    await state.set_state(AddCurrency.entering_currency_name)
+    await state.set_state(AddCurrencyState.entering_currency_name)
 
 
-@router.message(AddCurrency.entering_currency_name)
+@router.message(AddCurrencyState.entering_currency_name)
 async def add_currency_name_chosen(message: Message, state: FSMContext) -> None:
     """Confirm currency name and ask user to write currency code."""
     currency_name = message.text.strip()
@@ -37,7 +37,7 @@ async def add_currency_name_chosen(message: Message, state: FSMContext) -> None:
 
         await state.update_data(currency_name=currency_name)
         await message.answer(telegram_messages.ENTER_CURRENCY_CODE)
-        await state.set_state(AddCurrency.entering_currency_code)
+        await state.set_state(AddCurrencyState.entering_currency_code)
 
     except ValueError:
         logging.warning(
@@ -52,7 +52,7 @@ async def add_currency_name_chosen(message: Message, state: FSMContext) -> None:
         )
 
 
-@router.message(AddCurrency.entering_currency_code)
+@router.message(AddCurrencyState.entering_currency_code)
 async def add_currency_code_chosen(message: Message, state: FSMContext) -> None:
     """Confirm currency letter code and ask user to write currency country."""
     currency_code = message.text.strip().upper()
@@ -62,7 +62,7 @@ async def add_currency_code_chosen(message: Message, state: FSMContext) -> None:
 
         await state.update_data(currency_letter_code=currency_code)
         await message.answer(telegram_messages.ENTER_CURRENCY_COUNTRY)
-        await state.set_state(AddCurrency.entering_currency_country)
+        await state.set_state(AddCurrencyState.entering_currency_country)
 
     except ValueError:
         logging.warning(
@@ -73,7 +73,7 @@ async def add_currency_code_chosen(message: Message, state: FSMContext) -> None:
         await message.answer(telegram_messages.VALIDATION_ERROR_CURRENCY_CODE)
 
 
-@router.message(AddCurrency.entering_currency_country)
+@router.message(AddCurrencyState.entering_currency_country)
 async def add_currency_country_chosen(
     message: Message, state: FSMContext, client: APIClient, bot: Bot
 ) -> None:
