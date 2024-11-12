@@ -28,7 +28,10 @@ services:
     env_file:
       - src/.env
     environment:
-      - TZ=Europe/Moscow
+      TZ: Europe/Moscow
+      REDIS_HOST: cheapskate_redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
 #    ports:
 #      - '8000:8000'
 
@@ -44,7 +47,10 @@ services:
     env_file:
       - src/.env
     environment:
-      - TZ=Europe/Moscow
+      TZ: Europe/Moscow
+      REDIS_HOST: cheapskate_redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
 
 volumes:
   cheapskate_database:

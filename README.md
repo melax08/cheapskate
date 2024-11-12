@@ -15,6 +15,8 @@ Telegram bot and REST API for convenient control of your expenses and obtaining 
 - Telegram bot that provides a convenient interface for managing expenses;
 - Ability to add categories of expenses, which will be displayed as a keyboard in the bot when adding expenses;
 - Ability to add and remove expenses by category from the list of previously added ones;
+- Currencies system (add currency, show expenses by currencies and categories);
+- Settings to set default currency and month budget;
 - Various options to get statistics on spending (today's spending, remaining money for the month, statistics by month and years, etc.);
 - Authentication system;
 - Error handling and logging;
@@ -25,17 +27,18 @@ Telegram bot and REST API for convenient control of your expenses and obtaining 
 Ilya Malashenko (github: melax08, telegram: @ScreamOFF)
 
 ### System requirements
-- Python 3.11;
+- Python 3.12;
 - Docker (19.03.0+) with docker compose for easy run.
 
 ### Tech stack
 [![Python][Python-badge]][Python-url]
 [![FastAPI][FastAPI-badge]][FastAPI-url]
-[![Python-telegram-bot][Python-telegram-bot-badge]][Python-telegram-bot-url]
+[![Aiogram][Aiogram-badge]][Aiogram-url]
 [![Postgres][Postgres-badge]][Postgres-url]
 [![SQLAlchemy][SQLAlchemy-badge]][SQLAlchemy-url]
 [![Poetry][Poetry-badge]][Poetry-url]
 [![Docker][Docker-badge]][Docker-url]
+[![Redis][Redis-badge]][Redis-url]
 
 ## Installation and start
 
@@ -77,7 +80,7 @@ Bot constants available in directory: `src/bot/constants/`
 
 API constants and some bot constants you can configure in `.env` file (see example in `src/.env.example` file).
 
-Common constants for bot and API you can find in `src/utils/constants.py` and `src/utils/configs.py`.
+Common constants for bot and API you can find in `src/configs/constants.py`.
 
 ### Telegram commands and usage
 
@@ -165,10 +168,10 @@ You can manage the pre-commit hooks in a file: `.pre-commit-config.yaml`
 <!-- MARKDOWN LINKS & BADGES -->
 [Python-url]: https://www.python.org/
 [Python-badge]: https://img.shields.io/badge/Python-376f9f?style=for-the-badge&logo=python&logoColor=white
-[Python-telegram-bot-url]: https://github.com/python-telegram-bot/python-telegram-bot
+[Aiogram-url]: https://aiogram.dev/
 [Poetry-url]: https://python-poetry.org
 [Poetry-badge]: https://img.shields.io/badge/poetry-blue?style=for-the-badge&logo=Poetry&logoColor=white&link=https%3A%2F%2Fpython-poetry.org
-[Python-telegram-bot-badge]: https://img.shields.io/badge/python--telegram--bot-4b8bbe?style=for-the-badge
+[Aiogram-badge]: https://img.shields.io/badge/Aiogram-blue?style=for-the-badge
 [Postgres-url]: https://www.postgresql.org/
 [Postgres-badge]: https://img.shields.io/badge/postgres-306189?style=for-the-badge&logo=postgresql&logoColor=white
 [SQLAlchemy-url]: https://www.sqlalchemy.org
@@ -177,3 +180,5 @@ You can manage the pre-commit hooks in a file: `.pre-commit-config.yaml`
 [FastAPI-badge]: https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi
 [Docker-url]: https://www.docker.com
 [Docker-badge]: https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white
+[Redis-badge]: https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white
+[Redis-url]: https://redis.io/
