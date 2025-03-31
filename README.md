@@ -46,30 +46,87 @@ Ilya Malashenko (github: melax08, telegram: @ScreamOFF)
 
 <details>
 <summary>
-Via docker
+Local run (Docker + local services)
 </summary>
 <br>
-Clone the repo and change directory to it:
+
+1. Clone the repo and change directory to it:
 
 ```shell
 git clone https://github.com/melax08/cheapskate.git && cd cheapskate
 ```
 
-Create an `.env` file in the `src` directory and add the necessary environment variables to it (check `src/.env.example` for necessary variables.)
+2. Create an `.env` file in the `src` directory and add the necessary environment variables to it (check `src/.env.example` for necessary variables.)
 ```shell
-mv src/.env.example src/.env
+cp src/.env.example src/.env
 ```
 ```shell
 vi src/.env
 ```
 
-Run `docker compose` to create docker containers:
+3. Install dependencies via `uv`:
+
+```shell
+uv sync
+```
+
+4. Run database and caching server via docker compose:
+
 ```shell
 docker compose up -d
 ```
-or
+
+5. Change directory to the application source directory:
+
 ```shell
-docker-compose up -d
+cd src
+```
+
+6. Apply database migrations and initial instances:
+
+```shell
+uv run alembic -c backend/alembic.ini upgrade head
+uv run python3 -m backend.db_init
+```
+
+
+7. Run a bot and an API in the different terminal tabs:
+
+```shell
+# First tab
+uv run fastapi dev api.py
+```
+
+```shell
+# Second tab
+uv run python3 -m bot
+```
+
+</details>
+
+<details>
+<summary>
+Production run (Docker)
+</summary>
+<br>
+
+1. Clone the repo and change directory to it:
+
+```shell
+git clone https://github.com/melax08/cheapskate.git && cd cheapskate
+```
+
+2. Create an `.env` file in the `src` directory and add the necessary environment variables to it (check `src/.env.example` for necessary variables.)
+```shell
+cp src/.env.example src/.env
+```
+```shell
+vi src/.env
+```
+
+3. Run `docker compose` to create docker containers and run services:
+```shell
+docker compose -f infra/docker-compose-prod.yml up -d
 ```
 
 </details>
