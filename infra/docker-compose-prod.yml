@@ -1,9 +1,7 @@
-version: '3.9'
-
 services:
 
   cheapskate_db:
-    image: postgres:15-alpine
+    image: postgres:17.2-alpine
     restart: always
     volumes:
       - cheapskate_database:/var/lib/postgresql/data/

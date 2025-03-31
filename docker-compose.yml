@@ -1,11 +1,9 @@
 # For development purposes only
 
-version: '3.9'
-
 services:
 
   cheapskate_db:
-    image: postgres:15-alpine
+    image: postgres:17.2-alpine
     volumes:
       - cheapskate_database:/var/lib/postgresql/data/
     env_file:
