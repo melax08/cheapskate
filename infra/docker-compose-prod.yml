@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+
+  cheapskate_db:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - cheapskate_database:/var/lib/postgresql/data/
+    env_file:
+      - ../src/.env
+    environment:
+      - TZ=Europe/Moscow
+
+  cheapskate_redis:
+    image: redis
+    restart: always
+
+  cheapskate_api_migrations:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    entrypoint: infra/entrypoint_api_migrations.sh
+    depends_on:
+      cheapskate_db:
+          condition: service_started
+    env_file:
+      - ../src/.env
+    environment:
+      TZ: Europe/Moscow
+      DB_HOST: cheapskate_db
+      REDIS_HOST: cheapskate_redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+  cheapskate_api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    entrypoint: infra/entrypoint_api.sh
+    restart: always
+    depends_on:
+      - cheapskate_db
+    env_file:
+      - ../src/.env
+    environment:
+      TZ: Europe/Moscow
+      DB_HOST: cheapskate_db
+      REDIS_HOST: cheapskate_redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+  cheapskate_bot:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    entrypoint: infra/entrypoint_bot.sh
+    restart: always
+    volumes:
+      - ./.data/:/.data/
+    depends_on:
+      - cheapskate_api
+      - cheapskate_redis
+    env_file:
+      - ../src/.env
+    environment:
+      TZ: Europe/Moscow
+      REDIS_HOST: cheapskate_redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+volumes:
+  cheapskate_database:

@@ -1,7 +1,8 @@
 # cheapskate - telegram bot and API for financial control
 
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Actions status](https://github.com/melax08/cheapskate/actions/workflows/cheapskate-workflow.yml/badge.svg)](https://github.com/melax08/cheapskate/actions)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 ## Information
 
@@ -27,8 +28,9 @@ Telegram bot and REST API for convenient control of your expenses and obtaining 
 Ilya Malashenko (github: melax08, telegram: @ScreamOFF)
 
 ### System requirements
-- Python 3.12;
-- Docker (19.03.0+) with docker compose for easy run.
+- Python 3.13;
+- Docker (20.10+) with docker compose;
+- [uv](https://docs.astral.sh/uv/).
 
 ### Tech stack
 [![Python][Python-badge]][Python-url]
@@ -36,9 +38,9 @@ Ilya Malashenko (github: melax08, telegram: @ScreamOFF)
 [![Aiogram][Aiogram-badge]][Aiogram-url]
 [![Postgres][Postgres-badge]][Postgres-url]
 [![SQLAlchemy][SQLAlchemy-badge]][SQLAlchemy-url]
-[![Poetry][Poetry-badge]][Poetry-url]
 [![Docker][Docker-badge]][Docker-url]
 [![Redis][Redis-badge]][Redis-url]
+[![uv][uv-badge]][uv-url]
 
 ## Installation and start
 
@@ -159,7 +161,6 @@ Now, when creating a new commit, the following will be automatically launched:
 - [Ruff linter](https://docs.astral.sh/ruff/linter/);
 - [Ruff formatter](https://docs.astral.sh/ruff/formatter/);
 - [Pytest](https://docs.pytest.org/en/8.0.x/);
-- [Poetry check](https://python-poetry.org/docs/pre-commit-hooks/#poetry-check);
 - [check-yaml, end-of-file-fixer, trailing-whitespace](https://github.com/pre-commit/pre-commit-hooks).
 
 You can manage the pre-commit hooks in a file: `.pre-commit-config.yaml`
@@ -182,3 +183,5 @@ You can manage the pre-commit hooks in a file: `.pre-commit-config.yaml`
 [Docker-badge]: https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white
 [Redis-badge]: https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white
 [Redis-url]: https://redis.io/
+[uv-badge]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json
+[uv-url]: https://docs.astral.sh/uv/

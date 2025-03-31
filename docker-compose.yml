@@ -1,56 +1,25 @@
-version: '3.8'
+# For development purposes only
+
+version: '3.9'
 
 services:
+
   cheapskate_db:
     image: postgres:15-alpine
-    restart: always
     volumes:
       - cheapskate_database:/var/lib/postgresql/data/
     env_file:
       - src/.env
     environment:
       - TZ=Europe/Moscow
-#    ports:
-#      - '5432:5432'
+    ports:
+      - '5432:5432'
 
   cheapskate_redis:
     image: redis
-    restart: always
-#    ports:
-#      - '6379:6379'
+    ports:
+      - '6379:6379'
 
-  cheapskate_api:
-    build:
-      dockerfile: Dockerfile.api
-    restart: always
-    depends_on:
-      - cheapskate_db
-    env_file:
-      - src/.env
-    environment:
-      TZ: Europe/Moscow
-#      REDIS_HOST: cheapskate_redis
-#      REDIS_PORT: 6379
-#      REDIS_DB: 0
-#    ports:
-#      - '8000:8000'
-
-  cheapskate_bot:
-    build:
-      dockerfile: Dockerfile.bot
-    restart: always
-    volumes:
-      - ./.data/:/.data/
-    depends_on:
-      - cheapskate_api
-      - cheapskate_redis
-    env_file:
-      - src/.env
-    environment:
-      TZ: Europe/Moscow
-      BOT_REDIS_HOST: cheapskate_redis
-      BOT_REDIS_PORT: 6379
-      BOT_REDIS_DB: 0
 
 volumes:
   cheapskate_database:

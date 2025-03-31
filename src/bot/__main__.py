@@ -5,9 +5,8 @@ from aiogram.client.bot import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types.menu_button_commands import MenuButtonCommands
-from configs.logger import configure_logging
 
-from bot.config import bot_settings, redis_url
+from bot.config import bot_settings
 from bot.constants.commands import COMMANDS
 from bot.handlers.categories import router as categories_router
 from bot.handlers.common import router as common_router
@@ -18,8 +17,7 @@ from bot.handlers.settings import router as settings_router
 from bot.handlers.statistic import router as statistic_router
 from bot.middlewares.auth import AuthMiddleware
 from bot.middlewares.http_client import HTTPClientMiddleware
-
-# ToDo: update README.md
+from configs.logger import configure_logging
 
 
 async def on_startup(bot: Bot) -> None:
@@ -32,7 +30,7 @@ async def on_startup(bot: Bot) -> None:
 async def start_bot() -> None:
     """Configure telegram bot application, add telegram handlers and run
     polling."""
-    storage = RedisStorage.from_url(redis_url)
+    storage = RedisStorage.from_url(bot_settings.redis_url)
     dp = Dispatcher(storage=storage)
 
     dp.message.middleware(HTTPClientMiddleware())
@@ -57,7 +55,7 @@ async def start_bot() -> None:
     dp.startup.register(on_startup)
 
     bot = Bot(
-        token=bot_settings.token,
+        token=bot_settings.bot_telegram_token.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     await dp.start_polling(bot)
