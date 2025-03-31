@@ -1,6 +1,5 @@
 import datetime as dt
 from decimal import Decimal
-from typing import Optional
 
 from sqlalchemy import Integer, and_, desc, distinct, extract, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,30 +14,24 @@ from .base import CRUDBase
 class CRUDExpense(CRUDBase):
     """Class with DB CRUD operations for `Expense` model."""
 
-    def _get_period_stmt(
-        self, year: int, month: int, additional_stmts: Optional[list[bool]] = None
-    ):
+    def _get_period_stmt(self, year: int, month: int, additional_stmts: list[bool] | None = None):
         return and_(
             func.cast(extract("month", self.model.date), Integer) == month,
             func.cast(extract("year", self.model.date), Integer) == year,
             *(additional_stmts or []),
         )
 
-    async def calculate_money_expense_sum(
-        self, where_stmt, session: AsyncSession
-    ) -> Decimal:
+    async def calculate_money_expense_sum(self, where_stmt, session: AsyncSession) -> Decimal:
         """Calculates how much money was spent with specified
         WHERE statement."""
-        money_spent = await session.execute(
-            select(func.sum(self.model.amount)).where(where_stmt)
-        )
+        money_spent = await session.execute(select(func.sum(self.model.amount)).where(where_stmt))
         return money_spent.scalars().first() or Decimal("0")
 
     async def calculate_money_left(
         self,
         session: AsyncSession,
-        budget: Optional[int] = None,
-        default_currency: Optional[Currency] = None,
+        budget: int | None = None,
+        default_currency: Currency | None = None,
     ) -> Decimal:
         """Calculates how much money is left from the budget for
         the current month in current default currency."""
@@ -78,22 +71,16 @@ class CRUDExpense(CRUDBase):
         )
         return periods.all()
 
-    async def get_expenses_sum_for_year_month(
-        self, year: int, month: int, session: AsyncSession
-    ):
+    async def get_expenses_sum_for_year_month(self, year: int, month: int, session: AsyncSession):
         """Get the amount of spent money for specified year and month."""
         money_spent = await self.calculate_money_expense_sum(
             self._get_period_stmt(year, month), session
         )
         return round(money_spent, 2)
 
-    async def set_currency(
-        self, expense: Expense, currency_id: int, session: AsyncSession
-    ):
+    async def set_currency(self, expense: Expense, currency_id: int, session: AsyncSession):
         await session.execute(
-            update(self.model)
-            .where(self.model.id == expense.id)
-            .values(currency_id=currency_id)
+            update(self.model).where(self.model.id == expense.id).values(currency_id=currency_id)
         )
         await session.commit()
         await session.refresh(expense)

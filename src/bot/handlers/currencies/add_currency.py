@@ -4,7 +4,6 @@ from aiogram import Bot, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 
 from bot.api_requests import APIClient, BadRequest
 from bot.constants import logging_messages, telegram_messages
@@ -16,6 +15,7 @@ from bot.validators import (
     currency_country_validator,
     currency_name_validator,
 )
+from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
 
 router = Router()
 
@@ -46,9 +46,7 @@ async def add_currency_name_chosen(message: Message, state: FSMContext) -> None:
             )
         )
         await message.answer(
-            telegram_messages.VALIDATION_ERROR_CURRENCY_NAME.format(
-                MAX_CURRENCY_NAME_LENGTH
-            )
+            telegram_messages.VALIDATION_ERROR_CURRENCY_NAME.format(MAX_CURRENCY_NAME_LENGTH)
         )
 
 
@@ -108,9 +106,7 @@ async def add_currency_country_chosen(
 
     except BadRequest:
         logging.warning(
-            logging_messages.CURRENCY_NOT_UNIQUE_LOG.format(
-                get_user_info(message.from_user)
-            )
+            logging_messages.CURRENCY_NOT_UNIQUE_LOG.format(get_user_info(message.from_user))
         )
         await message.answer(telegram_messages.CURRENCY_NOT_UNIQUE)
         await state.clear()
@@ -120,6 +116,4 @@ async def add_currency_country_chosen(
                 get_user_info(message.from_user), country_name
             )
         )
-        await message.answer(
-            telegram_messages.VALIDATION_ERROR_COUNTRY.format(COUNTRY_LENGTH)
-        )
+        await message.answer(telegram_messages.VALIDATION_ERROR_COUNTRY.format(COUNTRY_LENGTH))

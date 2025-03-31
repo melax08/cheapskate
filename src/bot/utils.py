@@ -1,6 +1,5 @@
 import asyncio
 from decimal import Decimal
-from typing import Optional, Tuple
 
 from aiogram import Bot
 from aiogram.types import User
@@ -29,9 +28,7 @@ def get_user_info(user: User) -> str:
     return f"{user.username}, {user.first_name} {user.last_name}, {user.id}"
 
 
-def money_left_calculate_message(
-    money_left: str, first_message_part: str
-) -> Tuple[Decimal, str]:
+def money_left_calculate_message(money_left: str, first_message_part: str) -> tuple[Decimal, str]:
     """Checks the money left value and generates a final message for the
     user."""
     money_left = normalize_amount(money_left)
@@ -45,7 +42,7 @@ def money_left_calculate_message(
     return money_left, message
 
 
-def wrap_list_to_monospace(message_array: list) -> None:
+def wrap_list_to_monospace(message_array: list[str]) -> None:
     """
     Wraps the passed list with <code> </code> HTML tags.
     If you want telegram to correct parse this HTML tags, use:
@@ -58,7 +55,7 @@ def wrap_list_to_monospace(message_array: list) -> None:
 
 
 def append_currencies_categories_expenses_info(
-    currencies: list, message: list, category_label: Optional[str] = None
+    currencies: list, message: list, category_label: str | None = None
 ) -> None:
     """Adds expenses information by currencies and categories to the message."""
     if currencies:
@@ -99,9 +96,7 @@ def get_humanreadable_username(user: User) -> str:
     return " ".join(author_name_surname)
 
 
-async def reply_message_to_authorized_users(
-    source_message: str, user: User, bot: Bot
-) -> None:
+async def reply_message_to_authorized_users(source_message: str, user: User, bot: Bot) -> None:
     """Sends the information about the user action to another telegram users,
     whose telegram_id specified in the env variable `ALLOWED_TELEGRAM_IDS`"""
     if not bot_settings.echo_messages or not bot_settings.allowed_telegram_ids:

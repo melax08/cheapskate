@@ -1,10 +1,11 @@
 from decimal import Decimal
 from http import HTTPStatus
 from types import TracebackType
-from typing import Optional, Type
 
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ContentTypeError
+from yarl import URL
+
 from configs.api_settings import (
     CATEGORIES_PATH,
     CURRENCY_PATH,
@@ -17,7 +18,6 @@ from configs.api_settings import (
     STATISTIC_FULL_PATH,
     TODAY_EXPENSE_FULL_PATH,
 )
-from yarl import URL
 
 from .exceptions import APIError, BadRequest
 from .serializers import Settings
@@ -35,10 +35,10 @@ class APIClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
-    ) -> Optional[bool]:
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> bool | None:
         await self._close()
         return None
 
@@ -146,9 +146,7 @@ class APIClient:
     async def set_currency(self, expense_id: int, currency_id: int):
         """Set specified currency for the specified expense."""
         data = {"currency_id": currency_id}
-        response_data = await self._post(
-            f"{EXPENSE_PATH}/{expense_id}/{CURRENCY_PATH}", data
-        )
+        response_data = await self._post(f"{EXPENSE_PATH}/{expense_id}/{CURRENCY_PATH}", data)
         return response_data
 
     async def get_settings(self) -> Settings:

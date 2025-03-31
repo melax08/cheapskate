@@ -1,13 +1,14 @@
-from typing import Any, Awaitable, Callable, Dict
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 import aiohttp
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
-from configs.api_settings import API_URL
 from yarl import URL
 
 from bot.api_requests import APIClient
 from bot.constants.constants import REQUEST_API_TIMEOUT
+from configs.api_settings import API_URL
 
 
 class HTTPClientMiddleware(BaseMiddleware):
@@ -15,9 +16,9 @@ class HTTPClientMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         async with aiohttp.ClientSession(conn_timeout=REQUEST_API_TIMEOUT) as session:
             data["client"] = APIClient(api_url=URL(API_URL), session=session)

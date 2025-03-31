@@ -1,9 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from configs.constants import MINIMUM_EXPENSE_AMOUNT
-from pydantic import BaseModel, ConfigDict, Field
 
 from .category import CategoryDB
 from .currency import CurrencyDB
@@ -15,7 +15,7 @@ class ExpenseBase(BaseModel):
 
 class ExpenseCreate(ExpenseBase):
     category_id: int
-    currency_id: Optional[int] = None
+    currency_id: int | None = None
 
 
 class ExpenseDB(ExpenseBase):
@@ -23,7 +23,7 @@ class ExpenseDB(ExpenseBase):
 
     id: int
     category: CategoryDB
-    currency: Optional[CurrencyDB]
+    currency: CurrencyDB | None
 
 
 class ExpenseMoneyLeftDB(ExpenseDB):
@@ -62,9 +62,7 @@ class ExpenseStatistic(BaseModel):
             currency_amount = 0
             for category, amount in categories.items():
                 currency_amount += amount
-                categories_list.append(
-                    CategoryExpense(name=category.name, amount=amount)
-                )
+                categories_list.append(CategoryExpense(name=category.name, amount=amount))
 
             currencies.append(
                 CurrencyCategoryExpense(

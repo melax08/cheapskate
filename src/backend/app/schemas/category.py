@@ -1,5 +1,6 @@
-from configs.constants import MAX_CATEGORY_NAME_LENGTH
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from configs.constants import MAX_CATEGORY_NAME_LENGTH
 
 
 class CategoryCreate(BaseModel):

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,10 +11,8 @@ class CRUDCategory(CRUDBase):
 
     async def get_category_by_name(
         self, category_name: str, session: AsyncSession
-    ) -> Optional[Category]:
-        db_obj = await session.execute(
-            select(self.model).where(self.model.name == category_name)
-        )
+    ) -> Category | None:
+        db_obj = await session.execute(select(self.model).where(self.model.name == category_name))
         return db_obj.scalars().first()
 
 

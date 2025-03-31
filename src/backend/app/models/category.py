@@ -1,8 +1,8 @@
-from configs.constants import MAX_CATEGORY_NAME_LENGTH
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
 from backend.app.core.db import Base
+from configs.constants import MAX_CATEGORY_NAME_LENGTH
 
 
 class Category(Base):

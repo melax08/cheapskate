@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Awaitable, Callable, Dict
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
@@ -15,23 +16,19 @@ class AuthMiddleware(BaseMiddleware):
     then allows access to requests from all telegram users.
     """
 
-    def __init__(
-        self, allowed_telegram_ids: set[int] | list[int] | tuple[int, ...]
-    ) -> None:
+    def __init__(self, allowed_telegram_ids: set[int] | list[int] | tuple[int, ...]) -> None:
         self.allowed_telegram_ids = allowed_telegram_ids
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         user: User = data["event_from_user"]
 
         if self.allowed_telegram_ids and user.id not in self.allowed_telegram_ids:
-            logging.warning(
-                logging_messages.ACCESS_DENIED_LOG.format(get_user_info(user))
-            )
+            logging.warning(logging_messages.ACCESS_DENIED_LOG.format(get_user_info(user)))
             await event.answer(telegram_messages.ACCESS_DENIED)
             return
 

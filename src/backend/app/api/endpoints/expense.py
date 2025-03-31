@@ -1,11 +1,5 @@
 import datetime as dt
 
-from configs.api_settings import (
-    MONEY_LEFT_PATH,
-    PERIOD_EXPENSE_PATH,
-    STATISTIC_PATH,
-    TODAY_EXPENSE_PATH,
-)
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,14 +21,18 @@ from backend.app.schemas.expense import (
     ExpenseStatistic,
     MoneyLeftNew,
 )
+from configs.api_settings import (
+    MONEY_LEFT_PATH,
+    PERIOD_EXPENSE_PATH,
+    STATISTIC_PATH,
+    TODAY_EXPENSE_PATH,
+)
 
 router = APIRouter()
 
 
 @router.post("/", response_model=ExpenseMoneyLeftDB)
-async def add_expense(
-    expense: ExpenseCreate, session: AsyncSession = Depends(get_async_session)
-):
+async def add_expense(expense: ExpenseCreate, session: AsyncSession = Depends(get_async_session)):
     """Add expense."""
     await check_category_exists(expense.category_id, session)
     if expense.currency_id is not None:
@@ -49,9 +47,7 @@ async def add_expense(
 
 
 @router.delete("/{expense_id}", response_model=ExpenseMoneyLeftDB)
-async def delete_expense(
-    expense_id: int, session: AsyncSession = Depends(get_async_session)
-):
+async def delete_expense(expense_id: int, session: AsyncSession = Depends(get_async_session)):
     """Delete expense by expense id."""
     expense = await check_expense_exists(expense_id, session)
 
@@ -93,9 +89,7 @@ async def get_money_left(session: AsyncSession = Depends(get_async_session)):
     )
     money_spent = round(budget - money_left, 2)
 
-    expenses = await currency_crud.get_this_month_expenses_by_currencies_and_categories(
-        session
-    )
+    expenses = await currency_crud.get_this_month_expenses_by_currencies_and_categories(session)
 
     return MoneyLeftNew.from_db_query(
         crud_result=expenses,
@@ -110,9 +104,7 @@ async def get_money_left(session: AsyncSession = Depends(get_async_session)):
 @router.get(TODAY_EXPENSE_PATH, response_model=ExpenseStatistic)
 async def get_today_expenses(session: AsyncSession = Depends(get_async_session)):
     """Gets information about today expenses."""
-    expenses = await currency_crud.get_today_expenses_by_currencies_and_categories(
-        session
-    )
+    expenses = await currency_crud.get_today_expenses_by_currencies_and_categories(session)
     return ExpenseStatistic.from_db_query(crud_result=expenses)
 
 
