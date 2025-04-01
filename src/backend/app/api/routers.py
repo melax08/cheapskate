@@ -5,6 +5,7 @@ from backend.app.api.endpoints import (
     currency_router,
     expense_router,
     setting_router,
+    statistic_router,
 )
 from configs.api_settings import (
     API_PATH,
@@ -12,6 +13,7 @@ from configs.api_settings import (
     CURRENCY_PATH,
     EXPENSE_PATH,
     SETTINGS_PATH,
+    STATISTIC_ROOT_PATH,
 )
 
 main_router = APIRouter(prefix=API_PATH)
@@ -34,4 +36,8 @@ main_router.include_router(
 
 main_router.include_router(
     setting_router, prefix=__make_root_path(SETTINGS_PATH), tags=["Settings"]
+)
+
+main_router.include_router(
+    statistic_router, prefix=__make_root_path(STATISTIC_ROOT_PATH), tags=["Statistic"]
 )
