@@ -1,23 +1,17 @@
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from backend.app.api.validators import (
     check_category_exists,
     check_currency_exists,
     check_expense_exists,
 )
-from backend.app.core.db import get_async_session
 from backend.app.crud import expense_crud, setting_crud
 from backend.app.schemas.category import CategoryDB
 from backend.app.schemas.currency import CurrencyDB
 from backend.app.schemas.expense import ExpenseCreate, ExpenseMoneyLeftDB
+from backend.app.services.base import BaseService
 
 
-class ExpenseService:
+class ExpenseService(BaseService):
     """Service to manage expenses business logic."""
-
-    def __init__(self, session: AsyncSession = Depends(get_async_session)) -> None:
-        self._session = session
 
     async def add_expense(self, expense_obj: ExpenseCreate) -> ExpenseMoneyLeftDB:
         """Create an expense record in the database, calculate how much money left in the monthly

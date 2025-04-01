@@ -1,19 +1,13 @@
 import datetime as dt
 
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from backend.app.api.validators import validate_month_year
-from backend.app.core.db import get_async_session
 from backend.app.crud import currency_crud, expense_crud, setting_crud
 from backend.app.schemas.statistic import MoneyLeft, Statistic, StatisticPeriod
+from backend.app.services.base import BaseService
 
 
-class StatisticService:
+class StatisticService(BaseService):
     """Service to get the expense statistics."""
-
-    def __init__(self, session: AsyncSession = Depends(get_async_session)) -> None:
-        self._session = session
 
     async def get_money_left(self) -> MoneyLeft:
         """Get the information about the current month money left."""
