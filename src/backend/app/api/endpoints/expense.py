@@ -4,15 +4,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.api.validators import (
-    check_category_exists,
     check_currency_exists,
     check_expense_exists,
     validate_month_year,
 )
 from backend.app.core.db import get_async_session
 from backend.app.crud import currency_crud, expense_crud, setting_crud
-from backend.app.schemas.category import CategoryDB
-from backend.app.schemas.currency import CurrencyDB, CurrencySet
+from backend.app.schemas.currency import CurrencySet
 from backend.app.schemas.expense import (
     ExpenseCreate,
     ExpenseDB,
@@ -21,6 +19,7 @@ from backend.app.schemas.expense import (
     ExpenseStatistic,
     MoneyLeftNew,
 )
+from backend.app.services.expense import ExpenseService
 from configs.api_settings import (
     MONEY_LEFT_PATH,
     PERIOD_EXPENSE_PATH,
@@ -32,49 +31,19 @@ router = APIRouter()
 
 
 @router.post("/", response_model=ExpenseMoneyLeftDB)
-async def add_expense(expense: ExpenseCreate, session: AsyncSession = Depends(get_async_session)):
+async def add_expense(
+    expense: ExpenseCreate, expense_service: ExpenseService = Depends(ExpenseService)
+) -> ExpenseMoneyLeftDB:
     """Add expense."""
-    await check_category_exists(expense.category_id, session)
-    if expense.currency_id is not None:
-        await check_currency_exists(expense.currency_id, session)
-    else:
-        default_currency = await setting_crud.get_default_currency(session)
-        expense.currency_id = default_currency.id
-    expense = await expense_crud.create(expense, session)
-    money_left = await expense_crud.calculate_money_left(session)
-    expense.__dict__["money_left"] = money_left
-    return expense
+    return await expense_service.add_expense(expense)
 
 
 @router.delete("/{expense_id}", response_model=ExpenseMoneyLeftDB)
-async def delete_expense(expense_id: int, session: AsyncSession = Depends(get_async_session)):
-    """Delete expense by expense id."""
-    expense = await check_expense_exists(expense_id, session)
-
-    category = CategoryDB(
-        id=expense.__dict__["category"].id, name=expense.__dict__["category"].name
-    )
-    currency = (
-        CurrencyDB(
-            id=expense.__dict__["currency"].id,
-            name=expense.__dict__["currency"].name,
-            letter_code=expense.__dict__["currency"].letter_code,
-            country=expense.__dict__["currency"].country,
-        )
-        if expense.currency
-        else None
-    )
-
-    await expense_crud.remove(expense, session)
-    money_left = await expense_crud.calculate_money_left(session)
-    response_data = ExpenseMoneyLeftDB(
-        id=expense.__dict__["id"],
-        amount=expense.__dict__["amount"],
-        category=category,
-        currency=currency,
-        money_left=money_left,
-    )
-    return response_data
+async def delete_expense(
+    expense_id: int, expense_service: ExpenseService = Depends(ExpenseService)
+) -> ExpenseMoneyLeftDB:
+    """Delete an expense by the expense id."""
+    return await expense_service.delete_expense(expense_id)
 
 
 @router.get(MONEY_LEFT_PATH, response_model=MoneyLeftNew)

@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=SettingDB)
-async def get_settings(session: AsyncSession = Depends(get_async_session)):
+async def get_settings(session: AsyncSession = Depends(get_async_session)) -> SettingDB:
     """Get first settings instance with all settings."""
     settings = await setting_crud.get_settings(session)
     return settings
@@ -19,7 +19,7 @@ async def get_settings(session: AsyncSession = Depends(get_async_session)):
 @router.post("/set-default-currency", response_model=SettingDB)
 async def set_default_currency(
     currency: DefaultCurrency, session: AsyncSession = Depends(get_async_session)
-):
+) -> SettingDB:
     """Set new default currency of application."""
     currency = await check_currency_exists(currency.currency_id, session)
     settings = await setting_crud.get_settings(session)
@@ -30,7 +30,7 @@ async def set_default_currency(
 @router.post("/set-budget", response_model=SettingDB)
 async def set_budget(
     budget: Budget, session: AsyncSession = Depends(get_async_session)
-):
+) -> SettingDB:
     """Set new application budget."""
     settings = await setting_crud.get_settings(session)
     settings = await setting_crud.set_budget(settings, budget.budget, session)
