@@ -21,12 +21,14 @@ class Currency(Base):
     def __repr__(self):
         return f"<Currency {self.name} ({self.letter_code}) from {self.country}>"
 
-    # ToDo: except this in view
     @validates("letter_code")
-    def validate_letter_code(self, key, code):
+    def validate_letter_code(self, key, code: str) -> str:
         if len(code) != CURRENCY_LETTER_CODE_LENGTH:
             raise ValueError(
                 f"Length of currency code must be {CURRENCY_LETTER_CODE_LENGTH} symbols"
             )
+
+        if not code.isalpha():
+            raise ValueError("Currency code can be only alphabetic.")
 
         return code

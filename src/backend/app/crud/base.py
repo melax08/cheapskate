@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from typing import Any
+
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -10,9 +12,7 @@ class CRUDBase:
 
     async def get(self, obj_id: int, session: AsyncSession):
         """Gets single DB object by id."""
-        db_obj = await session.execute(
-            select(self.model).where(self.model.id == obj_id)
-        )
+        db_obj = await session.execute(select(self.model).where(self.model.id == obj_id))
         return db_obj.scalars().first()
 
     async def get_multi(self, session: AsyncSession):
@@ -35,3 +35,9 @@ class CRUDBase:
         await session.delete(db_obj)
         await session.commit()
         return db_obj
+
+    async def get_first_with_some_field_match(self, session: AsyncSession, **kwargs: Any):
+        """Get first instance with some specified fields match."""
+        statement = [getattr(self.model, key) == value for key, value in kwargs.items()]
+        db_objs = await session.execute(select(self.model).where(or_(*statement)))
+        return db_objs.scalars().first()
