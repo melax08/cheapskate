@@ -82,7 +82,7 @@ jobs:
 
             # Google API credentials
             REPORT_SPREADSHEET_ID=${{ secrets.REPORT_SPREADSHEET_ID }}
-            GOOGLE_SERVICE_ACCOUNT_CREDS=${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDS }}
+            GOOGLE_SERVICE_ACCOUNT_CREDS='${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDS }}'
             # DONE WORKFLOW ENVS
             EOF
              echo "${{ secrets.SUDO_PASS }}" | sudo -S docker compose -f infra/docker-compose-prod.yml up -d --build
