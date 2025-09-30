@@ -7,8 +7,9 @@ import asyncio
 
 from sqlalchemy import select
 
+from backend.app.core.config import settings
 from backend.app.core.db import AsyncSessionLocal
-from backend.app.models import Currency, Setting
+from backend.app.models import Currency, Report, Setting
 
 DEFAULT_CURRENCY: dict = {
     "name": "Американский доллар",
@@ -38,11 +39,18 @@ async def init_default_db_instances():
         setting = result.scalars().first()
 
         if not setting:
-            setting = Setting(
-                budget=DEFAULT_BUDGET_VALUE, default_currency_id=currency.id
-            )
+            setting = Setting(budget=DEFAULT_BUDGET_VALUE, default_currency_id=currency.id)
             session.add(setting)
             await session.commit()
+
+        if settings.report_spreadsheet_id:
+            result = await session.execute(select(Report))
+            report = result.scalars().first()
+
+            if not report:
+                report = Report(spreadsheet_id=settings.report_spreadsheet_id)
+                session.add(report)
+                await session.commit()
 
 
 if __name__ == "__main__":

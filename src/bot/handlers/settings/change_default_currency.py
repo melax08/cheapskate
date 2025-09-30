@@ -70,9 +70,7 @@ async def default_currency_chosen(
         )
     )
     await callback.message.edit_text(
-        text=settings.get_settings_message_with_info(
-            telegram_messages.NEW_DEFAULT_CURRENCY_SET_SUCCESS
-        ),
+        text=settings.get_labeled_message(telegram_messages.NEW_DEFAULT_CURRENCY_SET_SUCCESS),
         reply_markup=settings_markup,
     )
     await callback.answer()

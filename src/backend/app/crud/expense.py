@@ -5,6 +5,7 @@ from sqlalchemy import Integer, and_, desc, distinct, extract, func, select, upd
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.crud.setting import setting_crud
+from backend.app.models.category import Category
 from backend.app.models.currency import Currency
 from backend.app.models.expense import Expense
 
@@ -71,6 +72,16 @@ class CRUDExpense(CRUDBase):
         )
         return periods.all()
 
+    async def get_years_with_expenses(self, session: AsyncSession, currency_id: int | None = None):
+        filter_by_currency_stmt = [self.model.currency_id == currency_id] if currency_id else []
+
+        years = await session.execute(
+            select(distinct(extract("year", self.model.date)).label("year"))
+            .where(*filter_by_currency_stmt)
+            .order_by(desc("year"))
+        )
+        return years.scalars().all()
+
     async def get_expenses_sum_for_year_month(self, year: int, month: int, session: AsyncSession):
         """Get the amount of spent money for specified year and month."""
         money_spent = await self.calculate_money_expense_sum(
@@ -85,6 +96,23 @@ class CRUDExpense(CRUDBase):
         await session.commit()
         await session.refresh(expense)
         return expense
+
+    async def get_expenses_by_year_and_currency(
+        self, session: AsyncSession, year: int, currency_id: int
+    ):
+        result = await session.execute(
+            select(
+                Category,
+                extract("month", self.model.date).label("month"),
+                func.sum(self.model.amount).label("total"),
+            )
+            .join(Currency, self.model.currency_id == Currency.id)
+            .join(Category, self.model.category_id == Category.id)
+            .where(and_(extract("year", self.model.date) == year, currency_id == currency_id))
+            .group_by(Category, "month")
+            .order_by("month")
+        )
+        return result.all()
 
 
 expense_crud = CRUDExpense(Expense)

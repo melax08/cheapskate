@@ -11,7 +11,7 @@ class StatisticService(BaseService):
 
     async def get_money_left(self) -> MoneyLeft:
         """Get the information about the current month money left."""
-        settings = await setting_crud.get_settings(self._session)
+        settings = await setting_crud.get(self._session)
         money_left = await expense_crud.calculate_money_left(
             session=self._session,
             budget=settings.budget,

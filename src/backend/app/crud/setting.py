@@ -1,29 +1,24 @@
 from decimal import Decimal
 
-from sqlalchemy import select, update
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import Currency, Setting
 
-from .base import CRUDBase
+from .base import SingletonCRUDBase
 
 
-class CRUDSetting(CRUDBase):
+class CRUDSetting(SingletonCRUDBase):
     """Class with DB CRUD operations for `Setting` model."""
-
-    async def get_settings(self, session: AsyncSession) -> Setting:
-        """Get settings instance."""
-        db_obj = await session.execute(select(self.model))
-        return db_obj.scalars().first()
 
     async def get_default_currency(self, session: AsyncSession) -> Currency:
         """Get the instance of default application currency."""
-        settings_instance = await self.get_settings(session)
+        settings_instance = await self.get(session)
         return settings_instance.default_currency
 
     async def get_budget(self, session: AsyncSession) -> Decimal:
         """Get current budget."""
-        settings_instance = await self.get_settings(session)
+        settings_instance = await self.get(session)
         return settings_instance.budget
 
     async def set_default_currency(
@@ -39,9 +34,7 @@ class CRUDSetting(CRUDBase):
         await session.refresh(setting)
         return setting
 
-    async def set_budget(
-        self, setting: Setting, budget: int, session: AsyncSession
-    ) -> Setting:
+    async def set_budget(self, setting: Setting, budget: int, session: AsyncSession) -> Setting:
         """Set application budget."""
         await session.execute(
             update(self.model).where(self.model.id == setting.id).values(budget=budget)

@@ -35,29 +35,21 @@ async def change_budget_written(
         settings = await client.set_budget(new_budget)
 
         logging.info(
-            logging_messages.SET_NEW_BUDGET_LOG.format(
-                get_user_info(message.from_user), new_budget
-            )
+            logging_messages.SET_NEW_BUDGET_LOG.format(get_user_info(message.from_user), new_budget)
         )
 
         await message.answer(
-            text=settings.get_settings_message_with_info(
-                telegram_messages.NEW_BUDGET_SET_SUCCESS
-            ),
+            text=settings.get_labeled_message(telegram_messages.NEW_BUDGET_SET_SUCCESS),
             reply_markup=settings_markup,
         )
         await state.clear()
         await reply_message_to_authorized_users(
-            source_message=(
-                f"{telegram_messages.NEW_BUDGET_SET_SUCCESS} {settings.budget}"
-            ),
+            source_message=(f"{telegram_messages.NEW_BUDGET_SET_SUCCESS} {settings.budget}"),
             user=message.from_user,
             bot=bot,
         )
     except ValueError:
         logging.warning(
-            logging_messages.WRONG_BUDGET_LOG.format(
-                get_user_info(message.from_user), new_budget
-            )
+            logging_messages.WRONG_BUDGET_LOG.format(get_user_info(message.from_user), new_budget)
         )
         await message.answer(telegram_messages.WRONG_NEW_BUDGET)

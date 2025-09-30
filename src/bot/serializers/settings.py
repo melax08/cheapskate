@@ -1,27 +1,24 @@
 from dataclasses import asdict, dataclass
 from decimal import Decimal
+from typing import Self
 
 from bot.constants.telegram_messages import SETTINGS_INFO
+from bot.serializers.base import BaseSerializer
 
 
 @dataclass
-class Settings:
+class Settings(BaseSerializer):
     """Settings serializer."""
 
     currency_name: str
     currency_code: str
     budget: Decimal
 
-    def get_settings_message(self) -> str:
-        """Get telegram message with settings information."""
+    def get_message(self) -> str:
         return SETTINGS_INFO.format(*asdict(self).values())
 
-    def get_settings_message_with_info(self, info_message: str) -> str:
-        """Get telegram settings message with additional information."""
-        return f"{info_message}\n\n{self.get_settings_message()}"
-
     @classmethod
-    def from_api_response(cls, response_data: dict):
+    def from_api_response(cls, response_data: dict) -> Self:
         """Create settings instance from API response json."""
         return cls(
             response_data["default_currency"]["name"],

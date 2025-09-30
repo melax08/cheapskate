@@ -4,22 +4,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class CRUDBase:
-    """Class with base DB CRUD operations."""
-
-    def __init__(self, model):
-        self.model = model
-
-    async def get(self, obj_id: int, session: AsyncSession):
-        """Gets single DB object by id."""
-        db_obj = await session.execute(select(self.model).where(self.model.id == obj_id))
-        return db_obj.scalars().first()
-
-    async def get_multi(self, session: AsyncSession):
-        """Gets all DB objects from specified model."""
-        db_objs = await session.execute(select(self.model))
-        return db_objs.scalars().all()
-
+class CreateRemoveMixin:
     async def create(self, obj_in, session: AsyncSession):
         """Creates DB object from pydantic schema."""
         obj_in_data = obj_in.dict()
@@ -36,8 +21,36 @@ class CRUDBase:
         await session.commit()
         return db_obj
 
+
+class CRUDBase(CreateRemoveMixin):
+    """Class with base DB CRUD operations."""
+
+    def __init__(self, model):
+        self.model = model
+
+    async def get(self, obj_id: int, session: AsyncSession):
+        """Gets single DB object by id."""
+        db_obj = await session.execute(select(self.model).where(self.model.id == obj_id))
+        return db_obj.scalars().first()
+
+    async def get_multi(self, session: AsyncSession):
+        """Gets all DB objects from specified model."""
+        db_objs = await session.execute(select(self.model))
+        return db_objs.scalars().all()
+
     async def get_first_with_some_field_match(self, session: AsyncSession, **kwargs: Any):
         """Get first instance with some specified fields match."""
         statement = [getattr(self.model, key) == value for key, value in kwargs.items()]
         db_objs = await session.execute(select(self.model).where(or_(*statement)))
         return db_objs.scalars().first()
+
+
+class SingletonCRUDBase(CreateRemoveMixin):
+    """Base CRUD class for models with one instance."""
+
+    def __init__(self, model):
+        self.model = model
+
+    async def get(self, session: AsyncSession):
+        db_obj = await session.execute(select(self.model))
+        return db_obj.scalars().first()

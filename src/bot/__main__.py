@@ -13,6 +13,7 @@ from bot.handlers.common import router as common_router
 from bot.handlers.currencies import router as currencies_router
 from bot.handlers.errors import router as errors_router
 from bot.handlers.expenses import router as expenses_router
+from bot.handlers.report import router as report_router
 from bot.handlers.settings import router as settings_router
 from bot.handlers.statistic import router as statistic_router
 from bot.middlewares.auth import AuthMiddleware
@@ -49,6 +50,7 @@ async def start_bot() -> None:
         categories_router,
         currencies_router,
         settings_router,
+        report_router,
         expenses_router,
     )
 

@@ -12,15 +12,18 @@ from configs.api_settings import (
     EXPENSE_PATH,
     MONEY_LEFT_FULL_PATH,
     PERIOD_EXPENSE_FULL_PATH,
+    REPORT_ROOT_PATH,
     SET_BUDGET_FULL_PATH,
     SET_DEFAULT_CURRENCY_FULL_PATH,
     SETTINGS_PATH,
     STATISTIC_FULL_PATH,
     TODAY_EXPENSE_FULL_PATH,
+    UPDATE_TABLE_FULL_PATH,
 )
 
 from .exceptions import APIError, BadRequest
-from .serializers import Settings
+from .serializers.report import Report
+from .serializers.settings import Settings
 
 
 class APIClient:
@@ -163,3 +166,11 @@ class APIClient:
         data = {"budget": str(budget)}
         response_data = await self._post(SET_BUDGET_FULL_PATH, data)
         return Settings.from_api_response(response_data)
+
+    async def get_report(self) -> Report:
+        response_data = await self._get(REPORT_ROOT_PATH)
+        return Report.from_api_response(response_data)
+
+    async def update_report(self) -> Report:
+        response_data = await self._post(UPDATE_TABLE_FULL_PATH, data={})
+        return Report.from_api_response(response_data)

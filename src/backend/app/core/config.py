@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from pydantic import SecretStr, computed_field
@@ -20,6 +21,10 @@ class Settings(BaseSettings):
     db_host: str
     db_port: int
 
+    # Google API credentials
+    report_spreadsheet_id: str | None = None
+    google_service_account_creds: str | None = None
+
     @computed_field
     @property
     def database_url(self) -> str:
@@ -32,6 +37,11 @@ class Settings(BaseSettings):
                 port=self.db_port,
             )
         )
+
+    @computed_field
+    @property
+    def google_service_account_info(self) -> dict[str, str]:
+        return json.loads(self.google_service_account_creds)
 
 
 settings = Settings()

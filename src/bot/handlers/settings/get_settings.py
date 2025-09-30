@@ -14,7 +14,4 @@ async def get_settings_cmd(message: Message, client: APIClient) -> None:
     """Get information about current application settings."""
     settings = await client.get_settings()
 
-    await message.answer(
-        settings.get_settings_message(),
-        reply_markup=settings_markup,
-    )
+    await message.answer(settings.get_message(), reply_markup=settings_markup)
