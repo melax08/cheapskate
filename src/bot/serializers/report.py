@@ -9,7 +9,7 @@ from bot.serializers.base import BaseSerializer
 @dataclass
 class Report(BaseSerializer):
     url: str
-    updated_at: dt.datetime | str
+    updated_at: str
 
     def get_message(self) -> str:
         return REPORT_INFO.format(*asdict(self).values())
@@ -17,5 +17,9 @@ class Report(BaseSerializer):
     @classmethod
     def from_api_response(cls, response_data: dict) -> Self:
         updated_at = response_data["updated_at"]
-        updated_at = dt.datetime.fromisoformat(response_data["updated_at"]) if updated_at else "-"
+        updated_at = (
+            dt.datetime.fromisoformat(response_data["updated_at"]).strftime("%d.%m.%y %H:%M")
+            if updated_at
+            else "-"
+        )
         return cls(response_data["url"], updated_at)
