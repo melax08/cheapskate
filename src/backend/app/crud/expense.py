@@ -108,7 +108,11 @@ class CRUDExpense(CRUDBase):
             )
             .join(Currency, self.model.currency_id == Currency.id)
             .join(Category, self.model.category_id == Category.id)
-            .where(and_(extract("year", self.model.date) == year, currency_id == currency_id))
+            .where(
+                and_(
+                    extract("year", self.model.date) == year, self.model.currency_id == currency_id
+                )
+            )
             .group_by(Category, "month")
             .order_by("month")
         )
