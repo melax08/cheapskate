@@ -85,7 +85,8 @@ jobs:
             GOOGLE_SERVICE_ACCOUNT_CREDS='${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDS }}'
             # DONE WORKFLOW ENVS
             EOF
-             echo "${{ secrets.SUDO_PASS }}" | sudo -S docker compose -f infra/docker-compose-prod.yml up -d --build
+            docker compose -f infra/docker-compose-prod.yml up -d --build
+            yes | docker image prune --all
 
   send_message:
     runs-on: ubuntu-latest
