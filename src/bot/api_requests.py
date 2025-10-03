@@ -20,8 +20,9 @@ from configs.api_settings import (
     TODAY_EXPENSE_FULL_PATH,
     UPDATE_TABLE_FULL_PATH,
 )
+from configs.enums import APIErrorCode
 
-from .exceptions import APIError, BadRequest
+from .exceptions import APIError
 from .serializers.report import Report
 from .serializers.settings import Settings
 
@@ -78,17 +79,19 @@ class APIClient:
     @staticmethod
     async def check_response_status_code(response) -> None:
         """Check if response status code is correct."""
-        if response.status == HTTPStatus.BAD_REQUEST:
-            raise BadRequest
-        if response.status > HTTPStatus.BAD_REQUEST:
+        if response.status >= HTTPStatus.BAD_REQUEST:
             try:
                 response_data = await response.json()
             except ContentTypeError:
-                response_data = "No JSON data returned"
+                response_data = {
+                    "detail": {
+                        "error_code": APIErrorCode.UNKNOWN,
+                        "message": "No JSON data returned",
+                    }
+                }
             raise APIError(
-                f"Wrong API status code: {response.status}. "
-                f"Requested URL: {response.url}. "
-                f"Response data: {response_data}"
+                response_data=response_data,
+                response_info={"url": response.url, "status": response.status},
             )
 
     async def get_categories(self) -> list:

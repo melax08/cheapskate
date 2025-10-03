@@ -5,9 +5,10 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from bot.api_requests import APIClient, BadRequest
+from bot.api_requests import APIClient
 from bot.constants import logging_messages, telegram_messages
 from bot.constants.commands import ADD_CURRENCY_COMMAND
+from bot.exceptions import APIError
 from bot.states.currencies import AddCurrencyState
 from bot.utils import get_user_info, reply_message_to_authorized_users
 from bot.validators import (
@@ -16,6 +17,7 @@ from bot.validators import (
     currency_name_validator,
 )
 from configs.constants import COUNTRY_LENGTH, MAX_CURRENCY_NAME_LENGTH
+from configs.enums import APIErrorCode
 
 router = Router()
 
@@ -104,12 +106,15 @@ async def add_currency_country_chosen(
         await state.clear()
         await reply_message_to_authorized_users(message_to_send, message.from_user, bot)
 
-    except BadRequest:
-        logging.warning(
-            logging_messages.CURRENCY_NOT_UNIQUE_LOG.format(get_user_info(message.from_user))
-        )
-        await message.answer(telegram_messages.CURRENCY_NOT_UNIQUE)
-        await state.clear()
+    except APIError as error:
+        if error.error_code == APIErrorCode.NOT_UNIQUE_CURRENCY_FIELDS:
+            logging.warning(
+                logging_messages.CURRENCY_NOT_UNIQUE_LOG.format(get_user_info(message.from_user))
+            )
+            await message.answer(telegram_messages.CURRENCY_NOT_UNIQUE)
+            await state.clear()
+        else:
+            raise
     except ValueError:
         logging.warning(
             logging_messages.CURRENCY_COUNTRY_TOO_LONG_LOG.format(

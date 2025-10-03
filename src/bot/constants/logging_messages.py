@@ -37,3 +37,6 @@ WRONG_BUDGET_LOG: str = "User: {} tried to set wrong budget value: {}"
 
 # Report
 UPDATE_REPORT_LOG: str = "User: {user} launched report update. Time spent: {time_spent}"
+
+# API errors
+API_ERROR: str = "An API error occurred. User: {user}, url: {url}, error code: {error_code}"

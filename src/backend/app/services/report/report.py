@@ -1,5 +1,7 @@
 import asyncio
 
+from fastapi import status
+
 from backend.app.core.config import settings
 from backend.app.crud.expense import expense_crud
 from backend.app.crud.report import report_crud
@@ -8,11 +10,13 @@ from backend.app.models.currency import Currency
 from backend.app.models.report import Report
 from backend.app.services.base import BaseService
 from backend.app.services.report.google_api import DEFAULT_SCOPES, GoogleAPIClient
+from backend.app.utils import raise_api_error
+from configs.enums import APIErrorCode
 
 
 class TableReportService(BaseService):
     async def update_google_tables_report(self) -> Report:
-        report = await self._get_report_instance()
+        report = await self.get_report_instance()
         expenses_data = await self._collect_expenses_data_for_table()
         client = GoogleAPIClient(
             scopes=DEFAULT_SCOPES,
@@ -23,12 +27,14 @@ class TableReportService(BaseService):
         await report_crud.update_update_at(self._session, report)
         return report
 
-    async def _get_report_instance(self) -> Report:
-        # ToDo: update report instance on spreadsheet_id change
+    async def get_report_instance(self) -> Report:
         report = await report_crud.get(self._session)
-        if not report:
-            # ToDo: update to normal exception
-            raise ValueError("Some error")
+        if report is None:
+            raise_api_error(
+                error_code=APIErrorCode.NO_SPREADSHEET_ID,
+                message="spreadsheet id не указан в настройках приложения",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
         return report
 
