@@ -7,7 +7,7 @@ API_ERROR = (
     "Попробуйте повторить данное действие позже."
 )
 
-API_COMMON_ERROR = "❗️Возникла ошибка:\n\n {error_message}"
+API_COMMON_ERROR = "❗️ Возникла ошибка:\n\n {error_message}"
 
 WRONG_REQUEST = (
     "❗️ Некорректный запрос. "

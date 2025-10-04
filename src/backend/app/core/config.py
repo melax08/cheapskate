@@ -1,9 +1,13 @@
 import json
 from pathlib import Path
 
+from fastapi import status
 from pydantic import SecretStr, computed_field
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from backend.app.utils import raise_api_error
+from configs.enums import APIErrorCode
 
 
 class Settings(BaseSettings):
@@ -41,7 +45,20 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def google_service_account_info(self) -> dict[str, str]:
-        return json.loads(self.google_service_account_creds)
+        if not self.google_service_account_creds:
+            raise_api_error(
+                error_code=APIErrorCode.NO_GOOGLE_SERVICE_CREDS,
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="Не указаны данные доступа к сервисному аккаунту google",
+            )
+        try:
+            return json.loads(self.google_service_account_creds)
+        except Exception:
+            raise_api_error(
+                error_code=APIErrorCode.BAD_GOOGLE_SERVICE_CREDS,
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="Указаны некорректные данные доступа к сервисному аккаунту google",
+            )
 
 
 settings = Settings()
