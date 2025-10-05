@@ -7,9 +7,9 @@ from backend.app.services.base import BaseService
 class CategoryService(BaseService):
     """Service to manage expense categories."""
 
-    async def get_all_categories(self) -> list[CategoryDB]:
+    async def get_all_categories(self, only_visible: bool = False) -> list[CategoryDB]:
         """Get all expense categories."""
-        return await category_crud.get_multi(self._session)
+        return await category_crud.get_all_categories(only_visible, self._session)
 
     async def create_category(self, category: CategoryCreate) -> CategoryDB:
         """Create expense category."""

@@ -5,6 +5,7 @@ from configs.constants import MAX_CATEGORY_NAME_LENGTH
 
 class CategoryCreate(BaseModel):
     name: str = Field(..., max_length=MAX_CATEGORY_NAME_LENGTH)
+    is_visible: bool = Field(default=True)
 
     @field_validator("name")
     def name_cant_be_null(cls, value: str):

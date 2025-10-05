@@ -15,5 +15,13 @@ class CRUDCategory(CRUDBase):
         db_obj = await session.execute(select(self.model).where(self.model.name == category_name))
         return db_obj.scalars().first()
 
+    async def get_all_categories(self, only_visible: bool, session: AsyncSession):
+        if only_visible:
+            db_objs = await session.execute(select(self.model).where(self.model.is_visible == True))  # noqa
+        else:
+            db_objs = await session.execute(select(self.model))
+
+        return db_objs.scalars().all()
+
 
 category_crud = CRUDCategory(Category)

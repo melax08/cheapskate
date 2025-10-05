@@ -8,10 +8,11 @@ router = APIRouter()
 
 @router.get("/", response_model=list[CategoryDB])
 async def get_all_categories(
+    only_visible: bool = False,
     category_service: CategoryService = Depends(CategoryService),
 ) -> list[CategoryDB]:
     """Get all expense categories."""
-    return await category_service.get_all_categories()
+    return await category_service.get_all_categories(only_visible)
 
 
 @router.post("/", response_model=CategoryDB)

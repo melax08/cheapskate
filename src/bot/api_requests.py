@@ -1,6 +1,7 @@
 from decimal import Decimal
 from http import HTTPStatus
 from types import TracebackType
+from typing import Any
 
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ContentTypeError
@@ -54,18 +55,20 @@ class APIClient:
         """Create full URL to the needed API endpoint."""
         return self._api_url / path
 
-    async def _post(self, path, data):
+    async def _post(self, path: str, data: dict[str, Any]) -> dict[str, Any] | list[Any]:
         """Make POST-requests to the specified API path with specified request
         data."""
         async with self._client.post(self._make_url(path), json=data) as response:
             return await self._response_processing(response)
 
-    async def _get(self, path):
+    async def _get(
+        self, path: str, query_params: dict[str, Any] | None = None
+    ) -> dict[str, Any] | list[Any]:
         """Make GET-request to the specified API path."""
-        async with self._client.get(self._make_url(path)) as response:
+        async with self._client.get(self._make_url(path), params=query_params) as response:
             return await self._response_processing(response)
 
-    async def _delete(self, path):
+    async def _delete(self, path: str) -> dict[str, Any]:
         """Make DELETE-request to the specified API path."""
         async with self._client.delete(self._make_url(path)) as response:
             return await self._response_processing(response)
@@ -94,9 +97,11 @@ class APIClient:
                 response_info={"url": response.url, "status": response.status},
             )
 
-    async def get_categories(self) -> list:
+    async def get_categories(self, only_visible: bool = False) -> list:
         """Get all expense categories."""
-        categories = await self._get(CATEGORIES_PATH)
+        categories = await self._get(
+            CATEGORIES_PATH, query_params={"only_visible": int(only_visible)}
+        )
         return categories
 
     async def add_category(self, category_name: str):

@@ -16,7 +16,7 @@ async def create_category_keyboard(
     expense_amount: Decimal, client: APIClient
 ) -> InlineKeyboardMarkup:
     """Create keyboard with categories from API."""
-    categories = await client.get_categories()
+    categories = await client.get_categories(only_visible=True)
 
     if len(categories) == 0:
         raise ValueError
@@ -36,9 +36,7 @@ async def create_category_keyboard(
     return builder.as_markup()
 
 
-def create_expense_manage_keyboard(
-    expense_id: int, amount: Decimal
-) -> InlineKeyboardMarkup:
+def create_expense_manage_keyboard(expense_id: int, amount: Decimal) -> InlineKeyboardMarkup:
     """Create keyboard with manage options for the expense."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
