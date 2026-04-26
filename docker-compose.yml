@@ -5,7 +5,7 @@ services:
   cheapskate_db:
     image: postgres:18.3-alpine
     volumes:
-      - cheapskate_database:/var/lib/postgresql/data/
+      - cheapskate_database:/var/lib/postgresql/
     env_file:
       - src/.env
     environment:
