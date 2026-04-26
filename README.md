@@ -28,7 +28,7 @@ Telegram bot and REST API for convenient control of your expenses and obtaining 
 Ilya Malashenko (github: melax08, telegram: @ScreamOFF)
 
 ### System requirements
-- Python 3.13;
+- Python 3.14;
 - Docker (20.10+) with docker compose;
 - [uv](https://docs.astral.sh/uv/).
 
