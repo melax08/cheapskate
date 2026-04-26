@@ -7,6 +7,10 @@ ADD . /app
 
 WORKDIR /app
 
+RUN chmod +x /app/infra/entrypoint_api.sh \
+    /app/infra/entrypoint_api_migrations.sh \
+    /app/infra/entrypoint_bot.sh
+
 RUN uv sync --frozen
 
 ENV PATH="/app/.venv/bin:$PATH"
