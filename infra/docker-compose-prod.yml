@@ -3,7 +3,7 @@ name: cheapskate
 services:
 
   cheapskate_db:
-    image: postgres:17.2-alpine
+    image: postgres:18.3-alpine
     restart: always
     volumes:
       - cheapskate_database:/var/lib/postgresql/data/
