@@ -2,55 +2,58 @@ name: cheapskate
 
 services:
 
-  cheapskate_db:
+  database:
     image: postgres:18.3-alpine
     restart: always
     volumes:
-      - cheapskate_database:/var/lib/postgresql/
+      - database:/var/lib/postgresql/
     env_file:
       - ../src/.env
     environment:
       - TZ=Europe/Moscow
 
-  cheapskate_redis:
+  redis:
     image: redis
     restart: always
 
-  cheapskate_api_migrations:
+  migrations:
     build:
       context: ..
       dockerfile: infra/Dockerfile
     entrypoint: infra/entrypoint_api_migrations.sh
     depends_on:
-      cheapskate_db:
+      database:
           condition: service_started
     env_file:
       - ../src/.env
     environment:
       TZ: Europe/Moscow
-      DB_HOST: cheapskate_db
-      REDIS_HOST: cheapskate_redis
+      DB_HOST: database
+      REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: 0
 
-  cheapskate_api:
+  backend:
     build:
       context: ..
       dockerfile: infra/Dockerfile
     entrypoint: infra/entrypoint_api.sh
     restart: always
     depends_on:
-      - cheapskate_db
+      migrations:
+        condition: service_completed_successfully
+      database:
+        condition: service_started
     env_file:
       - ../src/.env
     environment:
       TZ: Europe/Moscow
-      DB_HOST: cheapskate_db
-      REDIS_HOST: cheapskate_redis
+      DB_HOST: database
+      REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: 0
 
-  cheapskate_bot:
+  bot:
     build:
       context: ..
       dockerfile: infra/Dockerfile
@@ -59,15 +62,15 @@ services:
     volumes:
       - ./.data/:/.data/
     depends_on:
-      - cheapskate_api
-      - cheapskate_redis
+      - backend
+      - redis
     env_file:
       - ../src/.env
     environment:
       TZ: Europe/Moscow
-      REDIS_HOST: cheapskate_redis
+      REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: 0
 
 volumes:
-  cheapskate_database:
+  database:

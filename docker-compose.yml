@@ -1,11 +1,12 @@
 # For development purposes only
+name: cheapskate
 
 services:
 
-  cheapskate_db:
+  database:
     image: postgres:18.3-alpine
     volumes:
-      - cheapskate_database:/var/lib/postgresql/
+      - database:/var/lib/postgresql/
     env_file:
       - src/.env
     environment:
@@ -13,11 +14,11 @@ services:
     ports:
       - '5432:5432'
 
-  cheapskate_redis:
+  redis:
     image: redis
     ports:
       - '6379:6379'
 
 
 volumes:
-  cheapskate_database:
+  database:

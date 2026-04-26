@@ -76,7 +76,7 @@ jobs:
             DB_PORT=${{ secrets.DB_PORT }}
 
             # Redis settings
-            REDIS_HOST=cheapskate_redis
+            REDIS_HOST=redis
             REDIS_PORT=6379
             REDIS_DB=0
 
