@@ -8,27 +8,22 @@ jobs:
 
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.13.7"
+        uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
-      - name: Install dependencies
-        run: |
-          uv sync --frozen
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: Test with ruff linter
-        run: |
-          uv run ruff check .
+        run: uv run ruff check .
 
       - name: Test with pytest
-        run: |
-          uv run pytest .
+        run: uv run pytest .
 
   deploy:
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -43,7 +38,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
 
           script: |
             cd cheapskate
