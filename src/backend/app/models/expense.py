@@ -15,6 +15,8 @@ class Expense(Base):
     amount = Column(DECIMAL(15, 3), nullable=False)
     currency_id = Column(Integer, ForeignKey("currency.id"), nullable=True)
     currency = relationship("Currency", back_populates="expenses", lazy="joined")
+    user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
+    user = relationship("User", back_populates="expenses", lazy="joined")
 
     def __repr__(self):
         return f"<Expense for {self.amount} money in category {self.category_id}>"

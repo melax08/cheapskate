@@ -1,13 +1,16 @@
 from typing import Any
 
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class CreateRemoveMixin:
-    async def create(self, obj_in, session: AsyncSession):
+    async def create(self, obj_in, session: AsyncSession, additional_data: dict | None = None):
         """Creates DB object from pydantic schema."""
         obj_in_data = obj_in.dict()
+        if additional_data is not None:
+            obj_in_data.update(additional_data)
         db_obj = self.model(**obj_in_data)
         session.add(db_obj)
         await session.commit()
@@ -22,7 +25,27 @@ class CreateRemoveMixin:
         return db_obj
 
 
-class CRUDBase(CreateRemoveMixin):
+class UpdateMixin:
+    async def update(
+        self,
+        db_obj,
+        obj_in,
+        session: AsyncSession,
+    ):
+        obj_data = jsonable_encoder(db_obj)
+        update_data = obj_in.dict(exclude_unset=True)
+
+        for field in obj_data:
+            if field in update_data:
+                setattr(db_obj, field, update_data[field])
+
+        session.add(db_obj)
+        await session.commit()
+        await session.refresh(db_obj)
+        return db_obj
+
+
+class CRUDBase(CreateRemoveMixin, UpdateMixin):
     """Class with base DB CRUD operations."""
 
     def __init__(self, model):
@@ -45,7 +68,7 @@ class CRUDBase(CreateRemoveMixin):
         return db_objs.scalars().first()
 
 
-class SingletonCRUDBase(CreateRemoveMixin):
+class SingletonCRUDBase(CreateRemoveMixin, UpdateMixin):
     """Base CRUD class for models with one instance."""
 
     def __init__(self, model):

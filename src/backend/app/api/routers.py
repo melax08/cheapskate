@@ -7,6 +7,7 @@ from backend.app.api.endpoints import (
     report_router,
     setting_router,
     statistic_router,
+    user_router,
 )
 from configs.api_settings import (
     API_PATH,
@@ -16,6 +17,7 @@ from configs.api_settings import (
     REPORT_ROOT_PATH,
     SETTINGS_PATH,
     STATISTIC_ROOT_PATH,
+    USER_PATH,
 )
 
 main_router = APIRouter(prefix=API_PATH)
@@ -47,3 +49,5 @@ main_router.include_router(
 main_router.include_router(
     report_router, prefix=__make_root_path(REPORT_ROOT_PATH), tags=["Report"]
 )
+
+main_router.include_router(user_router, prefix=__make_root_path(USER_PATH), tags=["User"])

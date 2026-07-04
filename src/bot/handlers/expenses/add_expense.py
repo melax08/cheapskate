@@ -42,9 +42,7 @@ async def add_expense(message: Message, client: APIClient) -> None:
     try:
         keyboard = await create_category_keyboard(expense_amount, client)
     except ValueError:
-        logging.warning(
-            logging_messages.NO_CATEGORIES_LOG.format(get_user_info(message.from_user))
-        )
+        logging.warning(logging_messages.NO_CATEGORIES_LOG.format(get_user_info(message.from_user)))
         await message.answer(telegram_messages.NO_CATEGORIES)
         return
 
@@ -67,7 +65,7 @@ async def expense_category_chosen(
 ) -> None:
     """Send the information about chosen expense category to the API."""
     response_data = await client.add_expense(
-        callback_data.amount, callback_data.category_id
+        callback_data.amount, callback_data.category_id, callback.from_user.id
     )
 
     logging.info(
@@ -92,9 +90,7 @@ async def expense_category_chosen(
     )
     await callback.message.edit_text(
         text=message,
-        reply_markup=create_expense_manage_keyboard(
-            response_data["id"], expense_amount
-        ),
+        reply_markup=create_expense_manage_keyboard(response_data["id"], expense_amount),
     )
     await callback.answer()
     await reply_message_to_authorized_users(message, callback.from_user, bot)

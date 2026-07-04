@@ -12,3 +12,4 @@ class APIErrorCode(StrEnum):
     BAD_MONTH_YEAR = "bad_month_year"
     CURRENCY_NOT_FOUND = "currency_not_found"
     NOT_UNIQUE_CURRENCY_FIELDS = "not_unique_currency_fields"
+    USER_NOT_FOUND = "user_not_found"

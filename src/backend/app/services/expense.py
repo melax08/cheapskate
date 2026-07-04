@@ -2,6 +2,7 @@ from backend.app.api.validators import (
     check_category_exists,
     check_currency_exists,
     check_expense_exists,
+    check_user_exists,
 )
 from backend.app.crud import expense_crud, setting_crud
 from backend.app.schemas.category import CategoryDB
@@ -17,6 +18,11 @@ class ExpenseService(BaseService):
         """Create an expense record in the database, calculate how much money left in the monthly
         budget and return it."""
         await check_category_exists(expense_obj.category_id, self._session)
+        user_data = {}
+        if expense_obj.user_telegram_id is not None:
+            user = await check_user_exists(expense_obj.user_telegram_id, self._session)
+            delattr(expense_obj, "user_telegram_id")
+            user_data = {"user": user}
 
         if expense_obj.currency_id is not None:
             await check_currency_exists(expense_obj.currency_id, self._session)
@@ -24,7 +30,7 @@ class ExpenseService(BaseService):
             default_currency = await setting_crud.get_default_currency(self._session)
             expense_obj.currency_id = default_currency.id
 
-        expense = await expense_crud.create(expense_obj, self._session)
+        expense = await expense_crud.create(expense_obj, self._session, additional_data=user_data)
         expense.money_left = await expense_crud.calculate_money_left(self._session)
         return expense
 

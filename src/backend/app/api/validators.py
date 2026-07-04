@@ -3,8 +3,8 @@ import datetime as dt
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.crud import category_crud, currency_crud, expense_crud
-from backend.app.models import Category, Currency, Expense
+from backend.app.crud import category_crud, currency_crud, expense_crud, user_crud
+from backend.app.models import Category, Currency, Expense, User
 from backend.app.schemas.currency import CurrencyCreate
 from backend.app.utils import raise_api_error
 from configs.enums import APIErrorCode
@@ -83,3 +83,15 @@ async def check_currency_unique_fields(currency: CurrencyCreate, session: AsyncS
             message="Не уникальное название/код/страна",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+
+async def check_user_exists(user_telegram_id: int, session: AsyncSession) -> User:
+    """Checks if user exists in database."""
+    user = await user_crud.get_by_telegram_id(user_telegram_id, session)
+    if user is None:
+        raise_api_error(
+            error_code=APIErrorCode.USER_NOT_FOUND,
+            message="Пользователь не найден",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    return user

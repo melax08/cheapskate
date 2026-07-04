@@ -15,6 +15,7 @@ class ExpenseBase(BaseModel):
 class ExpenseCreate(ExpenseBase):
     category_id: int
     currency_id: int | None = None
+    user_telegram_id: int | None = Field(None)
 
 
 class ExpenseDB(ExpenseBase):

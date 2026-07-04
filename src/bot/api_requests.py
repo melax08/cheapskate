@@ -13,6 +13,7 @@ from configs.api_settings import (
     EXPENSE_PATH,
     MONEY_LEFT_FULL_PATH,
     PERIOD_EXPENSE_FULL_PATH,
+    REGISTER_USER_FROM_TELEGRAM_FULL_PATH,
     REPORT_ROOT_PATH,
     SET_BUDGET_FULL_PATH,
     SET_DEFAULT_CURRENCY_FULL_PATH,
@@ -110,9 +111,13 @@ class APIClient:
         response_data = await self._post(CATEGORIES_PATH, data)
         return response_data
 
-    async def add_expense(self, money: Decimal, category_id: int):
+    async def add_expense(self, money: Decimal, category_id: int, user_telegram_id: int):
         """Add new expense."""
-        data = {"category_id": category_id, "amount": str(money)}
+        data = {
+            "category_id": category_id,
+            "amount": str(money),
+            "user_telegram_id": user_telegram_id,
+        }
         response_data = await self._post(EXPENSE_PATH, data)
         return response_data
 
@@ -182,3 +187,20 @@ class APIClient:
     async def update_report(self) -> Report:
         response_data = await self._post(UPDATE_TABLE_FULL_PATH, data={})
         return Report.from_api_response(response_data)
+
+    async def register_user(
+        self,
+        telegram_id: int,
+        telegram_username: str | None,
+        telegram_first_name: str,
+        telegram_last_name: str | None,
+    ) -> None:
+        await self._post(
+            REGISTER_USER_FROM_TELEGRAM_FULL_PATH,
+            data={
+                "telegram_id": telegram_id,
+                "telegram_username": telegram_username,
+                "telegram_first_name": telegram_first_name,
+                "telegram_last_name": telegram_last_name,
+            },
+        )
