@@ -12,7 +12,7 @@ from bot.constants import logging_messages, telegram_messages
 from bot.constants.constants import REQUEST_API_TIMEOUT
 from bot.exceptions import APIError
 from bot.utils import get_user_info
-from configs.api_settings import API_URL
+from configs.api_settings import INTERNAL_API_URL
 
 
 class HTTPClientMiddleware(BaseMiddleware):
@@ -26,7 +26,7 @@ class HTTPClientMiddleware(BaseMiddleware):
     ) -> Any:
         async with aiohttp.ClientSession(conn_timeout=REQUEST_API_TIMEOUT) as session:
             try:
-                data["client"] = APIClient(api_url=URL(API_URL), session=session)
+                data["client"] = APIClient(api_url=URL(INTERNAL_API_URL), session=session)
                 return await handler(event, data)
             except APIError as error:
                 logging.info(

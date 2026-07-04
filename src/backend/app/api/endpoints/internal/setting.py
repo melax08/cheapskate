@@ -6,7 +6,7 @@ from backend.app.services.setting import SettingsService
 router = APIRouter()
 
 
-@router.get("/", response_model=SettingDB)
+@router.get("", response_model=SettingDB)
 async def get_settings(settings_service: SettingsService = Depends(SettingsService)) -> SettingDB:
     """Get the first settings instance with all settings."""
     return await settings_service.get_settings()

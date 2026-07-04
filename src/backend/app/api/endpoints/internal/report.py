@@ -6,7 +6,7 @@ from backend.app.services.report.report import TableReportService
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 async def get_report(report_service: TableReportService = Depends(TableReportService)) -> ReportDB:
     report = await report_service.get_report_instance()
     return report

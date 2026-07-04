@@ -18,7 +18,7 @@ from backend.app.services.expense import ExpenseService
 router = APIRouter()
 
 
-@router.post("/", response_model=ExpenseMoneyLeftDB)
+@router.post("", response_model=ExpenseMoneyLeftDB)
 async def add_expense(
     expense: ExpenseCreate, expense_service: ExpenseService = Depends(ExpenseService)
 ) -> ExpenseMoneyLeftDB:

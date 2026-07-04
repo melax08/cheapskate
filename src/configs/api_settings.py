@@ -6,9 +6,10 @@ load_dotenv()
 
 # API settings
 API_VERSION = "v1"
-API_PATH = f"/api/{API_VERSION}"
+PUBLIC_API_PATH = f"/api/{API_VERSION}"
+INTERNAL_API_PATH = "/internal"
 API_HOST = os.getenv("HOST_API", default="127.0.0.1")
-API_URL = f"http://{API_HOST}:8000{API_PATH}/"
+INTERNAL_API_URL = f"http://{API_HOST}:8000{INTERNAL_API_PATH}/"
 
 # Root paths
 CATEGORIES_PATH = "category"

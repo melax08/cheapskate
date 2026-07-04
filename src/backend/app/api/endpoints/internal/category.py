@@ -6,7 +6,7 @@ from backend.app.services.category import CategoryService
 router = APIRouter()
 
 
-@router.get("/", response_model=list[CategoryDB])
+@router.get("", response_model=list[CategoryDB])
 async def get_all_categories(
     only_visible: bool = False,
     category_service: CategoryService = Depends(CategoryService),
@@ -15,7 +15,7 @@ async def get_all_categories(
     return await category_service.get_all_categories(only_visible)
 
 
-@router.post("/", response_model=CategoryDB)
+@router.post("", response_model=CategoryDB)
 async def create_category(
     category: CategoryCreate, category_service: CategoryService = Depends(CategoryService)
 ) -> CategoryDB:

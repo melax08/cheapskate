@@ -6,7 +6,7 @@ from backend.app.services.currency import CurrencyService
 router = APIRouter()
 
 
-@router.get("/", response_model=list[CurrencyDB])
+@router.get("", response_model=list[CurrencyDB])
 async def get_all_currencies(
     currency_service: CurrencyService = Depends(CurrencyService),
 ) -> list[CurrencyDB]:
@@ -14,7 +14,7 @@ async def get_all_currencies(
     return await currency_service.get_all_currencies()
 
 
-@router.post("/", response_model=CurrencyDB)
+@router.post("", response_model=CurrencyDB)
 async def create_currency(
     currency: CurrencyCreate, currency_service: CurrencyService = Depends(CurrencyService)
 ) -> CurrencyDB:
