@@ -26,9 +26,7 @@ async def get_years_with_expenses(message: Message, client: APIClient) -> None:
     keyboard = await create_statistic_years_keyboard(client)
 
     if keyboard:
-        await message.answer(
-            telegram_messages.STATISTIC_YEAR_MESSAGE, reply_markup=keyboard
-        )
+        await message.answer(telegram_messages.STATISTIC_YEAR_MESSAGE, reply_markup=keyboard)
     else:
         await message.answer(telegram_messages.NO_EXPENSES)
 
@@ -39,9 +37,7 @@ async def get_months_in_year_with_expenses(
 ) -> None:
     """Send the user a keyboard with a list of months for the specified year
     in which there were expenses."""
-    keyboard = create_statistic_months_keyboard(
-        callback_data.year, callback_data.months
-    )
+    keyboard = create_statistic_months_keyboard(callback_data.year, callback_data.months)
     await callback.message.edit_text(
         text=telegram_messages.STATISTIC_MONTH_MESSAGE, reply_markup=keyboard
     )

@@ -12,9 +12,7 @@ class CRUDCurrency(CRUDBase):
     """Class with DB CRUD operations for `Currency` model."""
 
     @staticmethod
-    async def _select_currencies_categories_expenses(
-        session: AsyncSession, where_stmt: bool
-    ):
+    async def _select_currencies_categories_expenses(session: AsyncSession, where_stmt: bool):
         """Select the list of expenses by currencies and categories for specified
         period."""
         currencies_categories_expenses = await session.execute(
@@ -31,17 +29,13 @@ class CRUDCurrency(CRUDBase):
         )
         return currencies_categories_expenses.all()
 
-    async def get_this_month_expenses_by_currencies_and_categories(
-        self, session: AsyncSession
-    ):
+    async def get_this_month_expenses_by_currencies_and_categories(self, session: AsyncSession):
         """Gets the list of this month expenses by currencies and categories."""
         return await self.get_expenses_by_currencies_and_categories_for_period(
             dt.date.today().year, dt.date.today().month, session
         )
 
-    async def get_today_expenses_by_currencies_and_categories(
-        self, session: AsyncSession
-    ):
+    async def get_today_expenses_by_currencies_and_categories(self, session: AsyncSession):
         """Gets the list of today expenses by currencies and categories."""
         return await self._select_currencies_categories_expenses(
             session, Expense.date >= dt.date.today()

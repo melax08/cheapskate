@@ -77,6 +77,9 @@ jobs:
             # Google API credentials
             REPORT_SPREADSHEET_ID=${{ secrets.REPORT_SPREADSHEET_ID }}
             GOOGLE_SERVICE_ACCOUNT_CREDS='${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDS }}'
+
+            # Authorization
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
             # DONE WORKFLOW ENVS
             EOF
             docker compose -f infra/docker-compose-prod.yml up -d --build

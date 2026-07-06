@@ -6,9 +6,7 @@ from bot.callbacks.currencies import ExpenseCurrencyCallback
 from bot.constants.constants import CURRENCIES_NUMBER_IN_ROW
 
 
-async def create_currency_keyboard(
-    expense_id: int, client: APIClient
-) -> InlineKeyboardMarkup:
+async def create_currency_keyboard(expense_id: int, client: APIClient) -> InlineKeyboardMarkup:
     """Create keyboard wih currencies from API."""
     currencies = await client.get_currencies()
 

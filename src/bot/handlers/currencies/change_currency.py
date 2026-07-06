@@ -27,9 +27,7 @@ async def change_currency(
     """User click 'change currency' button under expense
     message and get buttons with available currencies to set."""
     try:
-        currency_keyboard = await create_currency_keyboard(
-            callback_data.expense_id, client
-        )
+        currency_keyboard = await create_currency_keyboard(callback_data.expense_id, client)
     except ValueError:
         logging.warning(
             logging_messages.NO_CURRENCIES_LOG.format(get_user_info(callback.from_user))
@@ -52,9 +50,7 @@ async def currency_chosen(
     bot: Bot,
 ) -> None:
     """Set the specified currency for specified expense."""
-    response_data = await client.set_currency(
-        callback_data.expense_id, callback_data.currency_id
-    )
+    response_data = await client.set_currency(callback_data.expense_id, callback_data.currency_id)
 
     message = telegram_messages.CURRENCY_SET.format(
         response_data["currency"]["name"],

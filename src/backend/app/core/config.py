@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -25,9 +26,20 @@ class Settings(BaseSettings):
     db_host: str
     db_port: int
 
+    time_zone: str = "Europe/Moscow"
+
+    # Telegram bot
+    bot_telegram_token: SecretStr
+    telegram_webapp_data_lifetime: dt.timedelta = dt.timedelta(minutes=5)
+
     # Google API credentials
     report_spreadsheet_id: str | None = None
     google_service_account_creds: str | None = None
+
+    # Authorization
+    secret_key: SecretStr
+    access_token_ttl: dt.timedelta = dt.timedelta(minutes=15)
+    refresh_token_ttl: dt.timedelta = dt.timedelta(days=7)
 
     @computed_field
     @property

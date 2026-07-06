@@ -6,6 +6,4 @@ from .get_settings import router as get_settings_router
 
 router = Router()
 
-router.include_routers(
-    get_settings_router, change_default_currency_router, change_budget_router
-)
+router.include_routers(get_settings_router, change_default_currency_router, change_budget_router)
