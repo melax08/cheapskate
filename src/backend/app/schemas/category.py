@@ -18,3 +18,12 @@ class CategoryDB(CategoryCreate):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+
+
+class CategoryDBWithExpenses(CategoryDB):
+    expenses_count: int
+
+
+class CategoryUpdate(CategoryCreate):
+    name: str | None = Field(None, max_length=MAX_CATEGORY_NAME_LENGTH)
+    is_visible: bool | None = Field(None)
