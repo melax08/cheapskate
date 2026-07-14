@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import Currency, Setting
 
-from .base import SingletonCRUDBase
+from .base import SingletonRepositoryBase
 
 
-class CRUDSetting(SingletonCRUDBase):
+class SettingRepository(SingletonRepositoryBase):
     """Class with DB CRUD operations for `Setting` model."""
 
     async def get_default_currency(self, session: AsyncSession) -> Currency:
@@ -44,4 +44,4 @@ class CRUDSetting(SingletonCRUDBase):
         return setting
 
 
-setting_crud = CRUDSetting(Setting)
+setting_repository = SettingRepository(Setting)

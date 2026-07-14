@@ -10,7 +10,7 @@ import pytz
 from fastapi import status
 
 from backend.app.core.config import settings
-from backend.app.crud import user_crud
+from backend.app.repositories import user_repository
 from backend.app.schemas.authorization import AuthorizationTokens
 from backend.app.services.authorization.jwt import JWTService
 from backend.app.services.base import BaseService
@@ -26,7 +26,7 @@ class TelegramAuthorizationService(BaseService):
             web_app_data_lifetime=settings.telegram_webapp_data_lifetime,
         )
         if is_valid and (
-            user := await user_crud.get_by_telegram_id(user_data.get("id"), self._session)
+            user := await user_repository.get_by_telegram_id(user_data.get("id"), self._session)
         ):
             jwt_service = JWTService()
             return jwt_service.issue_tokens_for_user(user)

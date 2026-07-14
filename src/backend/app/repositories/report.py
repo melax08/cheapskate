@@ -4,10 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models.report import Report
 
-from .base import SingletonCRUDBase
+from .base import SingletonRepositoryBase
 
 
-class CRUDReport(SingletonCRUDBase):
+class ReportRepository(SingletonRepositoryBase):
     async def update_update_at(self, session: AsyncSession, report: Report):
         report.updated_at = dt.datetime.now()
         session.add(report)
@@ -16,4 +16,4 @@ class CRUDReport(SingletonCRUDBase):
         return report
 
 
-report_crud = CRUDReport(Report)
+report_repository = ReportRepository(Report)

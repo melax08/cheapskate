@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import Category, Currency, Expense
 
-from .base import CRUDBase
+from .base import RepositoryBase
 
 
-class CRUDCurrency(CRUDBase):
+class CurrencyRepository(RepositoryBase):
     """Class with DB CRUD operations for `Currency` model."""
 
     @staticmethod
@@ -55,4 +55,4 @@ class CRUDCurrency(CRUDBase):
         )
 
 
-currency_crud = CRUDCurrency(Currency)
+currency_repository = CurrencyRepository(Currency)

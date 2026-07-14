@@ -7,9 +7,9 @@ from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.config import settings
-from backend.app.crud.user import user_crud
 from backend.app.exceptions import JWTError
 from backend.app.models.user import User
+from backend.app.repositories import user_repository
 from backend.app.schemas.authorization import AuthorizationTokens
 
 
@@ -53,7 +53,7 @@ class JWTService:
         if not (user_id := payload.get("sub")):
             raise JWTError("Invalid token payload")
 
-        if not (user := await user_crud.get(int(user_id), session)):
+        if not (user := await user_repository.get(int(user_id), session)):
             raise JWTError("User not found")
 
         return user
@@ -72,7 +72,7 @@ class JWTService:
         if not (user_id := payload.get("sub")):
             raise JWTError("Invalid token payload")
 
-        if not (user := await user_crud.get(int(user_id), session)):
+        if not (user := await user_repository.get(int(user_id), session)):
             raise JWTError("User not found")
 
         return self.issue_tokens_for_user(user)

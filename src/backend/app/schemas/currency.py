@@ -12,7 +12,7 @@ class CurrencyCreate(BaseModel):
     letter_code: str = Field(
         ...,
         min_length=CURRENCY_LETTER_CODE_LENGTH,
-        max_lenght=CURRENCY_LETTER_CODE_LENGTH,
+        max_length=CURRENCY_LETTER_CODE_LENGTH,
     )
     country: str = Field(..., max_length=COUNTRY_LENGTH)
 

@@ -3,8 +3,13 @@ import datetime as dt
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.crud import category_crud, currency_crud, expense_crud, user_crud
 from backend.app.models import Category, Currency, Expense, User
+from backend.app.repositories import (
+    category_repository,
+    currency_repository,
+    expense_repository,
+    user_repository,
+)
 from backend.app.schemas.currency import CurrencyCreate
 from backend.app.utils import raise_api_error
 from configs.enums import APIErrorCode
@@ -12,7 +17,7 @@ from configs.enums import APIErrorCode
 
 async def check_category_exists(category_id: int, session: AsyncSession) -> Category:
     """Checks if category exists in database."""
-    category = await category_crud.get(category_id, session)
+    category = await category_repository.get(category_id, session)
     if category is None:
         raise_api_error(
             error_code=APIErrorCode.CATEGORY_NOT_FOUND,
@@ -24,7 +29,7 @@ async def check_category_exists(category_id: int, session: AsyncSession) -> Cate
 
 async def check_expense_exists(expense_id: int, session: AsyncSession) -> Expense:
     """Checks if expense exists in database."""
-    expense = await expense_crud.get(expense_id, session)
+    expense = await expense_repository.get(expense_id, session)
     if expense is None:
         raise_api_error(
             error_code=APIErrorCode.EXPENSE_NOT_FOUND,
@@ -36,7 +41,7 @@ async def check_expense_exists(expense_id: int, session: AsyncSession) -> Expens
 
 async def check_category_name_duplicate(category_name: str, session: AsyncSession) -> None:
     """Checks if category name already exists in database."""
-    category = await category_crud.get_category_by_name(category_name, session)
+    category = await category_repository.get_by_name(category_name, session)
     if category is not None:
         raise_api_error(
             error_code=APIErrorCode.CATEGORY_EXISTS,
@@ -59,7 +64,7 @@ def validate_month_year(year: int, month: int) -> None:
 
 async def check_currency_exists(currency_id: int, session: AsyncSession) -> Currency:
     """Checks if currency with specified id exists in database."""
-    currency = await currency_crud.get(currency_id, session)
+    currency = await currency_repository.get(currency_id, session)
     if currency is None:
         raise_api_error(
             error_code=APIErrorCode.CURRENCY_NOT_FOUND,
@@ -71,7 +76,7 @@ async def check_currency_exists(currency_id: int, session: AsyncSession) -> Curr
 
 async def check_currency_unique_fields(currency: CurrencyCreate, session: AsyncSession) -> None:
     """Check is some currency already exists with the specified unique fields."""
-    currency = await currency_crud.get_first_with_some_field_match(
+    currency = await currency_repository.get_first_with_some_field_match(
         session,
         name=currency.name,
         letter_code=currency.letter_code,
@@ -87,7 +92,7 @@ async def check_currency_unique_fields(currency: CurrencyCreate, session: AsyncS
 
 async def check_user_exists(user_telegram_id: int, session: AsyncSession) -> User:
     """Checks if user exists in database."""
-    user = await user_crud.get_by_telegram_id(user_telegram_id, session)
+    user = await user_repository.get_by_telegram_id(user_telegram_id, session)
     if user is None:
         raise_api_error(
             error_code=APIErrorCode.USER_NOT_FOUND,

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class CreateRemoveMixin:
     async def create(self, obj_in, session: AsyncSession, additional_data: dict | None = None):
         """Creates DB object from pydantic schema."""
-        obj_in_data = obj_in.dict()
+        obj_in_data = obj_in.model_dump()
         if additional_data is not None:
             obj_in_data.update(additional_data)
         db_obj = self.model(**obj_in_data)
@@ -33,7 +33,7 @@ class UpdateMixin:
         session: AsyncSession,
     ):
         obj_data = jsonable_encoder(db_obj)
-        update_data = obj_in.dict(exclude_unset=True)
+        update_data = obj_in.model_dump(exclude_unset=True)
 
         for field in obj_data:
             if field in update_data:
@@ -45,8 +45,8 @@ class UpdateMixin:
         return db_obj
 
 
-class CRUDBase(CreateRemoveMixin, UpdateMixin):
-    """Class with base DB CRUD operations."""
+class RepositoryBase(CreateRemoveMixin, UpdateMixin):
+    """Class with base DB operations."""
 
     def __init__(self, model):
         self.model = model
@@ -68,8 +68,8 @@ class CRUDBase(CreateRemoveMixin, UpdateMixin):
         return db_objs.scalars().first()
 
 
-class SingletonCRUDBase(CreateRemoveMixin, UpdateMixin):
-    """Base CRUD class for models with one instance."""
+class SingletonRepositoryBase(CreateRemoveMixin, UpdateMixin):
+    """Base class with DB operations for models with one instance."""
 
     def __init__(self, model):
         self.model = model

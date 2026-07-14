@@ -4,15 +4,15 @@ from decimal import Decimal
 from sqlalchemy import Integer, and_, desc, distinct, extract, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.crud.setting import setting_crud
 from backend.app.models.category import Category
 from backend.app.models.currency import Currency
 from backend.app.models.expense import Expense
+from backend.app.repositories.setting import setting_repository
 
-from .base import CRUDBase
+from .base import RepositoryBase
 
 
-class CRUDExpense(CRUDBase):
+class ExpenseRepository(RepositoryBase):
     """Class with DB CRUD operations for `Expense` model."""
 
     def _get_period_stmt(self, year: int, month: int, additional_stmts: list[bool] | None = None):
@@ -39,7 +39,7 @@ class CRUDExpense(CRUDBase):
         current_date = dt.datetime.now()
 
         if not default_currency:
-            default_currency = await setting_crud.get_default_currency(session)
+            default_currency = await setting_repository.get_default_currency(session)
 
         money_spent = await self.calculate_money_expense_sum(
             self._get_period_stmt(
@@ -51,7 +51,7 @@ class CRUDExpense(CRUDBase):
         )
 
         if budget is None:
-            budget = await setting_crud.get_budget(session)
+            budget = await setting_repository.get_budget(session)
 
         return round(budget - money_spent, 3)
 
@@ -119,4 +119,4 @@ class CRUDExpense(CRUDBase):
         return result.all()
 
 
-expense_crud = CRUDExpense(Expense)
+expense_repository = ExpenseRepository(Expense)

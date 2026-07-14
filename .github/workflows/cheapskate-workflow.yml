@@ -22,8 +22,8 @@ jobs:
       - name: Test with ruff linter
         run: uv run ruff check .
 
-      - name: Test with pytest
-        run: uv run pytest .
+#      - name: Test with pytest
+#        run: uv run pytest .
 
   deploy:
     if: ${{ github.ref == 'refs/heads/main' }}

@@ -6,7 +6,7 @@ from backend.app.api.validators import (
     check_expense_exists,
 )
 from backend.app.core.db import get_async_session
-from backend.app.crud import expense_crud
+from backend.app.repositories import expense_repository
 from backend.app.schemas.currency import CurrencySet
 from backend.app.schemas.expense import (
     ExpenseCreate,
@@ -43,5 +43,5 @@ async def set_currency(
     """Set specified currency for the specified expense."""
     expense = await check_expense_exists(expense_id, session)
     currency = await check_currency_exists(currency.currency_id, session)
-    expense = await expense_crud.set_currency(expense, currency.id, session)
+    expense = await expense_repository.set_currency(expense, currency.id, session)
     return expense

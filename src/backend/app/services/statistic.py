@@ -1,7 +1,7 @@
 import datetime as dt
 
 from backend.app.api.validators import validate_month_year
-from backend.app.crud import currency_crud, expense_crud, setting_crud
+from backend.app.repositories import currency_repository, expense_repository, setting_repository
 from backend.app.schemas.statistic import MoneyLeft, Statistic, StatisticPeriod
 from backend.app.services.base import BaseService
 
@@ -11,13 +11,13 @@ class StatisticService(BaseService):
 
     async def get_money_left(self) -> MoneyLeft:
         """Get the information about the current month money left."""
-        settings = await setting_crud.get(self._session)
-        money_left = await expense_crud.calculate_money_left(
+        settings = await setting_repository.get(self._session)
+        money_left = await expense_repository.calculate_money_left(
             session=self._session,
             budget=settings.budget,
             default_currency=settings.default_currency,
         )
-        expenses = await currency_crud.get_this_month_expenses_by_currencies_and_categories(
+        expenses = await currency_repository.get_this_month_expenses_by_currencies_and_categories(
             self._session
         )
 
@@ -32,21 +32,21 @@ class StatisticService(BaseService):
 
     async def get_today_expenses(self) -> Statistic:
         """Get the information about today expenses by currencies and categories."""
-        expenses = await currency_crud.get_today_expenses_by_currencies_and_categories(
+        expenses = await currency_repository.get_today_expenses_by_currencies_and_categories(
             self._session
         )
         return Statistic.from_db_query(crud_result=expenses)
 
     async def get_statistic_periods(self) -> list[StatisticPeriod]:
         """Get periods with expenses."""
-        periods = await expense_crud.get_years_and_months_with_expenses(self._session)
+        periods = await expense_repository.get_years_and_months_with_expenses(self._session)
         return [StatisticPeriod(year=year, month=month) for year, month in periods]
 
     async def get_statistic_for_period(self, period: StatisticPeriod) -> Statistic:
         """Get the information about expenses by currencies and categories
         for the specified period."""
         validate_month_year(period.year, period.month)
-        expenses = await currency_crud.get_expenses_by_currencies_and_categories_for_period(
+        expenses = await currency_repository.get_expenses_by_currencies_and_categories_for_period(
             period.year, period.month, self._session
         )
         return Statistic.from_db_query(crud_result=expenses)

@@ -4,11 +4,9 @@ from typing import Any
 from fastapi import status
 
 from backend.app.core.config import settings
-from backend.app.crud.expense import expense_crud
-from backend.app.crud.report import report_crud
-from backend.app.crud.setting import setting_crud
 from backend.app.models.currency import Currency
 from backend.app.models.report import Report
+from backend.app.repositories import expense_repository, report_repository, setting_repository
 from backend.app.services.base import BaseService
 from backend.app.services.report.google_api import DEFAULT_SCOPES, GoogleAPIClient
 from backend.app.utils import raise_api_error
@@ -17,7 +15,7 @@ from configs.enums import APIErrorCode
 
 class TableReportService(BaseService):
     async def get_report_instance(self) -> Report:
-        report = await report_crud.get(self._session)
+        report = await report_repository.get(self._session)
         if report is None:
             raise_api_error(
                 error_code=APIErrorCode.NO_SPREADSHEET_ID,
@@ -36,13 +34,13 @@ class TableReportService(BaseService):
             spreadsheet_id=report.spreadsheet_id,
         )
         await client.update_expenses_in_spreadsheet(expenses_data)
-        await report_crud.update_update_at(self._session, report)
+        await report_repository.update_update_at(self._session, report)
         return report
 
     async def _collect_expenses_data_for_table(self) -> dict[int, dict[str, list[float]]]:
-        application_currency = await setting_crud.get_default_currency(self._session)
+        application_currency = await setting_repository.get_default_currency(self._session)
 
-        expenses_years = await expense_crud.get_years_with_expenses(
+        expenses_years = await expense_repository.get_years_with_expenses(
             self._session, currency_id=application_currency.id
         )
 
@@ -60,8 +58,10 @@ class TableReportService(BaseService):
 
     async def _update_expenses_by_year(self, data: dict, year: int, currency: Currency) -> None:
         data[year] = {}
-        expenses_by_month_and_categories = await expense_crud.get_expenses_by_year_and_currency(
-            session=self._session, year=year, currency_id=currency.id
+        expenses_by_month_and_categories = (
+            await expense_repository.get_expenses_by_year_and_currency(
+                session=self._session, year=year, currency_id=currency.id
+            )
         )
         for category, month, amount in expenses_by_month_and_categories:
             if category.name not in data[year]:
