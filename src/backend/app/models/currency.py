@@ -2,6 +2,7 @@ from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship, validates
 
 from backend.app.core.db import Base
+from backend.app.exceptions import ValidationError
 from configs.constants import (
     COUNTRY_LENGTH,
     CURRENCY_LETTER_CODE_LENGTH,
@@ -24,11 +25,11 @@ class Currency(Base):
     @validates("letter_code")
     def validate_letter_code(self, key, code: str) -> str:
         if len(code) != CURRENCY_LETTER_CODE_LENGTH:
-            raise ValueError(
+            raise ValidationError(
                 f"Length of currency code must be {CURRENCY_LETTER_CODE_LENGTH} symbols"
             )
 
         if not code.isalpha():
-            raise ValueError("Currency code can be only alphabetic.")
+            raise ValidationError("Currency code can be only alphabetic.")
 
         return code

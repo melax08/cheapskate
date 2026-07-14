@@ -61,10 +61,18 @@ class RepositoryBase(CreateRemoveMixin, UpdateMixin):
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
 
-    async def get_first_with_some_field_match(self, session: AsyncSession, **kwargs: Any):
+    async def get_first_with_some_field_match(
+        self, session: AsyncSession, instance_id_to_exclude: int | None = None, **kwargs: Any
+    ):
         """Get first instance with some specified fields match."""
-        statement = [getattr(self.model, key) == value for key, value in kwargs.items()]
-        db_objs = await session.execute(select(self.model).where(or_(*statement)))
+        or_statement = [getattr(self.model, key) == value for key, value in kwargs.items()]
+        exclude_statement = []
+        if instance_id_to_exclude is not None:
+            exclude_statement = [self.model.id != instance_id_to_exclude]
+
+        db_objs = await session.execute(
+            select(self.model).where(or_(*or_statement), *exclude_statement)
+        )
         return db_objs.scalars().first()
 
 

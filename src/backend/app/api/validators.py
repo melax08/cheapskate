@@ -10,7 +10,7 @@ from backend.app.repositories import (
     expense_repository,
     user_repository,
 )
-from backend.app.schemas.currency import CurrencyCreate
+from backend.app.schemas.currency import CurrencyCreate, CurrencyUpdate
 from backend.app.utils import raise_api_error
 from configs.enums import APIErrorCode
 
@@ -74,13 +74,22 @@ async def check_currency_exists(currency_id: int, session: AsyncSession) -> Curr
     return currency
 
 
-async def check_currency_unique_fields(currency: CurrencyCreate, session: AsyncSession) -> None:
+async def check_currency_unique_fields(
+    currency: CurrencyCreate | CurrencyUpdate,
+    session: AsyncSession,
+    currency_id_to_exclude: int | None = None,
+) -> None:
     """Check is some currency already exists with the specified unique fields."""
+    fields_to_check = {}
+    if currency.name:
+        fields_to_check["name"] = currency.name
+    if currency.letter_code:
+        fields_to_check["letter_code"] = currency.letter_code
+    if currency.country:
+        fields_to_check["country"] = currency.country
+
     currency = await currency_repository.get_first_with_some_field_match(
-        session,
-        name=currency.name,
-        letter_code=currency.letter_code,
-        country=currency.country,
+        session, instance_id_to_exclude=currency_id_to_exclude, **fields_to_check
     )
     if currency:
         raise_api_error(

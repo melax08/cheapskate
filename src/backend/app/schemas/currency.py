@@ -31,3 +31,13 @@ class CurrencyDB(CurrencyCreate):
 
 class CurrencySet(BaseModel):
     currency_id: int
+
+
+class CurrencyUpdate(CurrencyCreate):
+    name: str | None = Field(None, max_length=MAX_CURRENCY_NAME_LENGTH)
+    letter_code: str | None = Field(
+        None,
+        min_length=CURRENCY_LETTER_CODE_LENGTH,
+        max_length=CURRENCY_LETTER_CODE_LENGTH,
+    )
+    country: str | None = Field(None, max_length=COUNTRY_LENGTH)
