@@ -19,3 +19,8 @@ class DefaultCurrency(BaseModel):
 
 class Budget(BaseModel):
     budget: Decimal = Field(..., ge=0)
+
+
+class SettingUpdate(BaseModel):
+    budget: Decimal | None = Field(None, ge=0)
+    default_currency_id: int | None = Field(None, ge=0)
