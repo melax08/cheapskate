@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { authService, getTelegramWebApp } from "./services/authService";
-import { ApiError, categoriesApi } from "./services/apiClient";
-import type { CategoryWithExpenses, User } from "./types/api";
+import { ApiError, categoriesApi, currenciesApi } from "./services/apiClient";
+import type { CategoryWithExpenses, Currency, CurrencyPayload, User } from "./types/api";
 import { useTelegramTheme } from "./hooks/useTelegramTheme";
 
 type AuthState =
@@ -17,11 +17,17 @@ type CategoriesState = {
   error: string | null;
 };
 
+type CurrenciesState = {
+  status: "idle" | "loading" | "ready" | "error";
+  items: Currency[];
+  error: string | null;
+};
+
 const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean }> = [
   { id: "overview", label: "Профиль" },
   { id: "categories", label: "Категории" },
   { id: "expenses", label: "Траты", isComingSoon: true },
-  { id: "currencies", label: "Валюты", isComingSoon: true },
+  { id: "currencies", label: "Валюты" },
   { id: "settings", label: "Настройки", isComingSoon: true }
 ];
 
@@ -147,6 +153,7 @@ const CategoriesView = () => {
   const [editingName, setEditingName] = useState("");
   const [pendingCategoryId, setPendingCategoryId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
 
   const loadCategories = useCallback(async () => {
     setCategoriesState((current) => ({
@@ -186,6 +193,7 @@ const CategoriesView = () => {
       await categoriesApi.create({ name, is_visible: newCategoryVisible });
       setNewCategoryName("");
       setNewCategoryVisible(true);
+      setIsCreateFormOpen(false);
       await loadCategories();
     } catch (error) {
       setCategoriesState((current) => ({ ...current, status: "error", error: getErrorMessage(error) }));
@@ -267,35 +275,58 @@ const CategoriesView = () => {
             <span>Всего</span>
             <strong>{categoriesState.items.length}</strong>
           </div>
+          <button
+            type="button"
+            className="primary-button compact-primary-button"
+            onClick={() => setIsCreateFormOpen((isOpen) => !isOpen)}
+          >
+            {isCreateFormOpen ? "Скрыть" : "Добавить"}
+          </button>
           <button type="button" className="ghost-button" onClick={() => void loadCategories()}>
             Обновить
           </button>
         </div>
       </div>
 
-      <form className="category-form" onSubmit={(event) => void createCategory(event)}>
-        <label className="text-field">
-          <span>Новая категория</span>
-          <input
-            type="text"
-            value={newCategoryName}
-            onChange={(event) => setNewCategoryName(event.target.value)}
-            placeholder="Например, продукты"
-            maxLength={255}
-          />
-        </label>
-        <label className="toggle-field">
-          <input
-            type="checkbox"
-            checked={newCategoryVisible}
-            onChange={(event) => setNewCategoryVisible(event.target.checked)}
-          />
-          <span>Показывать в боте</span>
-        </label>
-        <button type="submit" className="primary-button" disabled={isCreating || !newCategoryName.trim()}>
-          {isCreating ? "Создаем..." : "Добавить"}
-        </button>
-      </form>
+      {isCreateFormOpen && (
+        <form className="category-form" onSubmit={(event) => void createCategory(event)}>
+          <label className="text-field">
+            <span>Новая категория</span>
+            <input
+              type="text"
+              value={newCategoryName}
+              onChange={(event) => setNewCategoryName(event.target.value)}
+              placeholder="Например, продукты"
+              maxLength={255}
+              autoFocus
+            />
+          </label>
+          <label className="toggle-field">
+            <input
+              type="checkbox"
+              checked={newCategoryVisible}
+              onChange={(event) => setNewCategoryVisible(event.target.checked)}
+            />
+            <span>Показывать в боте</span>
+          </label>
+          <div className="form-actions">
+            <button type="submit" className="primary-button" disabled={isCreating || !newCategoryName.trim()}>
+              {isCreating ? "Создаем..." : "Создать"}
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                setIsCreateFormOpen(false);
+                setNewCategoryName("");
+                setNewCategoryVisible(true);
+              }}
+            >
+              Отмена
+            </button>
+          </div>
+        </form>
+      )}
 
       {categoriesState.error && <p className="inline-error">{categoriesState.error}</p>}
 
@@ -393,6 +424,363 @@ const CategoriesView = () => {
   );
 };
 
+const createEmptyCurrency = (): CurrencyPayload => ({
+  name: "",
+  letter_code: "",
+  country: ""
+});
+
+const normalizeCurrencyCode = (value: string) =>
+  value
+    .replace(/[^a-zA-Z]/g, "")
+    .slice(0, 3)
+    .toUpperCase();
+
+const CurrenciesView = () => {
+  const [currenciesState, setCurrenciesState] = useState<CurrenciesState>({
+    status: "idle",
+    items: [],
+    error: null
+  });
+  const [newCurrency, setNewCurrency] = useState<CurrencyPayload>(createEmptyCurrency);
+  const [editingCurrencyId, setEditingCurrencyId] = useState<number | null>(null);
+  const [editingCurrency, setEditingCurrency] = useState<CurrencyPayload>(createEmptyCurrency);
+  const [pendingCurrencyId, setPendingCurrencyId] = useState<number | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
+
+  const loadCurrencies = useCallback(async () => {
+    setCurrenciesState((current) => ({
+      status: current.items.length ? "ready" : "loading",
+      items: current.items,
+      error: null
+    }));
+
+    try {
+      const items = await currenciesApi.list();
+      setCurrenciesState({ status: "ready", items, error: null });
+    } catch (error) {
+      setCurrenciesState((current) => ({
+        status: "error",
+        items: current.items,
+        error: getErrorMessage(error)
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCurrencies();
+  }, [loadCurrencies]);
+
+  const setNewCurrencyField = (field: keyof CurrencyPayload, value: string) => {
+    setNewCurrency((current) => ({
+      ...current,
+      [field]: field === "letter_code" ? normalizeCurrencyCode(value) : value
+    }));
+  };
+
+  const setEditingCurrencyField = (field: keyof CurrencyPayload, value: string) => {
+    setEditingCurrency((current) => ({
+      ...current,
+      [field]: field === "letter_code" ? normalizeCurrencyCode(value) : value
+    }));
+  };
+
+  const isCurrencyPayloadValid = (currency: CurrencyPayload) =>
+    Boolean(currency.name.trim() && currency.country.trim() && currency.letter_code.length === 3);
+
+  const createCurrency = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!isCurrencyPayloadValid(newCurrency)) {
+      return;
+    }
+
+    setIsCreating(true);
+    setCurrenciesState((current) => ({ ...current, error: null }));
+
+    try {
+      await currenciesApi.create({
+        name: newCurrency.name.trim(),
+        letter_code: newCurrency.letter_code,
+        country: newCurrency.country.trim()
+      });
+      setNewCurrency(createEmptyCurrency());
+      setIsCreateFormOpen(false);
+      await loadCurrencies();
+    } catch (error) {
+      setCurrenciesState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const startEditingCurrency = (currency: Currency) => {
+    setEditingCurrencyId(currency.id);
+    setEditingCurrency({
+      name: currency.name,
+      letter_code: currency.letter_code,
+      country: currency.country
+    });
+  };
+
+  const cancelEditingCurrency = () => {
+    setEditingCurrencyId(null);
+    setEditingCurrency(createEmptyCurrency());
+  };
+
+  const saveCurrency = async (currency: Currency) => {
+    if (!isCurrencyPayloadValid(editingCurrency)) {
+      return;
+    }
+
+    const payload: CurrencyPayload = {
+      name: editingCurrency.name.trim(),
+      letter_code: editingCurrency.letter_code,
+      country: editingCurrency.country.trim()
+    };
+
+    if (
+      payload.name === currency.name &&
+      payload.letter_code === currency.letter_code &&
+      payload.country === currency.country
+    ) {
+      cancelEditingCurrency();
+      return;
+    }
+
+    setPendingCurrencyId(currency.id);
+
+    try {
+      await currenciesApi.update(currency.id, payload);
+      cancelEditingCurrency();
+      await loadCurrencies();
+    } catch (error) {
+      setCurrenciesState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    } finally {
+      setPendingCurrencyId(null);
+    }
+  };
+
+  const deleteCurrency = async (currency: Currency) => {
+    setPendingCurrencyId(currency.id);
+
+    try {
+      await currenciesApi.delete(currency.id);
+      await loadCurrencies();
+    } catch (error) {
+      setCurrenciesState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    } finally {
+      setPendingCurrencyId(null);
+    }
+  };
+
+  return (
+    <section className="module">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Справочник</p>
+          <h2>Валюты</h2>
+        </div>
+        <div className="heading-actions">
+          <div className="category-count" aria-label="Всего валют">
+            <span>Всего</span>
+            <strong>{currenciesState.items.length}</strong>
+          </div>
+          <button
+            type="button"
+            className="primary-button compact-primary-button"
+            onClick={() => setIsCreateFormOpen((isOpen) => !isOpen)}
+          >
+            {isCreateFormOpen ? "Скрыть" : "Добавить"}
+          </button>
+          <button type="button" className="ghost-button" onClick={() => void loadCurrencies()}>
+            Обновить
+          </button>
+        </div>
+      </div>
+
+      {isCreateFormOpen && (
+        <form className="currency-form" onSubmit={(event) => void createCurrency(event)}>
+          <label className="text-field">
+            <span>Название</span>
+            <input
+              type="text"
+              value={newCurrency.name}
+              onChange={(event) => setNewCurrencyField("name", event.target.value)}
+              placeholder="Российский рубль"
+              maxLength={255}
+              autoFocus
+            />
+          </label>
+          <label className="text-field code-field">
+            <span>Код</span>
+            <input
+              type="text"
+              value={newCurrency.letter_code}
+              onChange={(event) => setNewCurrencyField("letter_code", event.target.value)}
+              placeholder="RUB"
+              maxLength={3}
+              inputMode="text"
+            />
+          </label>
+          <label className="text-field">
+            <span>Страна</span>
+            <input
+              type="text"
+              value={newCurrency.country}
+              onChange={(event) => setNewCurrencyField("country", event.target.value)}
+              placeholder="Россия"
+              maxLength={255}
+            />
+          </label>
+          <div className="form-actions">
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={isCreating || !isCurrencyPayloadValid(newCurrency)}
+            >
+              {isCreating ? "Создаем..." : "Создать"}
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                setIsCreateFormOpen(false);
+                setNewCurrency(createEmptyCurrency());
+              }}
+            >
+              Отмена
+            </button>
+          </div>
+        </form>
+      )}
+
+      {currenciesState.error && <p className="inline-error">{currenciesState.error}</p>}
+
+      {currenciesState.status === "loading" && (
+        <div className="list-state" aria-live="polite">
+          <div className="loader small-loader" />
+          <p>Загружаем валюты.</p>
+        </div>
+      )}
+
+      {currenciesState.status !== "loading" && currenciesState.items.length === 0 && (
+        <div className="list-state">
+          <h3>Валют пока нет</h3>
+          <p>Добавьте первую валюту, чтобы затем использовать ее в тратах и настройках.</p>
+        </div>
+      )}
+
+      {currenciesState.items.length > 0 && (
+        <div className="category-list">
+          {currenciesState.items.map((currency) => {
+            const isEditing = editingCurrencyId === currency.id;
+            const isPending = pendingCurrencyId === currency.id;
+
+            return (
+              <article className="currency-item" key={currency.id}>
+                <div className="currency-code">{currency.letter_code}</div>
+                <div className="currency-copy">
+                  {isEditing ? (
+                    <div className="currency-edit-grid">
+                      <label className="text-field">
+                        <span>Название</span>
+                        <input
+                          type="text"
+                          value={editingCurrency.name}
+                          onChange={(event) => setEditingCurrencyField("name", event.target.value)}
+                          maxLength={255}
+                          autoFocus
+                        />
+                      </label>
+                      <label className="text-field code-field">
+                        <span>Код</span>
+                        <input
+                          type="text"
+                          value={editingCurrency.letter_code}
+                          onChange={(event) => setEditingCurrencyField("letter_code", event.target.value)}
+                          maxLength={3}
+                        />
+                      </label>
+                      <label className="text-field">
+                        <span>Страна</span>
+                        <input
+                          type="text"
+                          value={editingCurrency.country}
+                          onChange={(event) => setEditingCurrencyField("country", event.target.value)}
+                          maxLength={255}
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    <>
+                      <h3>{currency.name}</h3>
+                      <p>{currency.country}</p>
+                    </>
+                  )}
+                </div>
+
+                <div className="category-actions">
+                  {isEditing ? (
+                    <>
+                      <button
+                        type="button"
+                        className="compact-button"
+                        disabled={isPending || !isCurrencyPayloadValid(editingCurrency)}
+                        onClick={() => void saveCurrency(currency)}
+                      >
+                        Сохранить
+                      </button>
+                      <button
+                        type="button"
+                        className="compact-button muted-button"
+                        onClick={cancelEditingCurrency}
+                      >
+                        Отмена
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="compact-button"
+                        onClick={() => startEditingCurrency(currency)}
+                      >
+                        Изменить
+                      </button>
+                      <button
+                        type="button"
+                        className="compact-button danger-button"
+                        disabled={isPending}
+                        onClick={() => void deleteCurrency(currency)}
+                      >
+                        Удалить
+                      </button>
+                    </>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+};
+
 export const App = () => {
   useTelegramTheme();
 
@@ -451,6 +839,10 @@ export const App = () => {
 
     if (activeView === "categories") {
       return <CategoriesView />;
+    }
+
+    if (activeView === "currencies") {
+      return <CurrenciesView />;
     }
 
     const currentItem = navigationItems.find((item) => item.id === activeView);

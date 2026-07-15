@@ -5,12 +5,16 @@ import type {
   CategoryPayload,
   CategoryUpdatePayload,
   CategoryWithExpenses,
+  Currency,
+  CurrencyPayload,
+  CurrencyUpdatePayload,
   User
 } from "../types/api";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 const AUTH_URL = "/api/v1/authorization";
 const CATEGORIES_URL = "/api/v1/categories";
+const CURRENCIES_URL = "/api/v1/currencies";
 const EXPIRATION_SAFETY_WINDOW_SECONDS = 30;
 
 type RequestOptions = RequestInit & {
@@ -184,6 +188,32 @@ export const categoriesApi = {
 
   delete(categoryId: number): Promise<Category> {
     return apiRequest<Category>(`${CATEGORIES_URL}/${categoryId}`, {
+      method: "DELETE"
+    });
+  }
+};
+
+export const currenciesApi = {
+  list(): Promise<Currency[]> {
+    return apiRequest<Currency[]>(CURRENCIES_URL);
+  },
+
+  create(payload: CurrencyPayload): Promise<Currency> {
+    return apiRequest<Currency>(CURRENCIES_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  },
+
+  update(currencyId: number, payload: CurrencyUpdatePayload): Promise<Currency> {
+    return apiRequest<Currency>(`${CURRENCIES_URL}/${currencyId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload)
+    });
+  },
+
+  delete(currencyId: number): Promise<void> {
+    return apiRequest<void>(`${CURRENCIES_URL}/${currencyId}`, {
       method: "DELETE"
     });
   }

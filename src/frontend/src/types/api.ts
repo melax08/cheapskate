@@ -31,3 +31,22 @@ export type CategoryUpdatePayload = {
   name?: string;
   is_visible?: boolean;
 };
+
+export type Currency = {
+  id: number;
+  name: string;
+  letter_code: string;
+  country: string;
+};
+
+export type CurrencyPayload = {
+  name: string;
+  letter_code: string;
+  country: string;
+};
+
+export type CurrencyUpdatePayload = {
+  name?: string;
+  letter_code?: string;
+  country?: string;
+};
