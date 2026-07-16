@@ -1,6 +1,10 @@
 from fastapi import HTTPException, status
 
-from backend.app.api.validators import check_currency_exists, check_currency_unique_fields
+from backend.app.api.validators import (
+    check_currency_exists,
+    check_currency_unique_fields,
+    check_is_currency_used_as_default,
+)
 from backend.app.exceptions import ValidationError
 from backend.app.repositories import currency_repository
 from backend.app.schemas.currency import CurrencyCreate, CurrencyDB, CurrencyUpdate
@@ -37,4 +41,5 @@ class CurrencyService(BaseService):
 
     async def delete_currency(self, currency_id: int) -> None:
         currency_to_delete = await check_currency_exists(currency_id, self._session)
+        check_is_currency_used_as_default(currency_to_delete)
         return await currency_repository.remove(currency_to_delete, self._session)

@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.models import Currency
+from backend.app.models import Currency, Setting
 from tests.test_backend.factories.currency import CurrencyFactory
 
 
@@ -197,19 +197,32 @@ class TestCurrencyPublicEndpoints:
         authorized_client: AsyncClient,
         anonymous_client: AsyncClient,
         currency: Currency,
+        setting: Setting,
     ) -> None:
-        url = f"{self.BASE_URL}/{currency.id}"
+        currency_to_delete = await CurrencyFactory.create_async(db_session)
+        url = f"{self.BASE_URL}/{currency_to_delete.id}"
 
         anon_response = await anonymous_client.delete(url)
         assert anon_response.status_code == status.HTTP_401_UNAUTHORIZED
 
         response = await authorized_client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        currency_db = await db_session.execute(select(Currency).where(Currency.id == currency.id))
+        currency_db = await db_session.execute(
+            select(Currency).where(Currency.id == currency_to_delete.id)
+        )
         assert currency_db.scalar() is None
 
         response = await authorized_client.delete(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {
             "detail": {"error_code": "currency_not_found", "message": "Валюта не найдена"}
+        }
+
+        response = await authorized_client.delete(f"{self.BASE_URL}/{currency.id}")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "detail": {
+                "error_code": "default_currency",
+                "message": "Валюта используется как валюта по умолчанию в настройках",
+            }
         }

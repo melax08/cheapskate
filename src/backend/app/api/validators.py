@@ -109,3 +109,12 @@ async def check_user_exists(user_telegram_id: int, session: AsyncSession) -> Use
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     return user
+
+
+def check_is_currency_used_as_default(currency: Currency) -> None:
+    if currency.default_currency is not None:
+        raise raise_api_error(
+            error_code=APIErrorCode.DEFAULT_CURRENCY,
+            message="Валюта используется как валюта по умолчанию в настройках",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )

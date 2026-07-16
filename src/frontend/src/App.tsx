@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { authService, getTelegramWebApp } from "./services/authService";
-import { ApiError, categoriesApi, currenciesApi } from "./services/apiClient";
-import type { CategoryWithExpenses, Currency, CurrencyPayload, User } from "./types/api";
+import { ApiError, categoriesApi, currenciesApi, settingsApi } from "./services/apiClient";
+import type { CategoryWithExpenses, Currency, CurrencyPayload, Settings, User } from "./types/api";
 import { useTelegramTheme } from "./hooks/useTelegramTheme";
 
 type AuthState =
@@ -23,12 +23,19 @@ type CurrenciesState = {
   error: string | null;
 };
 
+type SettingsState = {
+  status: "idle" | "loading" | "ready" | "error";
+  settings: Settings | null;
+  currencies: Currency[];
+  error: string | null;
+};
+
 const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean }> = [
   { id: "overview", label: "Профиль" },
   { id: "categories", label: "Категории" },
   { id: "expenses", label: "Траты", isComingSoon: true },
   { id: "currencies", label: "Валюты" },
-  { id: "settings", label: "Настройки", isComingSoon: true }
+  { id: "settings", label: "Настройки" }
 ];
 
 const formatDate = (value: string) =>
@@ -37,6 +44,12 @@ const formatDate = (value: string) =>
     month: "long",
     year: "numeric"
   }).format(new Date(value));
+
+const formatBudget = (value: string | number) =>
+  new Intl.NumberFormat("ru-RU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(Number(value));
 
 const getDisplayName = (user: User) =>
   [user.telegram_first_name, user.telegram_last_name].filter(Boolean).join(" ");
@@ -781,6 +794,215 @@ const CurrenciesView = () => {
   );
 };
 
+const SettingsView = () => {
+  const [settingsState, setSettingsState] = useState<SettingsState>({
+    status: "idle",
+    settings: null,
+    currencies: [],
+    error: null
+  });
+  const [budget, setBudget] = useState("");
+  const [defaultCurrencyId, setDefaultCurrencyId] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+
+  const syncForm = (settings: Settings) => {
+    setBudget(String(settings.budget));
+    setDefaultCurrencyId(settings.default_currency ? String(settings.default_currency.id) : "");
+  };
+
+  const loadSettings = useCallback(async () => {
+    setSettingsState((current) => ({
+      status: current.settings ? "ready" : "loading",
+      settings: current.settings,
+      currencies: current.currencies,
+      error: null
+    }));
+
+    try {
+      const [settings, currencies] = await Promise.all([settingsApi.get(), currenciesApi.list()]);
+      setSettingsState({ status: "ready", settings, currencies, error: null });
+      syncForm(settings);
+    } catch (error) {
+      setSettingsState((current) => ({
+        status: "error",
+        settings: current.settings,
+        currencies: current.currencies,
+        error: getErrorMessage(error)
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadSettings();
+  }, [loadSettings]);
+
+  const saveSettings = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const normalizedBudget = budget.trim().replace(",", ".");
+    const parsedBudget = Number(normalizedBudget);
+
+    if (!Number.isFinite(parsedBudget) || parsedBudget < 0 || !defaultCurrencyId) {
+      return;
+    }
+
+    setIsSaving(true);
+    setSettingsState((current) => ({ ...current, error: null }));
+
+    try {
+      const settings = await settingsApi.update({
+        budget: normalizedBudget,
+        default_currency_id: Number(defaultCurrencyId)
+      });
+      setSettingsState((current) => ({
+        status: "ready",
+        settings,
+        currencies: current.currencies,
+        error: null
+      }));
+      syncForm(settings);
+      setIsEditFormOpen(false);
+    } catch (error) {
+      setSettingsState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const selectedCurrency = settingsState.settings?.default_currency;
+  const isFormValid = Number.isFinite(Number(budget.trim().replace(",", "."))) && Boolean(defaultCurrencyId);
+
+  return (
+    <section className="module">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Параметры</p>
+          <h2>Настройки</h2>
+        </div>
+        <div className="heading-actions">
+          {settingsState.settings && (
+            <button
+              type="button"
+              className="primary-button compact-primary-button"
+              onClick={() => {
+                if (!isEditFormOpen && settingsState.settings) {
+                  syncForm(settingsState.settings);
+                }
+                setIsEditFormOpen((isOpen) => !isOpen);
+              }}
+            >
+              {isEditFormOpen ? "Скрыть" : "Изменить"}
+            </button>
+          )}
+          <button type="button" className="ghost-button" onClick={() => void loadSettings()}>
+            Обновить
+          </button>
+        </div>
+      </div>
+
+      {settingsState.status === "loading" && (
+        <div className="list-state" aria-live="polite">
+          <div className="loader small-loader" />
+          <p>Загружаем настройки.</p>
+        </div>
+      )}
+
+      {settingsState.settings && (
+        <>
+          <section className="settings-summary" aria-label="Текущие настройки">
+            <article className="detail-item">
+              <span>Месячный бюджет</span>
+              <strong>
+                {formatBudget(settingsState.settings.budget)}
+                {selectedCurrency ? ` ${selectedCurrency.letter_code}` : ""}
+              </strong>
+            </article>
+            <article className="detail-item">
+              <span>Валюта по умолчанию</span>
+              <strong>
+                {selectedCurrency
+                  ? `${selectedCurrency.name} (${selectedCurrency.letter_code})`
+                  : "Не выбрана"}
+              </strong>
+            </article>
+          </section>
+
+          {isEditFormOpen && (
+            <form className="settings-form" onSubmit={(event) => void saveSettings(event)}>
+              <label className="text-field">
+                <span>Месячный бюджет</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={budget}
+                  onChange={(event) => setBudget(event.target.value)}
+                  placeholder="0"
+                  autoFocus
+                />
+              </label>
+              <label className="text-field">
+                <span>Валюта по умолчанию</span>
+                <select
+                  value={defaultCurrencyId}
+                  onChange={(event) => setDefaultCurrencyId(event.target.value)}
+                  disabled={settingsState.currencies.length === 0}
+                >
+                  <option value="">Выберите валюту</option>
+                  {settingsState.currencies.map((currency) => (
+                    <option value={currency.id} key={currency.id}>
+                      {currency.name} ({currency.letter_code})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={isSaving || !isFormValid || settingsState.currencies.length === 0}
+                >
+                  {isSaving ? "Сохраняем..." : "Сохранить"}
+                </button>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => {
+                    if (settingsState.settings) {
+                      syncForm(settingsState.settings);
+                    }
+                    setIsEditFormOpen(false);
+                  }}
+                >
+                  Отмена
+                </button>
+              </div>
+            </form>
+          )}
+        </>
+      )}
+
+      {settingsState.status !== "loading" && !settingsState.settings && (
+        <div className="list-state">
+          <h3>Настройки недоступны</h3>
+          <p>Не удалось получить текущие параметры приложения.</p>
+        </div>
+      )}
+
+      {settingsState.currencies.length === 0 && settingsState.status !== "loading" && (
+        <p className="inline-error">Чтобы выбрать валюту по умолчанию, сначала добавьте валюту.</p>
+      )}
+
+      {settingsState.error && <p className="inline-error">{settingsState.error}</p>}
+    </section>
+  );
+};
+
 export const App = () => {
   useTelegramTheme();
 
@@ -843,6 +1065,10 @@ export const App = () => {
 
     if (activeView === "currencies") {
       return <CurrenciesView />;
+    }
+
+    if (activeView === "settings") {
+      return <SettingsView />;
     }
 
     const currentItem = navigationItems.find((item) => item.id === activeView);

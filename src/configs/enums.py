@@ -14,3 +14,4 @@ class APIErrorCode(StrEnum):
     NOT_UNIQUE_CURRENCY_FIELDS = "not_unique_currency_fields"
     USER_NOT_FOUND = "user_not_found"
     AUTHORIZATION_ERROR = "authorization_error"
+    DEFAULT_CURRENCY = "default_currency"

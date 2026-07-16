@@ -8,6 +8,8 @@ import type {
   Currency,
   CurrencyPayload,
   CurrencyUpdatePayload,
+  Settings,
+  SettingsUpdatePayload,
   User
 } from "../types/api";
 
@@ -15,6 +17,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, ""
 const AUTH_URL = "/api/v1/authorization";
 const CATEGORIES_URL = "/api/v1/categories";
 const CURRENCIES_URL = "/api/v1/currencies";
+const SETTINGS_URL = "/api/v1/settings";
 const EXPIRATION_SAFETY_WINDOW_SECONDS = 30;
 
 type RequestOptions = RequestInit & {
@@ -215,6 +218,19 @@ export const currenciesApi = {
   delete(currencyId: number): Promise<void> {
     return apiRequest<void>(`${CURRENCIES_URL}/${currencyId}`, {
       method: "DELETE"
+    });
+  }
+};
+
+export const settingsApi = {
+  get(): Promise<Settings> {
+    return apiRequest<Settings>(SETTINGS_URL);
+  },
+
+  update(payload: SettingsUpdatePayload): Promise<Settings> {
+    return apiRequest<Settings>(SETTINGS_URL, {
+      method: "PATCH",
+      body: JSON.stringify(payload)
     });
   }
 };

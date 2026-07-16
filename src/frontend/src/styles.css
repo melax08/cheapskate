@@ -39,7 +39,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -315,6 +316,7 @@ p {
 .quick-actions,
 .category-form,
 .currency-form,
+.settings-form,
 .form-actions {
   display: grid;
   gap: 12px;
@@ -343,6 +345,21 @@ p {
   background: var(--surface-muted);
 }
 
+.settings-form {
+  grid-template-columns: minmax(140px, 0.8fr) 1fr auto;
+  align-items: end;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.settings-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .form-actions {
   grid-template-columns: auto auto;
   align-items: end;
@@ -359,6 +376,7 @@ p {
 }
 
 .text-field input,
+.text-field select,
 .inline-input {
   width: 100%;
   min-height: 44px;
@@ -369,7 +387,8 @@ p {
   outline: none;
 }
 
-.text-field input {
+.text-field input,
+.text-field select {
   padding: 0 12px;
 }
 
@@ -386,6 +405,7 @@ p {
 }
 
 .text-field input:focus,
+.text-field select:focus,
 .inline-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
@@ -602,6 +622,8 @@ p {
 @media (max-width: 620px) {
   .category-form,
   .currency-form,
+  .settings-form,
+  .settings-summary,
   .form-actions,
   .category-item,
   .currency-item,

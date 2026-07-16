@@ -50,3 +50,14 @@ export type CurrencyUpdatePayload = {
   letter_code?: string;
   country?: string;
 };
+
+export type Settings = {
+  id: number;
+  budget: string | number;
+  default_currency: Currency | null;
+};
+
+export type SettingsUpdatePayload = {
+  budget?: string;
+  default_currency_id?: number;
+};
