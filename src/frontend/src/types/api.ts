@@ -61,3 +61,49 @@ export type SettingsUpdatePayload = {
   budget?: string;
   default_currency_id?: number;
 };
+
+export type Expense = {
+  id: number;
+  amount: string | number;
+  description: string | null;
+  category_id: number;
+  currency_id: number | null;
+  date: string;
+  user_id?: number | null;
+};
+
+export type ExpenseDetail = {
+  id: number;
+  amount: string | number;
+  description: string | null;
+  category: Category;
+  currency: Currency | null;
+  date: string;
+};
+
+export type ExpenseWithMoneyLeft = ExpenseDetail & {
+  money_left: string | number;
+};
+
+export type ExpensePayload = {
+  amount: string;
+  description?: string | null;
+  category_id: number;
+  currency_id?: number | null;
+};
+
+export type ExpenseUpdatePayload = {
+  amount?: string;
+  description?: string | null;
+  category_id?: number;
+  currency_id?: number | null;
+};
+
+export type CursorPage<T> = {
+  items: T[];
+  total?: number | null;
+  current_page?: string | null;
+  current_page_backwards?: string | null;
+  previous_page?: string | null;
+  next_page?: string | null;
+};

@@ -6,17 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.core.db import get_async_session
 from backend.app.dependencies.authorization import get_current_user
 from backend.app.models.user import User
-from backend.app.schemas.expense import ExpenseCreate, ExpenseDB, ExpenseMoneyLeftDB, ExpenseUpdate
+from backend.app.schemas.expense import (
+    ExpenseCreate,
+    ExpenseDB,
+    ExpenseDBOnlyIds,
+    ExpenseMoneyLeftDB,
+    ExpenseUpdate,
+)
 from backend.app.services.expense import ExpenseService
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
-@router.get("", response_model=CursorPage[ExpenseDB])
+@router.get("", response_model=CursorPage[ExpenseDBOnlyIds])
 async def expenses_list(
     expense_service: ExpenseService = Depends(ExpenseService),
     session: AsyncSession = Depends(get_async_session),
-) -> CursorPage[ExpenseDB]:
+) -> CursorPage[ExpenseDBOnlyIds]:
     expenses = await expense_service.get_expenses()
     return await apaginate(session, expenses)
 

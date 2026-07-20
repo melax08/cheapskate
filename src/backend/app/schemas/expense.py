@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -28,6 +29,17 @@ class ExpenseDB(ExpenseBase):
     id: int
     category: CategoryDB
     currency: CurrencyDB | None
+    date: datetime
+
+
+class ExpenseDBOnlyIds(ExpenseBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    category_id: int
+    currency_id: int | None
+    date: datetime
+    user_id: int | None
 
 
 class ExpenseMoneyLeftDB(ExpenseDB):

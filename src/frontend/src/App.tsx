@@ -1,7 +1,16 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useMemo, useState } from "react";
 import { authService, getTelegramWebApp } from "./services/authService";
-import { ApiError, categoriesApi, currenciesApi, settingsApi } from "./services/apiClient";
-import type { CategoryWithExpenses, Currency, CurrencyPayload, Settings, User } from "./types/api";
+import { ApiError, categoriesApi, currenciesApi, expensesApi, settingsApi } from "./services/apiClient";
+import type {
+  CategoryWithExpenses,
+  Currency,
+  CurrencyPayload,
+  Expense,
+  ExpenseDetail,
+  ExpensePayload,
+  Settings,
+  User
+} from "./types/api";
 import { useTelegramTheme } from "./hooks/useTelegramTheme";
 
 type AuthState =
@@ -30,12 +39,19 @@ type SettingsState = {
   error: string | null;
 };
 
+type ExpensesState = {
+  status: "idle" | "loading" | "ready" | "error";
+  items: Expense[];
+  nextCursor: string | null;
+  error: string | null;
+};
+
 const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean }> = [
-  { id: "overview", label: "Профиль" },
+  { id: "expenses", label: "Траты" },
   { id: "categories", label: "Категории" },
-  { id: "expenses", label: "Траты", isComingSoon: true },
   { id: "currencies", label: "Валюты" },
-  { id: "settings", label: "Настройки" }
+  { id: "settings", label: "Настройки" },
+  { id: "overview", label: "Профиль" }
 ];
 
 const formatDate = (value: string) =>
@@ -45,10 +61,25 @@ const formatDate = (value: string) =>
     year: "numeric"
   }).format(new Date(value));
 
+const formatDateTime = (value: string) =>
+  new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
+
 const formatBudget = (value: string | number) =>
   new Intl.NumberFormat("ru-RU", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
+  }).format(Number(value));
+
+const formatMoney = (value: string | number) =>
+  new Intl.NumberFormat("ru-RU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 3
   }).format(Number(value));
 
 const getDisplayName = (user: User) =>
@@ -432,6 +463,486 @@ const CategoriesView = () => {
             );
           })}
         </div>
+      )}
+    </section>
+  );
+};
+
+const createEmptyExpense = (): ExpensePayload => ({
+  amount: "",
+  description: "",
+  category_id: 0,
+  currency_id: null
+});
+
+const normalizeAmountInput = (value: string) => value.replace(",", ".");
+
+const normalizeExpenseDetail = (expense: ExpenseDetail): Expense => ({
+  id: expense.id,
+  amount: expense.amount,
+  description: expense.description,
+  category_id: expense.category.id,
+  currency_id: expense.currency?.id ?? null,
+  date: expense.date
+});
+
+const ExpensesView = () => {
+  const [expensesState, setExpensesState] = useState<ExpensesState>({
+    status: "idle",
+    items: [],
+    nextCursor: null,
+    error: null
+  });
+  const [categories, setCategories] = useState<CategoryWithExpenses[]>([]);
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [newExpense, setNewExpense] = useState<ExpensePayload>(createEmptyExpense);
+  const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
+  const [editingExpense, setEditingExpense] = useState<ExpensePayload>(createEmptyExpense);
+  const [pendingExpenseId, setPendingExpenseId] = useState<number | null>(null);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const loadingCursorRef = useRef<string | null>(null);
+
+  const syncDefaultCategory = useCallback((items: CategoryWithExpenses[]) => {
+    setNewExpense((current) => ({
+      ...current,
+      category_id: current.category_id || items[0]?.id || 0
+    }));
+  }, []);
+
+  const loadDictionaries = useCallback(async () => {
+    const [categoriesItems, currenciesItems] = await Promise.all([
+      categoriesApi.list(),
+      currenciesApi.list()
+    ]);
+    setCategories(categoriesItems);
+    setCurrencies(currenciesItems);
+    syncDefaultCategory(categoriesItems);
+  }, [syncDefaultCategory]);
+
+  const loadExpenses = useCallback(
+    async (cursor: string | null = null) => {
+      const isNextPage = Boolean(cursor);
+      if (isNextPage) {
+        if (loadingCursorRef.current === cursor) {
+          return;
+        }
+
+        loadingCursorRef.current = cursor;
+        setIsLoadingMore(true);
+      } else {
+        setExpensesState((current) => ({
+          status: current.items.length ? "ready" : "loading",
+          items: current.items,
+          nextCursor: current.nextCursor,
+          error: null
+        }));
+      }
+
+      try {
+        const page = await expensesApi.list({ cursor, size: 10 });
+        setExpensesState((current) => ({
+          status: "ready",
+          items: isNextPage ? [...current.items, ...page.items] : page.items,
+          nextCursor: page.next_page ?? null,
+          error: null
+        }));
+      } catch (error) {
+        setExpensesState((current) => ({
+          status: "error",
+          items: current.items,
+          nextCursor: current.nextCursor,
+          error: getErrorMessage(error)
+        }));
+      } finally {
+        loadingCursorRef.current = null;
+        setIsLoadingMore(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    void loadDictionaries().catch((error) => {
+      setExpensesState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    });
+    void loadExpenses();
+  }, [loadDictionaries, loadExpenses]);
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    const nextCursor = expensesState.nextCursor;
+
+    if (!sentinel || !nextCursor || isLoadingMore) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          void loadExpenses(nextCursor);
+        }
+      },
+      { rootMargin: "240px 0px" }
+    );
+
+    observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, [expensesState.nextCursor, isLoadingMore, loadExpenses]);
+
+  const setNewExpenseField = (field: keyof ExpensePayload, value: string) => {
+    setNewExpense((current) => ({
+      ...current,
+      [field]:
+        field === "category_id" || field === "currency_id"
+          ? value
+            ? Number(value)
+            : field === "currency_id"
+              ? null
+              : 0
+          : field === "amount"
+            ? normalizeAmountInput(value)
+            : value
+    }));
+  };
+
+  const setEditingExpenseField = (field: keyof ExpensePayload, value: string) => {
+    setEditingExpense((current) => ({
+      ...current,
+      [field]:
+        field === "category_id" || field === "currency_id"
+          ? value
+            ? Number(value)
+            : field === "currency_id"
+              ? null
+              : 0
+          : field === "amount"
+            ? normalizeAmountInput(value)
+            : value
+    }));
+  };
+
+  const isExpensePayloadValid = (payload: ExpensePayload) => {
+    const amount = Number(payload.amount);
+    return Number.isFinite(amount) && amount > 0 && payload.category_id > 0;
+  };
+
+  const buildExpensePayload = (payload: ExpensePayload): ExpensePayload => ({
+    amount: payload.amount.trim(),
+    description: payload.description?.trim() || null,
+    category_id: payload.category_id,
+    currency_id: payload.currency_id || null
+  });
+
+  const createExpense = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!isExpensePayloadValid(newExpense)) {
+      return;
+    }
+
+    setIsCreating(true);
+    setExpensesState((current) => ({ ...current, error: null }));
+
+    try {
+      await expensesApi.create(buildExpensePayload(newExpense));
+      setNewExpense({
+        ...createEmptyExpense(),
+        category_id: categories[0]?.id || 0
+      });
+      setIsCreateFormOpen(false);
+      await loadExpenses();
+    } catch (error) {
+      setExpensesState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const startEditingExpense = (expense: Expense) => {
+    setEditingExpenseId(expense.id);
+    setEditingExpense({
+      amount: String(expense.amount),
+      description: expense.description ?? "",
+      category_id: expense.category_id,
+      currency_id: expense.currency_id
+    });
+  };
+
+  const cancelEditingExpense = () => {
+    setEditingExpenseId(null);
+    setEditingExpense(createEmptyExpense());
+  };
+
+  const saveExpense = async (expense: Expense) => {
+    if (!isExpensePayloadValid(editingExpense)) {
+      return;
+    }
+
+    setPendingExpenseId(expense.id);
+
+    try {
+      const updatedExpense = await expensesApi.update(expense.id, buildExpensePayload(editingExpense));
+      setExpensesState((current) => ({
+        ...current,
+        status: "ready",
+        items: current.items.map((item) =>
+          item.id === expense.id ? normalizeExpenseDetail(updatedExpense) : item
+        ),
+        error: null
+      }));
+      cancelEditingExpense();
+    } catch (error) {
+      setExpensesState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    } finally {
+      setPendingExpenseId(null);
+    }
+  };
+
+  const deleteExpense = async (expense: Expense) => {
+    setPendingExpenseId(expense.id);
+
+    try {
+      await expensesApi.delete(expense.id);
+      setExpensesState((current) => ({
+        ...current,
+        status: "ready",
+        items: current.items.filter((item) => item.id !== expense.id),
+        error: null
+      }));
+    } catch (error) {
+      setExpensesState((current) => ({
+        ...current,
+        status: "error",
+        error: getErrorMessage(error)
+      }));
+    } finally {
+      setPendingExpenseId(null);
+    }
+  };
+
+  const renderExpenseForm = (
+    payload: ExpensePayload,
+    setField: (field: keyof ExpensePayload, value: string) => void,
+    submitLabel: string,
+    isDisabled: boolean,
+    onCancel?: () => void
+  ) => (
+    <>
+      <label className="text-field">
+        <span>Сумма</span>
+        <input
+          type="number"
+          min="0"
+          step="0.001"
+          value={payload.amount}
+          onChange={(event) => setField("amount", event.target.value)}
+          placeholder="0"
+          autoFocus
+        />
+      </label>
+      <label className="text-field">
+        <span>Категория</span>
+        <select
+          value={payload.category_id || ""}
+          onChange={(event) => setField("category_id", event.target.value)}
+          disabled={categories.length === 0}
+        >
+          <option value="">Выберите категорию</option>
+          {categories.map((category) => (
+            <option value={category.id} key={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="text-field">
+        <span>Валюта</span>
+        <select
+          value={payload.currency_id ?? ""}
+          onChange={(event) => setField("currency_id", event.target.value)}
+        >
+          <option value="">По умолчанию</option>
+          {currencies.map((currency) => (
+            <option value={currency.id} key={currency.id}>
+              {currency.name} ({currency.letter_code})
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="text-field">
+        <span>Описание</span>
+        <input
+          type="text"
+          value={payload.description ?? ""}
+          onChange={(event) => setField("description", event.target.value)}
+          placeholder="Опционально"
+          maxLength={255}
+        />
+      </label>
+      <div className="form-actions">
+        <button
+          type="submit"
+          className="primary-button"
+          disabled={isDisabled || !isExpensePayloadValid(payload) || categories.length === 0}
+        >
+          {submitLabel}
+        </button>
+        {onCancel && (
+          <button type="button" className="secondary-button" onClick={onCancel}>
+            Отмена
+          </button>
+        )}
+      </div>
+    </>
+  );
+
+  return (
+    <section className="module">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Журнал</p>
+          <h2>Траты</h2>
+        </div>
+        <div className="heading-actions">
+          <button
+            type="button"
+            className="primary-button compact-primary-button"
+            onClick={() => setIsCreateFormOpen((isOpen) => !isOpen)}
+          >
+            {isCreateFormOpen ? "Скрыть" : "Добавить"}
+          </button>
+          <button type="button" className="ghost-button" onClick={() => void loadExpenses()}>
+            Обновить
+          </button>
+        </div>
+      </div>
+
+      {isCreateFormOpen && (
+        <form className="expense-form" onSubmit={(event) => void createExpense(event)}>
+          {renderExpenseForm(newExpense, setNewExpenseField, isCreating ? "Создаем..." : "Создать", isCreating, () => {
+            setIsCreateFormOpen(false);
+            setNewExpense({
+              ...createEmptyExpense(),
+              category_id: categories[0]?.id || 0
+            });
+          })}
+        </form>
+      )}
+
+      {categories.length === 0 && expensesState.status !== "loading" && (
+        <p className="inline-error">Чтобы добавить трату, сначала создайте хотя бы одну категорию.</p>
+      )}
+
+      {expensesState.error && <p className="inline-error">{expensesState.error}</p>}
+
+      {expensesState.status === "loading" && (
+        <div className="list-state" aria-live="polite">
+          <div className="loader small-loader" />
+          <p>Загружаем траты.</p>
+        </div>
+      )}
+
+      {expensesState.status !== "loading" && expensesState.items.length === 0 && (
+        <div className="list-state">
+          <h3>Трат пока нет</h3>
+          <p>Добавьте первую запись, чтобы вести историю расходов.</p>
+        </div>
+      )}
+
+      {expensesState.items.length > 0 && (
+        <>
+          <div className="expense-list">
+            {expensesState.items.map((expense) => {
+              const isEditing = editingExpenseId === expense.id;
+              const isPending = pendingExpenseId === expense.id;
+              const category = categories.find((item) => item.id === expense.category_id);
+              const currency = expense.currency_id
+                ? currencies.find((item) => item.id === expense.currency_id)
+                : null;
+
+              return (
+                <article className="expense-item" key={expense.id}>
+                  {isEditing ? (
+                    <form className="expense-edit-form" onSubmit={(event) => {
+                      event.preventDefault();
+                      void saveExpense(expense);
+                    }}>
+                      {renderExpenseForm(
+                        editingExpense,
+                        setEditingExpenseField,
+                        "Сохранить",
+                        Boolean(isPending),
+                        cancelEditingExpense
+                      )}
+                    </form>
+                  ) : (
+                    <>
+                      <div className="expense-main">
+                        <div>
+                          <h3>{category?.name ?? `Категория #${expense.category_id}`}</h3>
+                          <p>{expense.description || "Без описания"}</p>
+                        </div>
+                        <strong>
+                          {formatMoney(expense.amount)}
+                          {currency ? ` ${currency.letter_code}` : ""}
+                        </strong>
+                      </div>
+                      <div className="expense-meta">
+                        <span>{formatDateTime(expense.date)}</span>
+                        <span>#{expense.id}</span>
+                        <span>{currency?.name ?? "Валюта по умолчанию"}</span>
+                      </div>
+                      <div className="category-actions">
+                        <button
+                          type="button"
+                          className="compact-button"
+                          onClick={() => startEditingExpense(expense)}
+                        >
+                          Изменить
+                        </button>
+                        <button
+                          type="button"
+                          className="compact-button danger-button"
+                          disabled={isPending}
+                          onClick={() => void deleteExpense(expense)}
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+
+          {expensesState.nextCursor && (
+            <div className="scroll-loader" ref={loadMoreRef} aria-live="polite">
+              {isLoadingMore && (
+                <>
+                  <div className="loader small-loader" />
+                  <p>Загружаем еще.</p>
+                </>
+              )}
+            </div>
+          )}
+        </>
       )}
     </section>
   );
@@ -1011,7 +1522,7 @@ export const App = () => {
     user: null,
     error: null
   });
-  const [activeView, setActiveView] = useState<View>("overview");
+  const [activeView, setActiveView] = useState<View>("expenses");
 
   const telegramUser = getTelegramWebApp()?.initDataUnsafe?.user;
 
@@ -1061,6 +1572,10 @@ export const App = () => {
 
     if (activeView === "categories") {
       return <CategoriesView />;
+    }
+
+    if (activeView === "expenses") {
+      return <ExpensesView />;
     }
 
     if (activeView === "currencies") {

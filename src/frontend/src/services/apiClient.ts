@@ -8,6 +8,12 @@ import type {
   Currency,
   CurrencyPayload,
   CurrencyUpdatePayload,
+  CursorPage,
+  Expense,
+  ExpenseDetail,
+  ExpensePayload,
+  ExpenseUpdatePayload,
+  ExpenseWithMoneyLeft,
   Settings,
   SettingsUpdatePayload,
   User
@@ -18,6 +24,7 @@ const AUTH_URL = "/api/v1/authorization";
 const CATEGORIES_URL = "/api/v1/categories";
 const CURRENCIES_URL = "/api/v1/currencies";
 const SETTINGS_URL = "/api/v1/settings";
+const EXPENSES_URL = "/api/v1/expenses";
 const EXPIRATION_SAFETY_WINDOW_SECONDS = 30;
 
 type RequestOptions = RequestInit & {
@@ -231,6 +238,43 @@ export const settingsApi = {
     return apiRequest<Settings>(SETTINGS_URL, {
       method: "PATCH",
       body: JSON.stringify(payload)
+    });
+  }
+};
+
+export const expensesApi = {
+  list(params: { cursor?: string | null; size?: number } = {}): Promise<CursorPage<Expense>> {
+    const searchParams = new URLSearchParams();
+
+    if (params.cursor) {
+      searchParams.set("cursor", params.cursor);
+    }
+
+    if (params.size) {
+      searchParams.set("size", String(params.size));
+    }
+
+    const query = searchParams.toString();
+    return apiRequest<CursorPage<Expense>>(`${EXPENSES_URL}${query ? `?${query}` : ""}`);
+  },
+
+  create(payload: ExpensePayload): Promise<ExpenseWithMoneyLeft> {
+    return apiRequest<ExpenseWithMoneyLeft>(EXPENSES_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  },
+
+  update(expenseId: number, payload: ExpenseUpdatePayload): Promise<ExpenseDetail> {
+    return apiRequest<ExpenseDetail>(`${EXPENSES_URL}/${expenseId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload)
+    });
+  },
+
+  delete(expenseId: number): Promise<ExpenseWithMoneyLeft> {
+    return apiRequest<ExpenseWithMoneyLeft>(`${EXPENSES_URL}/${expenseId}`, {
+      method: "DELETE"
     });
   }
 };

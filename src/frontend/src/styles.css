@@ -64,7 +64,9 @@ button:disabled {
 .section-heading,
 .category-main,
 .category-actions,
-.currency-item {
+.currency-item,
+.expense-main,
+.expense-meta {
   display: flex;
   align-items: flex-start;
 }
@@ -171,7 +173,8 @@ p {
 .module,
 .category-count,
 .category-item,
-.currency-item {
+.currency-item,
+.expense-item {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -316,6 +319,8 @@ p {
 .quick-actions,
 .category-form,
 .currency-form,
+.expense-form,
+.expense-edit-form,
 .settings-form,
 .form-actions {
   display: grid;
@@ -352,6 +357,20 @@ p {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface-muted);
+}
+
+.expense-form,
+.expense-edit-form {
+  grid-template-columns: minmax(110px, 0.55fr) minmax(140px, 0.85fr) minmax(140px, 0.85fr) 1fr auto;
+  align-items: end;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.expense-edit-form {
+  margin-top: 0;
 }
 
 .settings-summary {
@@ -515,7 +534,8 @@ p {
   margin-bottom: 0;
 }
 
-.category-list {
+.category-list,
+.expense-list {
   display: grid;
   gap: 10px;
   margin-top: 14px;
@@ -535,6 +555,70 @@ p {
   align-items: center;
   padding: 14px;
   box-shadow: none;
+}
+
+.expense-item {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  box-shadow: none;
+}
+
+.expense-main {
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.expense-main > div {
+  min-width: 0;
+}
+
+.expense-main h3,
+.expense-main p {
+  margin-bottom: 0;
+}
+
+.expense-main h3,
+.expense-main p,
+.expense-main strong {
+  overflow-wrap: anywhere;
+}
+
+.expense-main strong {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 19px;
+}
+
+.expense-meta {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.expense-meta span {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--muted-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scroll-loader {
+  display: grid;
+  min-height: 72px;
+  place-items: center;
+  align-content: center;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.scroll-loader p {
+  margin-bottom: 0;
+  font-size: 14px;
 }
 
 .currency-code {
@@ -622,6 +706,8 @@ p {
 @media (max-width: 620px) {
   .category-form,
   .currency-form,
+  .expense-form,
+  .expense-edit-form,
   .settings-form,
   .settings-summary,
   .form-actions,
