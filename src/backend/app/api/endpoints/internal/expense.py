@@ -9,7 +9,7 @@ from backend.app.core.db import get_async_session
 from backend.app.repositories import expense_repository
 from backend.app.schemas.currency import CurrencySet
 from backend.app.schemas.expense import (
-    ExpenseCreate,
+    ExpenseCreateWithUser,
     ExpenseDB,
     ExpenseMoneyLeftDB,
 )
@@ -20,7 +20,7 @@ router = APIRouter()
 
 @router.post("", response_model=ExpenseMoneyLeftDB)
 async def add_expense(
-    expense: ExpenseCreate, expense_service: ExpenseService = Depends(ExpenseService)
+    expense: ExpenseCreateWithUser, expense_service: ExpenseService = Depends(ExpenseService)
 ) -> ExpenseMoneyLeftDB:
     """Add expense."""
     return await expense_service.add_expense(expense)

@@ -1,9 +1,10 @@
 import datetime as dt
 
-from sqlalchemy import DECIMAL, Column, DateTime, ForeignKey, Integer
+from sqlalchemy import DECIMAL, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from backend.app.core.db import Base
+from configs.constants import MAX_EXPENSE_DESCRIPTION_LENGTH
 
 
 class Expense(Base):
@@ -17,6 +18,7 @@ class Expense(Base):
     currency = relationship("Currency", back_populates="expenses", lazy="joined")
     user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
     user = relationship("User", back_populates="expenses", lazy="joined")
+    description = Column(String(MAX_EXPENSE_DESCRIPTION_LENGTH), nullable=True)
 
     def __repr__(self):
         return f"<Expense for {self.amount} money in category {self.category_id}>"

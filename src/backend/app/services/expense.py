@@ -4,25 +4,36 @@ from backend.app.api.validators import (
     check_expense_exists,
     check_user_exists,
 )
+from backend.app.models import Expense, User
 from backend.app.repositories import expense_repository, setting_repository
 from backend.app.schemas.category import CategoryDB
 from backend.app.schemas.currency import CurrencyDB
-from backend.app.schemas.expense import ExpenseCreate, ExpenseMoneyLeftDB
+from backend.app.schemas.expense import (
+    ExpenseCreate,
+    ExpenseCreateWithUser,
+    ExpenseMoneyLeftDB,
+    ExpenseUpdate,
+)
 from backend.app.services.base import BaseService
 
 
 class ExpenseService(BaseService):
     """Service to manage expenses business logic."""
 
-    async def add_expense(self, expense_obj: ExpenseCreate) -> ExpenseMoneyLeftDB:
+    async def add_expense(
+        self, expense_obj: ExpenseCreateWithUser | ExpenseCreate, user: User | None = None
+    ) -> Expense:
         """Create an expense record in the database, calculate how much money left in the monthly
         budget and return it."""
         await check_category_exists(expense_obj.category_id, self._session)
         user_data = {}
-        if expense_obj.user_telegram_id is not None:
-            user = await check_user_exists(expense_obj.user_telegram_id, self._session)
-            delattr(expense_obj, "user_telegram_id")
+        if user:
             user_data = {"user": user}
+        else:
+            if getattr(expense_obj, "user_telegram_id", None) is not None:
+                user = await check_user_exists(expense_obj.user_telegram_id, self._session)
+                delattr(expense_obj, "user_telegram_id")
+                user_data = {"user": user}
 
         if expense_obj.currency_id is not None:
             await check_currency_exists(expense_obj.currency_id, self._session)
@@ -61,3 +72,20 @@ class ExpenseService(BaseService):
             currency=currency,
             money_left=expense.money_left,
         )
+
+    async def get_expenses(self) -> list[Expense]:
+        return await expense_repository.get_multi(
+            self._session, order_by=(Expense.id.desc(),), only_statement=True
+        )
+
+    async def get_expense_by_id(self, expense_id: int) -> Expense:
+        return await check_expense_exists(expense_id, self._session)
+
+    async def update_expense(self, expense_id: int, expense_data: ExpenseUpdate) -> Expense:
+        expense = await check_expense_exists(expense_id, self._session)
+        if expense_data.currency_id is not None and expense_data.currency_id != expense.currency_id:
+            await check_currency_exists(expense_data.currency_id, self._session)
+        if expense_data.category_id is not None and expense_data.category_id != expense.currency_id:
+            await check_category_exists(expense_data.category_id, self._session)
+
+        return await expense_repository.update(expense, expense_data, self._session)

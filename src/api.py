@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi_pagination import add_pagination
 
 from backend.app.api.routers import internal_router, public_router
 from backend.app.core.config import settings
@@ -7,3 +8,5 @@ app = FastAPI(title=settings.app_title, description=settings.app_description)
 
 app.include_router(internal_router)
 app.include_router(public_router)
+
+add_pagination(app)

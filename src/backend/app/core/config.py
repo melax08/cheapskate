@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     # Telegram bot
     bot_telegram_token: SecretStr
-    telegram_webapp_data_lifetime: dt.timedelta = dt.timedelta(minutes=99999)
+    telegram_webapp_data_lifetime: dt.timedelta = dt.timedelta(minutes=5)
 
     # Google API credentials
     report_spreadsheet_id: str | None = None
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
     # Authorization
     secret_key: SecretStr
-    access_token_ttl: dt.timedelta = dt.timedelta(minutes=159999)
+    access_token_ttl: dt.timedelta = dt.timedelta(minutes=15)
     refresh_token_ttl: dt.timedelta = dt.timedelta(days=7)
 
     @computed_field

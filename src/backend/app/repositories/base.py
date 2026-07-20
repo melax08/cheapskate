@@ -56,9 +56,22 @@ class RepositoryBase(CreateRemoveMixin, UpdateMixin):
         db_obj = await session.execute(select(self.model).where(self.model.id == obj_id))
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession):
+    async def get_multi(
+        self,
+        session: AsyncSession,
+        order_by: tuple[Any, ...] | None = None,
+        only_statement: bool = False,
+    ):
         """Gets all DB objects from specified model."""
-        db_objs = await session.execute(select(self.model))
+        if order_by is not None:
+            statement = select(self.model).order_by(*order_by)
+        else:
+            statement = select(self.model)
+
+        if only_statement:
+            return statement
+
+        db_objs = await session.execute(statement)
         return db_objs.scalars().all()
 
     async def get_first_with_some_field_match(
