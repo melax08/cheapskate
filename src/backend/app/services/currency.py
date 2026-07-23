@@ -41,5 +41,6 @@ class CurrencyService(BaseService):
 
     async def delete_currency(self, currency_id: int) -> None:
         currency_to_delete = await check_currency_exists(currency_id, self._session)
+        await self._session.refresh(currency_to_delete, attribute_names=["default_currency"])
         check_is_currency_used_as_default(currency_to_delete)
         return await currency_repository.remove(currency_to_delete, self._session)
