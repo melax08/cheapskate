@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi_pagination.cursor import CursorPage
 from fastapi_pagination.ext.sqlalchemy import apaginate
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,7 +34,7 @@ async def expenses_detail(
     return await expense_service.get_expense_by_id(expense_id)
 
 
-@router.post("", response_model=ExpenseMoneyLeftDB)
+@router.post("", response_model=ExpenseMoneyLeftDB, status_code=status.HTTP_201_CREATED)
 async def expenses_create(
     expense_data: ExpenseCreate,
     user: User = Depends(get_current_user),

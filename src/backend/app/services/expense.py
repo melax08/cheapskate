@@ -71,6 +71,8 @@ class ExpenseService(BaseService):
             category=category,
             currency=currency,
             money_left=expense.money_left,
+            date=expense.date,
+            description=expense.description,
         )
 
     async def get_expenses(self) -> list[Expense]:
@@ -85,7 +87,7 @@ class ExpenseService(BaseService):
         expense = await check_expense_exists(expense_id, self._session)
         if expense_data.currency_id is not None and expense_data.currency_id != expense.currency_id:
             await check_currency_exists(expense_data.currency_id, self._session)
-        if expense_data.category_id is not None and expense_data.category_id != expense.currency_id:
+        if expense_data.category_id is not None and expense_data.category_id != expense.category_id:
             await check_category_exists(expense_data.category_id, self._session)
 
         return await expense_repository.update(expense, expense_data, self._session)
