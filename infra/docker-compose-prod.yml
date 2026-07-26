@@ -39,7 +39,7 @@ services:
       dockerfile: infra/Dockerfile
     entrypoint: infra/entrypoint_api.sh
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     restart: always
     depends_on:
       migrations:
