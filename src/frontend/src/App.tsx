@@ -93,6 +93,9 @@ const getInitials = (user: User) =>
     .slice(0, 2)
     .toUpperCase();
 
+const confirmDeletion = (itemName: string) =>
+  window.confirm(`Вы уверены, что хотите удалить ${itemName}?`);
+
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof ApiError) {
     if (typeof error.detail === "string") {
@@ -291,7 +294,10 @@ const CategoriesView = () => {
   };
 
   const deleteCategory = async (category: CategoryWithExpenses) => {
-    if (category.expenses_count > 0) {
+    if (
+      category.expenses_count > 0 ||
+      !confirmDeletion(`категорию «${category.name}»`)
+    ) {
       return;
     }
 
@@ -715,6 +721,10 @@ const ExpensesView = () => {
   };
 
   const deleteExpense = async (expense: Expense) => {
+    if (!confirmDeletion(`трату на сумму ${formatMoney(expense.amount)}`)) {
+      return;
+    }
+
     setPendingExpenseId(expense.id);
 
     try {
@@ -1095,6 +1105,10 @@ const CurrenciesView = () => {
   };
 
   const deleteCurrency = async (currency: Currency) => {
+    if (!confirmDeletion(`валюту «${currency.name} (${currency.letter_code})»`)) {
+      return;
+    }
+
     setPendingCurrencyId(currency.id);
 
     try {
