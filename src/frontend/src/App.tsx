@@ -508,6 +508,7 @@ const ExpensesView = () => {
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const createFormRef = useRef<HTMLFormElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const loadingCursorRef = useRef<string | null>(null);
 
@@ -580,6 +581,15 @@ const ExpensesView = () => {
     });
     void loadExpenses();
   }, [loadDictionaries, loadExpenses]);
+
+  useEffect(() => {
+    if (isCreateFormOpen) {
+      createFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  }, [isCreateFormOpen]);
 
   useEffect(() => {
     const sentinel = loadMoreRef.current;
@@ -844,7 +854,11 @@ const ExpensesView = () => {
       </div>
 
       {isCreateFormOpen && (
-        <form className="expense-form" onSubmit={(event) => void createExpense(event)}>
+        <form
+          ref={createFormRef}
+          className="expense-form"
+          onSubmit={(event) => void createExpense(event)}
+        >
           {renderExpenseForm(newExpense, setNewExpenseField, isCreating ? "Создаем..." : "Создать", isCreating, () => {
             setIsCreateFormOpen(false);
             setNewExpense({
