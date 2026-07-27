@@ -85,6 +85,9 @@ jobs:
             docker compose -f infra/docker-compose-prod.yml up -d --build
             yes | docker image prune --all
 
+            cd /home/cheapskate/cheapskate/src/frontend
+            npm run build -- --outDir /var/www/cheapskate/frontend
+
   send_message:
     runs-on: ubuntu-latest
     needs: deploy
