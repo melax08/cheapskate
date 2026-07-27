@@ -25,6 +25,7 @@ const CATEGORIES_URL = "/api/v1/categories";
 const CURRENCIES_URL = "/api/v1/currencies";
 const SETTINGS_URL = "/api/v1/settings";
 const EXPENSES_URL = "/api/v1/expenses";
+const USERS_URL = "/api/v1/users";
 const EXPIRATION_SAFETY_WINDOW_SECONDS = 30;
 
 type RequestOptions = RequestInit & {
@@ -174,6 +175,12 @@ export const authorizationApi = {
 
   getMe(): Promise<User> {
     return apiRequest<User>(`${AUTH_URL}/me`);
+  }
+};
+
+export const usersApi = {
+  list(): Promise<User[]> {
+    return apiRequest<User[]>(USERS_URL);
   }
 };
 

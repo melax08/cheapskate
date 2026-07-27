@@ -1,6 +1,13 @@
 import { FormEvent, useCallback, useEffect, useRef, useMemo, useState } from "react";
 import { authService, getTelegramWebApp } from "./services/authService";
-import { ApiError, categoriesApi, currenciesApi, expensesApi, settingsApi } from "./services/apiClient";
+import {
+  ApiError,
+  categoriesApi,
+  currenciesApi,
+  expensesApi,
+  settingsApi,
+  usersApi
+} from "./services/apiClient";
 import type {
   CategoryWithExpenses,
   Currency,
@@ -84,6 +91,14 @@ const formatMoney = (value: string | number) =>
 
 const getDisplayName = (user: User) =>
   [user.telegram_first_name, user.telegram_last_name].filter(Boolean).join(" ");
+
+const getExpenseUserName = (user: User) => {
+  if (user.telegram_last_name) {
+    return `${user.telegram_first_name} ${user.telegram_last_name}`;
+  }
+
+  return user.telegram_username ? `@${user.telegram_username}` : user.telegram_first_name;
+};
 
 const getInitials = (user: User) =>
   [user.telegram_first_name, user.telegram_last_name]
@@ -483,13 +498,14 @@ const createEmptyExpense = (): ExpensePayload => ({
 
 const normalizeAmountInput = (value: string) => value.replace(",", ".");
 
-const normalizeExpenseDetail = (expense: ExpenseDetail): Expense => ({
+const normalizeExpenseDetail = (expense: ExpenseDetail, userId?: number | null): Expense => ({
   id: expense.id,
   amount: expense.amount,
   description: expense.description,
   category_id: expense.category.id,
   currency_id: expense.currency?.id ?? null,
-  date: expense.date
+  date: expense.date,
+  user_id: userId
 });
 
 const ExpensesView = () => {
@@ -501,6 +517,7 @@ const ExpensesView = () => {
   });
   const [categories, setCategories] = useState<CategoryWithExpenses[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [newExpense, setNewExpense] = useState<ExpensePayload>(createEmptyExpense);
   const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
   const [editingExpense, setEditingExpense] = useState<ExpensePayload>(createEmptyExpense);
@@ -528,12 +545,14 @@ const ExpensesView = () => {
   }, []);
 
   const loadDictionaries = useCallback(async () => {
-    const [categoriesItems, currenciesItems] = await Promise.all([
+    const [categoriesItems, currenciesItems, usersItems] = await Promise.all([
       categoriesApi.list(),
-      currenciesApi.list()
+      currenciesApi.list(),
+      usersApi.list()
     ]);
     setCategories(categoriesItems);
     setCurrencies(currenciesItems);
+    setUsers(usersItems);
     syncDefaultCategory(categoriesItems);
   }, [syncDefaultCategory]);
 
@@ -722,7 +741,7 @@ const ExpensesView = () => {
         ...current,
         status: "ready",
         items: current.items.map((item) =>
-          item.id === expense.id ? normalizeExpenseDetail(updatedExpense) : item
+          item.id === expense.id ? normalizeExpenseDetail(updatedExpense, expense.user_id) : item
         ),
         error: null
       }));
@@ -917,6 +936,9 @@ const ExpensesView = () => {
               const currency = expense.currency_id
                 ? currencies.find((item) => item.id === expense.currency_id)
                 : null;
+              const expenseUser = expense.user_id
+                ? users.find((item) => item.id === expense.user_id)
+                : null;
 
               return (
                 <article className="expense-item" key={expense.id}>
@@ -948,8 +970,14 @@ const ExpensesView = () => {
                       </div>
                       <div className="expense-meta">
                         <span>{formatDateTime(expense.date)}</span>
-                        <span>#{expense.id}</span>
                         <span>{currency?.name ?? "Валюта по умолчанию"}</span>
+                        <span>
+                          {expenseUser
+                            ? getExpenseUserName(expenseUser)
+                            : expense.user_id
+                              ? "Пользователь не найден"
+                              : "Пользователь не указан"}
+                        </span>
                       </div>
                       <div className="category-actions">
                         <button

@@ -10,3 +10,6 @@ class UserService(BaseService):
             return await user_repository.update(user, user_obj, self._session)
 
         return await user_repository.create(user_obj, self._session)
+
+    async def get_users_list(self) -> list[UserDB]:
+        return await user_repository.get_multi(self._session)
