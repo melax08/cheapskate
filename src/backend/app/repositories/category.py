@@ -26,6 +26,7 @@ class CategoryRepository(RepositoryBase):
             select(self.model, func.count(Expense.id).label("expenses_count"))
             .outerjoin(Expense, Expense.category_id == Category.id)
             .group_by(Category.id)
+            .order_by(Category.id)
         )
         return db_objs
 

@@ -511,11 +511,19 @@ const ExpensesView = () => {
   const createFormRef = useRef<HTMLFormElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const loadingCursorRef = useRef<string | null>(null);
+  const visibleCategories = useMemo(
+    () => categories.filter((category) => category.is_visible),
+    [categories]
+  );
 
   const syncDefaultCategory = useCallback((items: CategoryWithExpenses[]) => {
+    const visibleItems = items.filter((category) => category.is_visible);
+
     setNewExpense((current) => ({
       ...current,
-      category_id: current.category_id || items[0]?.id || 0
+      category_id: visibleItems.some((category) => category.id === current.category_id)
+        ? current.category_id
+        : visibleItems[0]?.id || 0
     }));
   }, []);
 
@@ -671,7 +679,7 @@ const ExpensesView = () => {
       await expensesApi.create(buildExpensePayload(newExpense));
       setNewExpense({
         ...createEmptyExpense(),
-        category_id: categories[0]?.id || 0
+        category_id: visibleCategories[0]?.id || 0
       });
       setIsCreateFormOpen(false);
       await loadExpenses();
@@ -761,6 +769,7 @@ const ExpensesView = () => {
     setField: (field: keyof ExpensePayload, value: string) => void,
     submitLabel: string,
     isDisabled: boolean,
+    categoryOptions: CategoryWithExpenses[],
     onCancel?: () => void
   ) => (
     <>
@@ -781,10 +790,10 @@ const ExpensesView = () => {
         <select
           value={payload.category_id || ""}
           onChange={(event) => setField("category_id", event.target.value)}
-          disabled={categories.length === 0}
+          disabled={categoryOptions.length === 0}
         >
           <option value="">Выберите категорию</option>
-          {categories.map((category) => (
+          {categoryOptions.map((category) => (
             <option value={category.id} key={category.id}>
               {category.name}
             </option>
@@ -819,7 +828,7 @@ const ExpensesView = () => {
         <button
           type="submit"
           className="primary-button"
-          disabled={isDisabled || !isExpensePayloadValid(payload) || categories.length === 0}
+          disabled={isDisabled || !isExpensePayloadValid(payload) || categoryOptions.length === 0}
         >
           {submitLabel}
         </button>
@@ -859,18 +868,27 @@ const ExpensesView = () => {
           className="expense-form"
           onSubmit={(event) => void createExpense(event)}
         >
-          {renderExpenseForm(newExpense, setNewExpenseField, isCreating ? "Создаем..." : "Создать", isCreating, () => {
-            setIsCreateFormOpen(false);
-            setNewExpense({
-              ...createEmptyExpense(),
-              category_id: categories[0]?.id || 0
-            });
-          })}
+          {renderExpenseForm(
+            newExpense,
+            setNewExpenseField,
+            isCreating ? "Создаем..." : "Создать",
+            isCreating,
+            visibleCategories,
+            () => {
+              setIsCreateFormOpen(false);
+              setNewExpense({
+                ...createEmptyExpense(),
+                category_id: visibleCategories[0]?.id || 0
+              });
+            }
+          )}
         </form>
       )}
 
-      {categories.length === 0 && expensesState.status !== "loading" && (
-        <p className="inline-error">Чтобы добавить трату, сначала создайте хотя бы одну категорию.</p>
+      {visibleCategories.length === 0 && expensesState.status !== "loading" && (
+        <p className="inline-error">
+          Чтобы добавить трату, сначала создайте или покажите хотя бы одну категорию.
+        </p>
       )}
 
       {expensesState.error && <p className="inline-error">{expensesState.error}</p>}
@@ -912,6 +930,7 @@ const ExpensesView = () => {
                         setEditingExpenseField,
                         "Сохранить",
                         Boolean(isPending),
+                        categories,
                         cancelEditingExpense
                       )}
                     </form>
