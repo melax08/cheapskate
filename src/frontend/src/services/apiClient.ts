@@ -250,7 +250,15 @@ export const settingsApi = {
 };
 
 export const expensesApi = {
-  list(params: { cursor?: string | null; size?: number } = {}): Promise<CursorPage<Expense>> {
+  list(
+    params: {
+      cursor?: string | null;
+      size?: number;
+      user?: number | null;
+      category?: number | null;
+      currency?: number | null;
+    } = {}
+  ): Promise<CursorPage<Expense>> {
     const searchParams = new URLSearchParams();
 
     if (params.cursor) {
@@ -259,6 +267,18 @@ export const expensesApi = {
 
     if (params.size) {
       searchParams.set("size", String(params.size));
+    }
+
+    if (params.user) {
+      searchParams.set("user", String(params.user));
+    }
+
+    if (params.category) {
+      searchParams.set("category", String(params.category));
+    }
+
+    if (params.currency) {
+      searchParams.set("currency", String(params.currency));
     }
 
     const query = searchParams.toString();

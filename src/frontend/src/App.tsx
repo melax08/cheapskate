@@ -53,6 +53,12 @@ type ExpensesState = {
   error: string | null;
 };
 
+type ExpenseFilters = {
+  user: number | null;
+  category: number | null;
+  currency: number | null;
+};
+
 const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean }> = [
   { id: "expenses", label: "Траты" },
   { id: "categories", label: "Категории" },
@@ -518,16 +524,24 @@ const ExpensesView = () => {
   const [categories, setCategories] = useState<CategoryWithExpenses[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [filters, setFilters] = useState<ExpenseFilters>({
+    user: null,
+    category: null,
+    currency: null
+  });
   const [newExpense, setNewExpense] = useState<ExpensePayload>(createEmptyExpense);
   const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
   const [editingExpense, setEditingExpense] = useState<ExpensePayload>(createEmptyExpense);
   const [pendingExpenseId, setPendingExpenseId] = useState<number | null>(null);
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const createFormRef = useRef<HTMLFormElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const loadingCursorRef = useRef<string | null>(null);
+  const expensesRequestIdRef = useRef(0);
+  const activeFiltersCount = Object.values(filters).filter((value) => value !== null).length;
   const visibleCategories = useMemo(
     () => categories.filter((category) => category.is_visible),
     [categories]
@@ -567,16 +581,22 @@ const ExpensesView = () => {
         loadingCursorRef.current = cursor;
         setIsLoadingMore(true);
       } else {
-        setExpensesState((current) => ({
-          status: current.items.length ? "ready" : "loading",
-          items: current.items,
-          nextCursor: current.nextCursor,
+        loadingCursorRef.current = null;
+        setExpensesState({
+          status: "loading",
+          items: [],
+          nextCursor: null,
           error: null
-        }));
+        });
       }
+      const requestId = ++expensesRequestIdRef.current;
 
       try {
-        const page = await expensesApi.list({ cursor, size: 10 });
+        const page = await expensesApi.list({ cursor, size: 10, ...filters });
+        if (requestId !== expensesRequestIdRef.current) {
+          return;
+        }
+
         setExpensesState((current) => ({
           status: "ready",
           items: isNextPage ? [...current.items, ...page.items] : page.items,
@@ -584,6 +604,10 @@ const ExpensesView = () => {
           error: null
         }));
       } catch (error) {
+        if (requestId !== expensesRequestIdRef.current) {
+          return;
+        }
+
         setExpensesState((current) => ({
           status: "error",
           items: current.items,
@@ -591,11 +615,13 @@ const ExpensesView = () => {
           error: getErrorMessage(error)
         }));
       } finally {
-        loadingCursorRef.current = null;
-        setIsLoadingMore(false);
+        if (requestId === expensesRequestIdRef.current) {
+          loadingCursorRef.current = null;
+          setIsLoadingMore(false);
+        }
       }
     },
-    []
+    [filters]
   );
 
   useEffect(() => {
@@ -606,8 +632,11 @@ const ExpensesView = () => {
         error: getErrorMessage(error)
       }));
     });
+  }, [loadDictionaries]);
+
+  useEffect(() => {
     void loadExpenses();
-  }, [loadDictionaries, loadExpenses]);
+  }, [loadExpenses]);
 
   useEffect(() => {
     if (isCreateFormOpen) {
@@ -670,6 +699,17 @@ const ExpensesView = () => {
             ? normalizeAmountInput(value)
             : value
     }));
+  };
+
+  const setFilter = (field: keyof ExpenseFilters, value: string) => {
+    setFilters((current) => ({
+      ...current,
+      [field]: value ? Number(value) : null
+    }));
+  };
+
+  const resetFilters = () => {
+    setFilters({ user: null, category: null, currency: null });
   };
 
   const isExpensePayloadValid = (payload: ExpensePayload) => {
@@ -870,6 +910,15 @@ const ExpensesView = () => {
         <div className="heading-actions">
           <button
             type="button"
+            className={`ghost-button${activeFiltersCount ? " active-filter-button" : ""}`}
+            aria-expanded={isFiltersOpen}
+            aria-controls="expense-filters"
+            onClick={() => setIsFiltersOpen((isOpen) => !isOpen)}
+          >
+            Фильтры{activeFiltersCount ? ` · ${activeFiltersCount}` : ""}
+          </button>
+          <button
+            type="button"
             className="primary-button compact-primary-button"
             onClick={() => setIsCreateFormOpen((isOpen) => !isOpen)}
           >
@@ -880,6 +929,70 @@ const ExpensesView = () => {
           </button>
         </div>
       </div>
+
+      {isFiltersOpen && (
+        <div id="expense-filters" className="expense-filters" aria-label="Фильтры трат">
+          <div className="filter-heading">
+            <div>
+              <strong>Фильтры</strong>
+              <span>
+                {activeFiltersCount
+                  ? `Выбрано: ${activeFiltersCount}`
+                  : "Показаны все траты"}
+              </span>
+            </div>
+            {activeFiltersCount > 0 && (
+              <button type="button" className="ghost-button" onClick={resetFilters}>
+                Сбросить
+              </button>
+            )}
+          </div>
+          <div className="filter-grid">
+            <label className="text-field">
+              <span>Пользователь</span>
+              <select
+                value={filters.user ?? ""}
+                onChange={(event) => setFilter("user", event.target.value)}
+              >
+                <option value="">Все пользователи</option>
+                {users.map((user) => (
+                  <option value={user.id} key={user.id}>
+                    {getExpenseUserName(user)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-field">
+              <span>Категория</span>
+              <select
+                value={filters.category ?? ""}
+                onChange={(event) => setFilter("category", event.target.value)}
+              >
+                <option value="">Все категории</option>
+                {categories.map((category) => (
+                  <option value={category.id} key={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-field">
+              <span>Валюта</span>
+              <select
+                value={filters.currency ?? ""}
+                onChange={(event) => setFilter("currency", event.target.value)}
+              >
+                <option value="">Все валюты</option>
+                {currencies.map((currency) => (
+                  <option value={currency.id} key={currency.id}>
+                    {currency.name} ({currency.letter_code})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      )}
 
       {isCreateFormOpen && (
         <form
@@ -921,8 +1034,12 @@ const ExpensesView = () => {
 
       {expensesState.status !== "loading" && expensesState.items.length === 0 && (
         <div className="list-state">
-          <h3>Трат пока нет</h3>
-          <p>Добавьте первую запись, чтобы вести историю расходов.</p>
+          <h3>{activeFiltersCount ? "Ничего не найдено" : "Трат пока нет"}</h3>
+          <p>
+            {activeFiltersCount
+              ? "Попробуйте изменить или сбросить фильтры."
+              : "Добавьте первую запись, чтобы вести историю расходов."}
+          </p>
         </div>
       )}
 

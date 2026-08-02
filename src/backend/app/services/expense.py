@@ -1,3 +1,5 @@
+from typing import Any
+
 from backend.app.api.validators import (
     check_category_exists,
     check_currency_exists,
@@ -75,9 +77,12 @@ class ExpenseService(BaseService):
             description=expense.description,
         )
 
-    async def get_expenses(self) -> list[Expense]:
+    async def get_expenses(self, filters: dict[str, Any] | None = None) -> list[Expense]:
         return await expense_repository.get_multi(
-            self._session, order_by=(Expense.id.desc(),), only_statement=True
+            self._session,
+            order_by=(Expense.id.desc(),),
+            only_statement=True,
+            additional_filters=filters,
         )
 
     async def get_expense_by_id(self, expense_id: int) -> Expense:

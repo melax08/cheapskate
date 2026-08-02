@@ -22,8 +22,19 @@ router = APIRouter(dependencies=[Depends(get_current_user)])
 async def expenses_list(
     expense_service: ExpenseService = Depends(ExpenseService),
     session: AsyncSession = Depends(get_async_session),
+    category: int | None = None,
+    user: int | None = None,
+    currency: int | None = None,
 ) -> CursorPage[ExpenseDBOnlyIds]:
-    expenses = await expense_service.get_expenses()
+    filters = {}
+    if category is not None:
+        filters["category_id"] = category
+    if user is not None:
+        filters["user_id"] = user
+    if currency is not None:
+        filters["currency_id"] = currency
+
+    expenses = await expense_service.get_expenses(filters=filters)
     return await apaginate(session, expenses)
 
 

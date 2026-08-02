@@ -7,6 +7,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.models import Category, Currency, Expense, Setting, User
+from tests.test_backend.factories.category import CategoryFactory
+from tests.test_backend.factories.currency import CurrencyFactory
 from tests.test_backend.factories.expense import ExpenseFactory
 
 
@@ -385,3 +387,87 @@ class TestExpensePublicEndpoints:
         }
         await db_session.refresh(expense)
         assert expense.currency_id == currency.id
+
+    @pytest.mark.parametrize(
+        ("common_count", "category_count", "currency_count", "user_count"),
+        [
+            (0, 0, 0, 0),
+            (17, 4, 6, 9),
+            (0, 5, 0, 1),
+            (10, 30, 10, 20),
+        ],
+    )
+    async def test_expenses_list_with_filters(
+        self,
+        db_session: AsyncSession,
+        authorized_client: AsyncClient,
+        category: Category,
+        user: User,
+        currency: Currency,
+        common_count: int,
+        category_count: int,
+        currency_count: int,
+        user_count: int,
+    ) -> None:
+        await ExpenseFactory.create_batch_async(session=db_session, size=common_count)
+        await ExpenseFactory.create_batch_async(
+            session=db_session, size=category_count, category=category
+        )
+        await ExpenseFactory.create_batch_async(
+            session=db_session, size=currency_count, currency=currency
+        )
+        await ExpenseFactory.create_batch_async(session=db_session, size=user_count, user=user)
+
+        page_size = 100
+        base_url = f"{self.BASE_URL}?size={page_size}"
+
+        # Without filters
+        response = await authorized_client.get(base_url)
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert (
+            len(response_data["items"])
+            == common_count + category_count + currency_count + user_count
+        )
+
+        # Category filter
+        response = await authorized_client.get(f"{base_url}&category={category.id}")
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert len(response_data["items"]) == category_count
+
+        # Currency filter
+        response = await authorized_client.get(f"{base_url}&currency={currency.id}")
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert len(response_data["items"]) == currency_count
+
+        # User filter
+        response = await authorized_client.get(f"{base_url}&user={user.id}")
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert len(response_data["items"]) == user_count
+
+        # Filter with pagination
+        current_page_size = 3
+        response = await authorized_client.get(
+            f"{self.BASE_URL}?size={current_page_size}&category={category.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert len(response_data["items"]) == min((current_page_size, category_count))
+
+        # Multi filter
+        new_currency = await CurrencyFactory.create_async(db_session)
+        new_category = await CategoryFactory.create_async(db_session)
+
+        expenses_count = 11
+        await ExpenseFactory.create_batch_async(
+            session=db_session, currency=new_currency, category=new_category, size=expenses_count
+        )
+        response = await authorized_client.get(
+            f"{self.BASE_URL}?size={page_size}&category={new_category.id}&currency={new_currency.id}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        response_data = response.json()
+        assert len(response_data["items"]) == expenses_count

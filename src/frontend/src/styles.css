@@ -369,6 +369,45 @@ p {
   background: var(--surface-muted);
 }
 
+.expense-filters {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.filter-heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.filter-heading span {
+  color: var(--muted-text);
+  font-size: 12px;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.active-filter-button {
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  color: var(--accent);
+}
+
 .expense-edit-form {
   margin-top: 0;
 }
@@ -708,6 +747,7 @@ p {
   .currency-form,
   .expense-form,
   .expense-edit-form,
+  .filter-grid,
   .settings-form,
   .settings-summary,
   .form-actions,

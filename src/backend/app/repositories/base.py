@@ -57,12 +57,21 @@ class RepositoryBase(CreateRemoveMixin, UpdateMixin):
         session: AsyncSession,
         order_by: tuple[Any, ...] | None = None,
         only_statement: bool = False,
+        additional_filters: dict[str, Any] | None = None,
     ):
         """Gets all DB objects from specified model."""
         if order_by is not None:
             statement = select(self.model).order_by(*order_by)
         else:
             statement = select(self.model)
+
+        if additional_filters:
+            statement = statement.where(
+                *[
+                    getattr(self.model, field) == value
+                    for field, value in additional_filters.items()
+                ]
+            )
 
         if only_statement:
             return statement
