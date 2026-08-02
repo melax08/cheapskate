@@ -530,6 +530,7 @@ const ExpensesView = () => {
     currency: null
   });
   const [newExpense, setNewExpense] = useState<ExpensePayload>(createEmptyExpense);
+  const [expensePositions, setExpensePositions] = useState<string[]>([""]);
   const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
   const [editingExpense, setEditingExpense] = useState<ExpensePayload>(createEmptyExpense);
   const [pendingExpenseId, setPendingExpenseId] = useState<number | null>(null);
@@ -546,6 +547,25 @@ const ExpensesView = () => {
     () => categories.filter((category) => category.is_visible),
     [categories]
   );
+  const expensePositionsTotal = useMemo(
+    () =>
+      Number(
+        expensePositions
+          .reduce((total, position) => {
+            const value = Number(position);
+            return total + (position.trim() && Number.isFinite(value) ? value : 0);
+          }, 0)
+          .toFixed(3)
+      ),
+    [expensePositions]
+  );
+  const areExpensePositionValuesValid =
+    expensePositions.length > 0 &&
+    expensePositions.every((position) => {
+      const value = Number(position);
+      return position.trim() !== "" && Number.isFinite(value);
+    });
+  const areExpensePositionsValid = areExpensePositionValuesValid && expensePositionsTotal > 0;
 
   const syncDefaultCategory = useCallback((items: CategoryWithExpenses[]) => {
     const visibleItems = items.filter((category) => category.is_visible);
@@ -701,6 +721,22 @@ const ExpensesView = () => {
     }));
   };
 
+  const setExpensePosition = (index: number, value: string) => {
+    setExpensePositions((current) =>
+      current.map((position, positionIndex) =>
+        positionIndex === index ? normalizeAmountInput(value) : position
+      )
+    );
+  };
+
+  const addExpensePosition = () => {
+    setExpensePositions((current) => [...current, ""]);
+  };
+
+  const removeExpensePosition = (index: number) => {
+    setExpensePositions((current) => current.filter((_, positionIndex) => positionIndex !== index));
+  };
+
   const setFilter = (field: keyof ExpenseFilters, value: string) => {
     setFilters((current) => ({
       ...current,
@@ -727,7 +763,7 @@ const ExpensesView = () => {
   const createExpense = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!isExpensePayloadValid(newExpense)) {
+    if (!areExpensePositionsValid || newExpense.category_id <= 0) {
       return;
     }
 
@@ -735,11 +771,14 @@ const ExpensesView = () => {
     setExpensesState((current) => ({ ...current, error: null }));
 
     try {
-      await expensesApi.create(buildExpensePayload(newExpense));
+      await expensesApi.create(
+        buildExpensePayload({ ...newExpense, amount: String(expensePositionsTotal) })
+      );
       setNewExpense({
         ...createEmptyExpense(),
         category_id: visibleCategories[0]?.id || 0
       });
+      setExpensePositions([""]);
       setIsCreateFormOpen(false);
       await loadExpenses();
     } catch (error) {
@@ -829,21 +868,27 @@ const ExpensesView = () => {
     submitLabel: string,
     isDisabled: boolean,
     categoryOptions: CategoryWithExpenses[],
-    onCancel?: () => void
+    options: {
+      showAmount?: boolean;
+      isValid?: boolean;
+      onCancel?: () => void;
+    } = {}
   ) => (
     <>
-      <label className="text-field">
-        <span>Сумма</span>
-        <input
-          type="number"
-          min="0"
-          step="0.001"
-          value={payload.amount}
-          onChange={(event) => setField("amount", event.target.value)}
-          placeholder="0"
-          autoFocus
-        />
-      </label>
+      {options.showAmount !== false && (
+        <label className="text-field">
+          <span>Сумма</span>
+          <input
+            type="number"
+            min="0"
+            step="0.001"
+            value={payload.amount}
+            onChange={(event) => setField("amount", event.target.value)}
+            placeholder="0"
+            autoFocus
+          />
+        </label>
+      )}
       <label className="text-field">
         <span>Категория</span>
         <select
@@ -887,12 +932,16 @@ const ExpensesView = () => {
         <button
           type="submit"
           className="primary-button"
-          disabled={isDisabled || !isExpensePayloadValid(payload) || categoryOptions.length === 0}
+          disabled={
+            isDisabled ||
+            !(options.isValid ?? isExpensePayloadValid(payload)) ||
+            categoryOptions.length === 0
+          }
         >
           {submitLabel}
         </button>
-        {onCancel && (
-          <button type="button" className="secondary-button" onClick={onCancel}>
+        {options.onCancel && (
+          <button type="button" className="secondary-button" onClick={options.onCancel}>
             Отмена
           </button>
         )}
@@ -1000,18 +1049,71 @@ const ExpensesView = () => {
           className="expense-form"
           onSubmit={(event) => void createExpense(event)}
         >
+          <div className="expense-positions">
+            <div className="expense-positions-heading">
+              <div>
+                <strong>Позиции</strong>
+                <span>Можно указывать положительные и отрицательные значения</span>
+              </div>
+              <button type="button" className="ghost-button" onClick={addExpensePosition}>
+                Добавить позицию
+              </button>
+            </div>
+            <div className="expense-position-list">
+              {expensePositions.map((position, index) => (
+                <div className="expense-position-row" key={index}>
+                  <label className="text-field">
+                    <span>Позиция {index + 1}</span>
+                    <input
+                      type="number"
+                      step="0.001"
+                      value={position}
+                      onChange={(event) => setExpensePosition(index, event.target.value)}
+                      placeholder="0"
+                      autoFocus={index === 0}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="compact-button danger-button"
+                    disabled={expensePositions.length === 1}
+                    aria-label={`Удалить позицию ${index + 1}`}
+                    onClick={() => removeExpensePosition(index)}
+                  >
+                    Удалить
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className={`expense-total${expensePositionsTotal > 0 ? "" : " invalid"}`}>
+              <span>Итоговая сумма</span>
+              <strong>{formatMoney(expensePositionsTotal)}</strong>
+            </div>
+            {!areExpensePositionsValid && expensePositions.some((position) => position.trim()) && (
+              <p className="expense-total-hint">
+                {areExpensePositionValuesValid
+                  ? "Итоговая сумма должна быть больше нуля."
+                  : "Заполните все добавленные позиции."}
+              </p>
+            )}
+          </div>
           {renderExpenseForm(
             newExpense,
             setNewExpenseField,
             isCreating ? "Создаем..." : "Создать",
             isCreating,
             visibleCategories,
-            () => {
-              setIsCreateFormOpen(false);
-              setNewExpense({
-                ...createEmptyExpense(),
-                category_id: visibleCategories[0]?.id || 0
-              });
+            {
+              showAmount: false,
+              isValid: areExpensePositionsValid && newExpense.category_id > 0,
+              onCancel: () => {
+                setIsCreateFormOpen(false);
+                setNewExpense({
+                  ...createEmptyExpense(),
+                  category_id: visibleCategories[0]?.id || 0
+                });
+                setExpensePositions([""]);
+              }
             }
           )}
         </form>
@@ -1070,7 +1172,7 @@ const ExpensesView = () => {
                         "Сохранить",
                         Boolean(isPending),
                         categories,
-                        cancelEditingExpense
+                        { onCancel: cancelEditingExpense }
                       )}
                     </form>
                   ) : (
