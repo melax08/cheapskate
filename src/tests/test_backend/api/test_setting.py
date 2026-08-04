@@ -30,6 +30,7 @@ class TestSettingPublicEndpoints:
                 "id": setting.default_currency.id,
                 "letter_code": setting.default_currency.letter_code,
                 "name": setting.default_currency.name,
+                "symbol": setting.default_currency.symbol,
             },
         }
 
@@ -61,6 +62,7 @@ class TestSettingPublicEndpoints:
                 "id": new_currency.id,
                 "letter_code": new_currency.letter_code,
                 "name": new_currency.name,
+                "symbol": new_currency.symbol,
             },
         }
         await db_session.refresh(setting)

@@ -6,6 +6,7 @@ import {
   currenciesApi,
   expensesApi,
   settingsApi,
+  statisticsApi,
   usersApi
 } from "./services/apiClient";
 import type {
@@ -15,6 +16,7 @@ import type {
   Expense,
   ExpenseDetail,
   ExpensePayload,
+  MoneySpent,
   Settings,
   User
 } from "./types/api";
@@ -25,7 +27,7 @@ type AuthState =
   | { status: "authenticated"; user: User; error: null }
   | { status: "error"; user: null; error: string };
 
-type View = "overview" | "categories" | "currencies" | "expenses" | "settings";
+type View = "statistics" | "overview" | "categories" | "currencies" | "expenses" | "settings";
 
 type CategoriesState = {
   status: "idle" | "loading" | "ready" | "error";
@@ -59,12 +61,68 @@ type ExpenseFilters = {
   currency: number | null;
 };
 
-const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean }> = [
+const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean; isHidden?: boolean }> = [
   { id: "expenses", label: "Траты" },
+  { id: "statistics", label: "Статистика", isHidden: true },
   { id: "categories", label: "Категории" },
   { id: "currencies", label: "Валюты" },
   { id: "settings", label: "Настройки" },
   { id: "overview", label: "Профиль" }
+];
+
+type StatisticPeriod = {
+  spent: number;
+  previous: number;
+  days: number[];
+  categories: Array<{ name: string; amount: number; color: string }>;
+};
+
+const statisticData: Record<number, Record<number, StatisticPeriod>> = {
+  2026: {
+    7: {
+      spent: 46280,
+      previous: 51240,
+      days: [900, 1280, 640, 2100, 1780, 1200, 2450, 980, 1600, 2840, 1340, 820, 1980, 1160, 2500, 740, 1560, 2240, 1100, 2920, 1370, 860, 1740, 2310, 940, 1860, 1260, 2040, 1520, 1160, 720],
+      categories: [
+        { name: "Продукты", amount: 14240, color: "#2f80ed" },
+        { name: "Кафе", amount: 9840, color: "#f59e0b" },
+        { name: "Транспорт", amount: 7210, color: "#8b5cf6" },
+        { name: "Дом", amount: 6780, color: "#10b981" },
+        { name: "Другое", amount: 8210, color: "#94a3b8" }
+      ],
+    },
+    6: {
+      spent: 51240,
+      previous: 48790,
+      days: [1200, 1700, 900, 2300, 1400, 1900, 2800, 1100, 2100, 1600, 900, 2500, 1800, 1300, 2200, 950, 1750, 2600, 1450, 2050, 1200, 2900, 1000, 1850, 2350, 1250, 1950, 1500, 2700, 1490],
+      categories: [
+        { name: "Продукты", amount: 16520, color: "#2f80ed" },
+        { name: "Дом", amount: 11240, color: "#10b981" },
+        { name: "Кафе", amount: 9080, color: "#f59e0b" },
+        { name: "Транспорт", amount: 6840, color: "#8b5cf6" },
+        { name: "Другое", amount: 7560, color: "#94a3b8" }
+      ],
+    }
+  },
+  2025: {
+    11: {
+      spent: 43860,
+      previous: 47120,
+      days: [980, 1420, 2100, 760, 1880, 1240, 2520, 950, 1680, 2250, 1180, 860, 1940, 1340, 2480, 720, 1590, 2170, 1040, 2760, 1310, 810, 1650, 2260, 920, 1770, 1210, 1980, 1450, 880],
+      categories: [
+        { name: "Продукты", amount: 13900, color: "#2f80ed" },
+        { name: "Транспорт", amount: 8860, color: "#8b5cf6" },
+        { name: "Кафе", amount: 7640, color: "#f59e0b" },
+        { name: "Дом", amount: 6920, color: "#10b981" },
+        { name: "Другое", amount: 6540, color: "#94a3b8" }
+      ],
+    }
+  }
+};
+
+const monthNames = [
+  "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+  "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
 ];
 
 const formatDate = (value: string) =>
@@ -514,7 +572,7 @@ const normalizeExpenseDetail = (expense: ExpenseDetail, userId?: number | null):
   user_id: userId
 });
 
-const ExpensesView = () => {
+const ExpensesView = ({ onExpensesChanged }: { onExpensesChanged: () => void }) => {
   const [expensesState, setExpensesState] = useState<ExpensesState>({
     status: "idle",
     items: [],
@@ -774,6 +832,7 @@ const ExpensesView = () => {
       await expensesApi.create(
         buildExpensePayload({ ...newExpense, amount: String(expensePositionsTotal) })
       );
+      onExpensesChanged();
       setNewExpense({
         ...createEmptyExpense(),
         category_id: visibleCategories[0]?.id || 0
@@ -816,6 +875,7 @@ const ExpensesView = () => {
 
     try {
       const updatedExpense = await expensesApi.update(expense.id, buildExpensePayload(editingExpense));
+      onExpensesChanged();
       setExpensesState((current) => ({
         ...current,
         status: "ready",
@@ -845,6 +905,7 @@ const ExpensesView = () => {
 
     try {
       await expensesApi.delete(expense.id);
+      onExpensesChanged();
       setExpensesState((current) => ({
         ...current,
         status: "ready",
@@ -913,7 +974,7 @@ const ExpensesView = () => {
           <option value="">По умолчанию</option>
           {currencies.map((currency) => (
             <option value={currency.id} key={currency.id}>
-              {currency.name} ({currency.letter_code})
+              {currency.name} ({getCurrencySymbol(currency)})
             </option>
           ))}
         </select>
@@ -1034,7 +1095,7 @@ const ExpensesView = () => {
                 <option value="">Все валюты</option>
                 {currencies.map((currency) => (
                   <option value={currency.id} key={currency.id}>
-                    {currency.name} ({currency.letter_code})
+                    {currency.name} ({getCurrencySymbol(currency)})
                   </option>
                 ))}
               </select>
@@ -1184,7 +1245,7 @@ const ExpensesView = () => {
                         </div>
                         <strong>
                           {formatMoney(expense.amount)}
-                          {currency ? ` ${currency.letter_code}` : ""}
+                          {currency ? ` ${getCurrencySymbol(currency)}` : ""}
                         </strong>
                       </div>
                       <div className="expense-meta">
@@ -1241,7 +1302,8 @@ const ExpensesView = () => {
 const createEmptyCurrency = (): CurrencyPayload => ({
   name: "",
   letter_code: "",
-  country: ""
+  country: "",
+  symbol: ""
 });
 
 const normalizeCurrencyCode = (value: string) =>
@@ -1249,6 +1311,10 @@ const normalizeCurrencyCode = (value: string) =>
     .replace(/[^a-zA-Z]/g, "")
     .slice(0, 3)
     .toUpperCase();
+
+const normalizeCurrencySymbol = (value: string) => Array.from(value.trim()).slice(0, 1).join("");
+
+const getCurrencySymbol = (currency: Currency) => currency.symbol || currency.letter_code;
 
 const CurrenciesView = () => {
   const [currenciesState, setCurrenciesState] = useState<CurrenciesState>({
@@ -1289,14 +1355,22 @@ const CurrenciesView = () => {
   const setNewCurrencyField = (field: keyof CurrencyPayload, value: string) => {
     setNewCurrency((current) => ({
       ...current,
-      [field]: field === "letter_code" ? normalizeCurrencyCode(value) : value
+      [field]: field === "letter_code"
+        ? normalizeCurrencyCode(value)
+        : field === "symbol"
+          ? normalizeCurrencySymbol(value)
+          : value
     }));
   };
 
   const setEditingCurrencyField = (field: keyof CurrencyPayload, value: string) => {
     setEditingCurrency((current) => ({
       ...current,
-      [field]: field === "letter_code" ? normalizeCurrencyCode(value) : value
+      [field]: field === "letter_code"
+        ? normalizeCurrencyCode(value)
+        : field === "symbol"
+          ? normalizeCurrencySymbol(value)
+          : value
     }));
   };
 
@@ -1317,7 +1391,8 @@ const CurrenciesView = () => {
       await currenciesApi.create({
         name: newCurrency.name.trim(),
         letter_code: newCurrency.letter_code,
-        country: newCurrency.country.trim()
+        country: newCurrency.country.trim(),
+        symbol: newCurrency.symbol?.trim() || null
       });
       setNewCurrency(createEmptyCurrency());
       setIsCreateFormOpen(false);
@@ -1338,7 +1413,8 @@ const CurrenciesView = () => {
     setEditingCurrency({
       name: currency.name,
       letter_code: currency.letter_code,
-      country: currency.country
+      country: currency.country,
+      symbol: currency.symbol ?? ""
     });
   };
 
@@ -1355,13 +1431,15 @@ const CurrenciesView = () => {
     const payload: CurrencyPayload = {
       name: editingCurrency.name.trim(),
       letter_code: editingCurrency.letter_code,
-      country: editingCurrency.country.trim()
+      country: editingCurrency.country.trim(),
+      symbol: editingCurrency.symbol?.trim() || null
     };
 
     if (
       payload.name === currency.name &&
       payload.letter_code === currency.letter_code &&
-      payload.country === currency.country
+      payload.country === currency.country &&
+      payload.symbol === currency.symbol
     ) {
       cancelEditingCurrency();
       return;
@@ -1385,7 +1463,7 @@ const CurrenciesView = () => {
   };
 
   const deleteCurrency = async (currency: Currency) => {
-    if (!confirmDeletion(`валюту «${currency.name} (${currency.letter_code})»`)) {
+    if (!confirmDeletion(`валюту «${currency.name} (${getCurrencySymbol(currency)})»`)) {
       return;
     }
 
@@ -1454,6 +1532,17 @@ const CurrenciesView = () => {
               inputMode="text"
             />
           </label>
+          <label className="text-field symbol-field">
+            <span>Символ</span>
+            <input
+              type="text"
+              value={newCurrency.symbol ?? ""}
+              onChange={(event) => setNewCurrencyField("symbol", event.target.value)}
+              placeholder="₽"
+              maxLength={1}
+              aria-label="Символ валюты"
+            />
+          </label>
           <label className="text-field">
             <span>Страна</span>
             <input
@@ -1510,7 +1599,6 @@ const CurrenciesView = () => {
 
             return (
               <article className="currency-item" key={currency.id}>
-                <div className="currency-code">{currency.letter_code}</div>
                 <div className="currency-copy">
                   {isEditing ? (
                     <div className="currency-edit-grid">
@@ -1533,6 +1621,17 @@ const CurrenciesView = () => {
                           maxLength={3}
                         />
                       </label>
+                      <label className="text-field symbol-field">
+                        <span>Символ</span>
+                        <input
+                          type="text"
+                          value={editingCurrency.symbol ?? ""}
+                          onChange={(event) => setEditingCurrencyField("symbol", event.target.value)}
+                          placeholder="₽"
+                          maxLength={1}
+                          aria-label="Символ валюты"
+                        />
+                      </label>
                       <label className="text-field">
                         <span>Страна</span>
                         <input
@@ -1545,7 +1644,11 @@ const CurrenciesView = () => {
                     </div>
                   ) : (
                     <>
-                      <h3>{currency.name}</h3>
+                      <div className="currency-title-row">
+                        <h3>{currency.name}</h3>
+                        <span className="currency-symbol">{getCurrencySymbol(currency)}</span>
+                        <span className="currency-letter-code">{currency.letter_code}</span>
+                      </div>
                       <p>{currency.country}</p>
                     </>
                   )}
@@ -1595,6 +1698,233 @@ const CurrenciesView = () => {
           })}
         </div>
       )}
+    </section>
+  );
+};
+
+const MonthlyBalance = () => {
+  const [data, setData] = useState<MoneySpent | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadMoneySpent = useCallback(async () => {
+    setError(null);
+
+    try {
+      setData(await statisticsApi.getMoneySpent());
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadMoneySpent();
+  }, [loadMoneySpent]);
+
+  if (!data) {
+    return (
+      <section className={`balance-card balance-card-state${error ? " error" : ""}`} aria-live="polite">
+        {error ? (
+          <>
+            <div><strong>Не удалось загрузить бюджет</strong><span>{error}</span></div>
+            <button type="button" onClick={() => void loadMoneySpent()}>Повторить</button>
+          </>
+        ) : (
+          <><div className="balance-loader" /><span>Загружаем бюджет за месяц…</span></>
+        )}
+      </section>
+    );
+  }
+
+  const budget = Number(data.budget);
+  const spent = Number(data.money_spent);
+  const balance = budget - spent;
+  const isOverBudget = balance < 0;
+  const spentPercent = budget > 0 ? Math.round((spent / budget) * 100) : spent > 0 ? 100 : 0;
+  const remainingPercent = Math.max(0, 100 - spentPercent);
+  const overrunPercent = Math.max(0, spentPercent - 100);
+  const progressWidth = Math.min(100, spentPercent);
+  const currencySymbol = getCurrencySymbol(data.default_currency);
+  const month = new Intl.DateTimeFormat("ru-RU", { month: "long" }).format(new Date(data.current_datetime));
+  const displayedAmount = Math.abs(balance);
+
+  return (
+    <section
+      className={`balance-card${isOverBudget ? " over-budget" : ""}`}
+      aria-label={isOverBudget ? "Перерасход бюджета" : `Остаток бюджета на ${month}`}
+    >
+      <div className="balance-card-main">
+        <div>
+          <span>{isOverBudget ? "Перерасход бюджета" : `Остаток на ${month}`}</span>
+          <strong>{formatBudget(displayedAmount)} {currencySymbol}</strong>
+        </div>
+        <div className="balance-percent">
+          {isOverBudget ? `+${overrunPercent}%` : `${remainingPercent}%`}
+        </div>
+      </div>
+      <div className="budget-progress" aria-label={`Потрачено ${spentPercent}% бюджета`}>
+        <span style={{ width: `${progressWidth}%` }} />
+      </div>
+      <div className="balance-meta">
+        <span>Потрачено {formatBudget(spent)} {currencySymbol}</span>
+        <span>Бюджет {formatBudget(budget)} {currencySymbol}</span>
+      </div>
+    </section>
+  );
+};
+
+const StatisticsView = () => {
+  const [year, setYear] = useState(2026);
+  const [month, setMonth] = useState(7);
+  const [mode, setMode] = useState<"month" | "today">("month");
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  const availableMonths = Object.keys(statisticData[year] ?? {}).map(Number).sort((a, b) => b - a);
+  const period = statisticData[year]?.[month] ?? statisticData[year]?.[availableMonths[0]];
+
+  useEffect(() => {
+    if (!statisticData[year]?.[month] && availableMonths.length) {
+      setMonth(availableMonths[0]);
+    }
+  }, [year, month, availableMonths]);
+
+  useEffect(() => {
+    setSelectedDay(null);
+  }, [year, month, mode]);
+
+  if (!period) {
+    return null;
+  }
+
+  const maxDay = Math.max(...period.days);
+  const todayAmount = 2840;
+  const displaySpent = mode === "today" ? todayAmount : period.spent;
+  const selectedDayAmount = selectedDay === null ? null : period.days[selectedDay];
+  const selectedDate = selectedDay === null ? null : new Date(year, month, selectedDay + 1);
+  const selectedDateLabel = selectedDate
+    ? new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate)
+    : null;
+  const selectedDayCategories = selectedDayAmount === null ? null : (() => {
+    const patterns = [[0.52, 0.28, 0.2], [0.38, 0.35, 0.27], [0.61, 0.24, 0.15]];
+    const pattern = patterns[(selectedDay ?? 0) % patterns.length];
+    const names = ["Продукты", "Кафе", "Транспорт"];
+    const colors = ["#2f80ed", "#f59e0b", "#8b5cf6"];
+    let allocated = 0;
+
+    return pattern.map((weight, index) => {
+      const amount = index === pattern.length - 1
+        ? selectedDayAmount - allocated
+        : Math.round(selectedDayAmount * weight);
+      allocated += amount;
+      return { name: names[index], amount, color: colors[index] };
+    });
+  })();
+  const displayCategories = mode === "today"
+    ? [
+        { name: "Продукты", amount: 1460, color: "#2f80ed" },
+        { name: "Кафе", amount: 890, color: "#f59e0b" },
+        { name: "Транспорт", amount: 490, color: "#8b5cf6" }
+      ]
+    : selectedDayCategories ?? period.categories;
+  const categoryTotal = mode === "today" ? todayAmount : selectedDayAmount ?? period.spent;
+
+  return (
+    <section className="statistics-view">
+      <div className="section-heading statistics-heading">
+        <div>
+          <p className="eyebrow">Аналитика расходов</p>
+          <h2>Статистика</h2>
+        </div>
+        <div className="period-selectors">
+          <label>
+            <span className="sr-only">Год</span>
+            <select value={year} onChange={(event) => setYear(Number(event.target.value))}>
+              {Object.keys(statisticData).map((value) => <option key={value}>{value}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">Месяц</span>
+            <select value={month} onChange={(event) => setMonth(Number(event.target.value))}>
+              {availableMonths.map((value) => (
+                <option value={value} key={value}>{monthNames[value]}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div className="stat-tabs" role="tablist" aria-label="Период статистики">
+        <button type="button" role="tab" aria-selected={mode === "month"} className={mode === "month" ? "active" : ""} onClick={() => setMode("month")}>За месяц</button>
+        <button type="button" role="tab" aria-selected={mode === "today"} className={mode === "today" ? "active" : ""} onClick={() => setMode("today")}>Сегодня</button>
+      </div>
+
+      <section className="spending-hero">
+        <div>
+          <p>{mode === "today" ? "Потрачено сегодня" : `Потрачено за ${monthNames[month].toLowerCase()}`}</p>
+          <strong>{formatBudget(displaySpent)} ₽</strong>
+        </div>
+      </section>
+
+      {mode === "month" && (
+        <section className="stat-card chart-card">
+          <div className="stat-card-heading">
+            <div><h3>Расходы по дням</h3><p>Нажмите на столбец, чтобы посмотреть детали дня</p></div>
+            <span>Среднее {formatBudget(period.spent / period.days.length)} ₽</span>
+          </div>
+          {selectedDay !== null && selectedDayAmount !== null && (
+            <div className="selected-day-summary" aria-live="polite">
+              <div>
+                <span>Выбранный день</span>
+                <strong>{selectedDateLabel}</strong>
+              </div>
+              <b>{formatBudget(selectedDayAmount)} ₽</b>
+              <button type="button" onClick={() => setSelectedDay(null)}>Сбросить</button>
+            </div>
+          )}
+          <div className="daily-chart" aria-label="График расходов по дням">
+            {period.days.map((amount, index) => (
+              <button
+                type="button"
+                className={`chart-column${selectedDay === index ? " selected" : ""}${selectedDay !== null && selectedDay !== index ? " muted" : ""}`}
+                key={index}
+                title={`${index + 1} ${monthNames[month].toLowerCase()}: ${formatBudget(amount)} ₽`}
+                aria-label={`${index + 1} ${monthNames[month].toLowerCase()}, ${formatBudget(amount)} ₽`}
+                aria-pressed={selectedDay === index}
+                onClick={() => setSelectedDay((current) => current === index ? null : index)}
+              >
+                <span style={{ height: `${Math.max(8, (amount / maxDay) * 100)}%` }} />
+                {(index === 0 || (index + 1) % 5 === 0 || index === period.days.length - 1) && <small>{index + 1}</small>}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="statistics-grid">
+        <section className="stat-card">
+          <div className="stat-card-heading">
+            <div>
+              <h3>По категориям</h3>
+              <p>{selectedDateLabel && mode === "month" ? `Расходы за ${selectedDateLabel}` : "Куда ушли деньги за период"}</p>
+            </div>
+          </div>
+          <div className="category-stat-list">
+            {displayCategories.map((category) => {
+              const share = Math.round((category.amount / categoryTotal) * 100);
+              return (
+                <div className="category-stat" key={category.name}>
+                  <div className="category-stat-copy">
+                    <span className="category-marker" style={{ background: category.color }} />
+                    <strong>{category.name}</strong>
+                    <span>{share}%</span>
+                    <b>{formatBudget(category.amount)} ₽</b>
+                  </div>
+                  <div className="category-bar"><span style={{ width: `${share}%`, background: category.color }} /></div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
     </section>
   );
 };
@@ -1724,14 +2054,14 @@ const SettingsView = () => {
               <span>Месячный бюджет</span>
               <strong>
                 {formatBudget(settingsState.settings.budget)}
-                {selectedCurrency ? ` ${selectedCurrency.letter_code}` : ""}
+                {selectedCurrency ? ` ${getCurrencySymbol(selectedCurrency)}` : ""}
               </strong>
             </article>
             <article className="detail-item">
               <span>Валюта по умолчанию</span>
               <strong>
                 {selectedCurrency
-                  ? `${selectedCurrency.name} (${selectedCurrency.letter_code})`
+                  ? `${selectedCurrency.name} (${getCurrencySymbol(selectedCurrency)})`
                   : "Не выбрана"}
               </strong>
             </article>
@@ -1761,7 +2091,7 @@ const SettingsView = () => {
                   <option value="">Выберите валюту</option>
                   {settingsState.currencies.map((currency) => (
                     <option value={currency.id} key={currency.id}>
-                      {currency.name} ({currency.letter_code})
+                      {currency.name} ({getCurrencySymbol(currency)})
                     </option>
                   ))}
                 </select>
@@ -1817,6 +2147,7 @@ export const App = () => {
     error: null
   });
   const [activeView, setActiveView] = useState<View>("expenses");
+  const [balanceRevision, setBalanceRevision] = useState(0);
 
   const telegramUser = getTelegramWebApp()?.initDataUnsafe?.user;
 
@@ -1868,8 +2199,12 @@ export const App = () => {
       return <CategoriesView />;
     }
 
+    if (activeView === "statistics") {
+      return <StatisticsView />;
+    }
+
     if (activeView === "expenses") {
-      return <ExpensesView />;
+      return <ExpensesView onExpensesChanged={() => setBalanceRevision((current) => current + 1)} />;
     }
 
     if (activeView === "currencies") {
@@ -1909,13 +2244,32 @@ export const App = () => {
           <button type="button" className="primary-button" onClick={() => void loadUser(true)}>
             Повторить вход
           </button>
+          <button
+            type="button"
+            className="secondary-button demo-button"
+            onClick={() => setAuthState({
+              status: "authenticated",
+              user: {
+                id: 1,
+                telegram_id: 100000001,
+                telegram_username: "demo_user",
+                telegram_first_name: "Демо",
+                telegram_last_name: "Пользователь",
+                created_at: "2026-01-12T10:00:00Z"
+              },
+              error: null
+            })}
+          >
+            Открыть демо статистики
+          </button>
         </section>
       )}
 
       {authState.status === "authenticated" && (
         <>
+          <MonthlyBalance key={balanceRevision} />
           <nav className="app-nav" aria-label="Разделы приложения">
-            {navigationItems.map((item) => (
+            {navigationItems.filter((item) => !item.isHidden).map((item) => (
               <button
                 type="button"
                 key={item.id}

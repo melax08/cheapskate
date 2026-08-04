@@ -19,3 +19,4 @@ class CurrencyFactory(BaseFactory):
     name = factory.LazyFunction(lambda: fake.unique.currency_name()[:MAX_CURRENCY_NAME_LENGTH])
     letter_code = factory.LazyFunction(lambda: fake.unique.currency_code())
     country = factory.LazyFunction(lambda: fake.unique.country()[:COUNTRY_LENGTH])
+    # symbol = factory.LazyFunction(lambda: fake.unique.currency_symbol())

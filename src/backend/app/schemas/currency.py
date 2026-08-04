@@ -15,6 +15,7 @@ class CurrencyCreate(BaseModel):
         max_length=CURRENCY_LETTER_CODE_LENGTH,
     )
     country: str = Field(..., max_length=COUNTRY_LENGTH)
+    symbol: str | None = Field(None, max_length=16)
 
     @field_validator("name")
     def name_cant_be_null(cls, value: str):
@@ -41,3 +42,4 @@ class CurrencyUpdate(CurrencyCreate):
         max_length=CURRENCY_LETTER_CODE_LENGTH,
     )
     country: str | None = Field(None, max_length=COUNTRY_LENGTH)
+    symbol: str | None = Field(None, max_length=16)

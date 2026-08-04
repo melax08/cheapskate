@@ -87,6 +87,8 @@ async def check_currency_unique_fields(
         fields_to_check["letter_code"] = currency.letter_code
     if currency.country:
         fields_to_check["country"] = currency.country
+    if currency.symbol:
+        fields_to_check["symbol"] = currency.symbol
 
     currency = await currency_repository.get_first_with_some_field_match(
         session, instance_id_to_exclude=currency_id_to_exclude, **fields_to_check
@@ -94,7 +96,7 @@ async def check_currency_unique_fields(
     if currency:
         raise_api_error(
             error_code=APIErrorCode.NOT_UNIQUE_CURRENCY_FIELDS,
-            message="Не уникальное название/код/страна",
+            message="Не уникальное название/код/страна/символ",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 

@@ -22,6 +22,7 @@ class Currency(Base):
         uselist=False,
         back_populates="default_currency",
     )
+    symbol = Column(String(16), nullable=True)
 
     def __repr__(self):
         return f"<Currency {self.name} ({self.letter_code}) from {self.country}>"

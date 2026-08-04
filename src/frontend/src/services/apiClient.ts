@@ -14,6 +14,7 @@ import type {
   ExpensePayload,
   ExpenseUpdatePayload,
   ExpenseWithMoneyLeft,
+  MoneySpent,
   Settings,
   SettingsUpdatePayload,
   User
@@ -26,6 +27,7 @@ const CURRENCIES_URL = "/api/v1/currencies";
 const SETTINGS_URL = "/api/v1/settings";
 const EXPENSES_URL = "/api/v1/expenses";
 const USERS_URL = "/api/v1/users";
+const STATISTICS_URL = "/api/v1/statistics";
 const EXPIRATION_SAFETY_WINDOW_SECONDS = 30;
 
 type RequestOptions = RequestInit & {
@@ -246,6 +248,12 @@ export const settingsApi = {
       method: "PATCH",
       body: JSON.stringify(payload)
     });
+  }
+};
+
+export const statisticsApi = {
+  getMoneySpent(): Promise<MoneySpent> {
+    return apiRequest<MoneySpent>(`${STATISTICS_URL}/money-spent`);
   }
 };
 

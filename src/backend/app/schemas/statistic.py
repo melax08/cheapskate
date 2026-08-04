@@ -55,3 +55,10 @@ class MoneyLeft(StatisticSpent):
 class StatisticPeriod(BaseModel):
     year: int
     month: int
+
+
+class MoneySpent(BaseModel):
+    budget: Decimal
+    money_spent: Decimal
+    current_datetime: datetime
+    default_currency: CurrencyDB

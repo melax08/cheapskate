@@ -67,6 +67,7 @@ class TestExpensePublicEndpoints:
                 "letter_code": currency.letter_code,
                 "country": currency.country,
                 "id": currency.id,
+                "symbol": currency.symbol,
             },
             "date": expense.date.isoformat(),
             "money_left": str((setting.budget - Decimal(data["amount"])).quantize(Decimal(".001"))),
@@ -103,6 +104,7 @@ class TestExpensePublicEndpoints:
                 "letter_code": currency.letter_code,
                 "country": currency.country,
                 "id": currency.id,
+                "symbol": currency.symbol,
             },
             "date": expense.date.isoformat(),
             "money_left": str(
@@ -151,6 +153,7 @@ class TestExpensePublicEndpoints:
                 "letter_code": currency.letter_code,
                 "country": currency.country,
                 "id": currency.id,
+                "symbol": currency.symbol,
             },
             "date": expense.date.isoformat(),
             "money_left": str(
@@ -193,6 +196,7 @@ class TestExpensePublicEndpoints:
                 "letter_code": expense_data["currency"].letter_code,
                 "country": expense_data["currency"].country,
                 "id": expense_data["currency"].id,
+                "symbol": expense_data["currency"].symbol,
             },
             "date": expense_data["date"].isoformat(),
             "money_left": str(Decimal(setting.budget).quantize(Decimal(".001"))),
@@ -236,6 +240,7 @@ class TestExpensePublicEndpoints:
                 "letter_code": expense.currency.letter_code,
                 "country": expense.currency.country,
                 "id": expense.currency.id,
+                "symbol": expense.currency.symbol,
             },
             "date": expense.date.isoformat(),
         }
@@ -353,6 +358,7 @@ class TestExpensePublicEndpoints:
                 "id": currency.id,
                 "letter_code": currency.letter_code,
                 "name": currency.name,
+                "symbol": currency.symbol,
             },
             "date": expense_date_before.isoformat(),
             "description": data["description"],

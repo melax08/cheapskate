@@ -37,6 +37,7 @@ class TestCurrencyPublicEndpoints:
             "letter_code": first_currency.letter_code,
             "country": first_currency.country,
             "id": first_currency.id,
+            "symbol": first_currency.symbol,
         } in response_data
 
         assert {
@@ -44,6 +45,7 @@ class TestCurrencyPublicEndpoints:
             "letter_code": second_currency.letter_code,
             "country": second_currency.country,
             "id": second_currency.id,
+            "symbol": second_currency.symbol,
         } in response_data
 
     async def test_currencies_detail(
@@ -68,6 +70,7 @@ class TestCurrencyPublicEndpoints:
             "letter_code": currency.letter_code,
             "country": currency.country,
             "id": currency.id,
+            "symbol": currency.symbol,
         }
 
         nonexistent_currency_id = 123
@@ -87,6 +90,7 @@ class TestCurrencyPublicEndpoints:
             "name": "Russian ruble",
             "letter_code": "RUB",
             "country": "Russia",
+            "symbol": "₽",
         }
 
         currencies_count_before = await db_session.execute(
@@ -111,6 +115,7 @@ class TestCurrencyPublicEndpoints:
             "letter_code": currency.letter_code,
             "country": currency.country,
             "id": currency.id,
+            "symbol": currency.symbol,
         }
 
         response = await authorized_client.post(self.BASE_URL, json=data)
@@ -120,7 +125,7 @@ class TestCurrencyPublicEndpoints:
         assert response.json() == {
             "detail": {
                 "error_code": "not_unique_currency_fields",
-                "message": "Не уникальное название/код/страна",
+                "message": "Не уникальное название/код/страна/символ",
             }
         }
 
@@ -128,6 +133,7 @@ class TestCurrencyPublicEndpoints:
             "name": "American dollar",
             "letter_code": "123",  # invalid letter code
             "country": "USA",
+            "symbol": "$",
         }
         response = await authorized_client.post(self.BASE_URL, json=invalid_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -147,6 +153,7 @@ class TestCurrencyPublicEndpoints:
             "name": "Russian ruble",
             "letter_code": "RUB",
             "country": "Russia",
+            "symbol": "₽",
         }
 
         anon_response = await anonymous_client.patch(url, json=data)
@@ -178,7 +185,7 @@ class TestCurrencyPublicEndpoints:
         assert response.json() == {
             "detail": {
                 "error_code": "not_unique_currency_fields",
-                "message": "Не уникальное название/код/страна",
+                "message": "Не уникальное название/код/страна/символ",
             }
         }
         await db_session.refresh(second_currency)

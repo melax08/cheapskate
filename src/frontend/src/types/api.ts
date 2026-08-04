@@ -37,18 +37,28 @@ export type Currency = {
   name: string;
   letter_code: string;
   country: string;
+  symbol: string | null;
 };
 
 export type CurrencyPayload = {
   name: string;
   letter_code: string;
   country: string;
+  symbol: string | null;
 };
 
 export type CurrencyUpdatePayload = {
   name?: string;
   letter_code?: string;
   country?: string;
+  symbol?: string | null;
+};
+
+export type MoneySpent = {
+  budget: string | number;
+  money_spent: string | number;
+  current_datetime: string;
+  default_currency: Currency;
 };
 
 export type Settings = {

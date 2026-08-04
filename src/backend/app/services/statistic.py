@@ -2,7 +2,7 @@ import datetime as dt
 
 from backend.app.api.validators import validate_month_year
 from backend.app.repositories import currency_repository, expense_repository, setting_repository
-from backend.app.schemas.statistic import MoneyLeft, Statistic, StatisticPeriod
+from backend.app.schemas.statistic import MoneyLeft, MoneySpent, Statistic, StatisticPeriod
 from backend.app.services.base import BaseService
 
 
@@ -50,3 +50,16 @@ class StatisticService(BaseService):
             period.year, period.month, self._session
         )
         return Statistic.from_db_query(crud_result=expenses)
+
+    async def money_spent(self) -> MoneySpent:
+        settings = await setting_repository.get(self._session)
+        money_spent = await expense_repository.calculate_money_spent_this_month(
+            session=self._session, default_currency=settings.default_currency
+        )
+
+        return MoneySpent(
+            budget=settings.budget,
+            money_spent=money_spent,
+            current_datetime=dt.datetime.now(),
+            default_currency=settings.default_currency,
+        )

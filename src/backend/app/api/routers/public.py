@@ -6,6 +6,7 @@ from backend.app.api.endpoints.public import (
     currency_router,
     expense_router,
     setting_router,
+    statistics_router,
     user_router,
 )
 from configs.api_settings import PUBLIC_API_PATH
@@ -18,3 +19,4 @@ public_router.include_router(currency_router, prefix="/currencies", tags=["curre
 public_router.include_router(setting_router, prefix="/settings", tags=["settings"])
 public_router.include_router(expense_router, prefix="/expenses", tags=["expenses"])
 public_router.include_router(user_router, prefix="/users", tags=["users"])
+public_router.include_router(statistics_router, prefix="/statistics", tags=["statistics"])

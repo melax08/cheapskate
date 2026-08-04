@@ -28,14 +28,9 @@ class ExpenseRepository(RepositoryBase):
         money_spent = await session.execute(select(func.sum(self.model.amount)).where(where_stmt))
         return money_spent.scalars().first() or Decimal("0")
 
-    async def calculate_money_left(
-        self,
-        session: AsyncSession,
-        budget: int | None = None,
-        default_currency: Currency | None = None,
+    async def calculate_money_spent_this_month(
+        self, session: AsyncSession, default_currency: Currency | None = None
     ) -> Decimal:
-        """Calculates how much money is left from the budget for
-        the current month in current default currency."""
         current_date = dt.datetime.now()
 
         if not default_currency:
@@ -49,6 +44,18 @@ class ExpenseRepository(RepositoryBase):
             ),
             session,
         )
+
+        return money_spent
+
+    async def calculate_money_left(
+        self,
+        session: AsyncSession,
+        budget: int | None = None,
+        default_currency: Currency | None = None,
+    ) -> Decimal:
+        """Calculates how much money is left from the budget for
+        the current month in current default currency."""
+        money_spent = await self.calculate_money_spent_this_month(session, default_currency)
 
         if budget is None:
             budget = await setting_repository.get_budget(session)
