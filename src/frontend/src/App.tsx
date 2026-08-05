@@ -147,6 +147,12 @@ const formatBudget = (value: string | number) =>
     maximumFractionDigits: 2
   }).format(Number(value));
 
+const formatWholeMoney = (value: string | number) =>
+  new Intl.NumberFormat("ru-RU", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(Number(value));
+
 const formatMoney = (value: string | number) =>
   new Intl.NumberFormat("ru-RU", {
     minimumFractionDigits: 0,
@@ -1755,7 +1761,7 @@ const MonthlyBalance = () => {
       <div className="balance-card-main">
         <div>
           <span>{isOverBudget ? "Перерасход бюджета" : `Остаток на ${month}`}</span>
-          <strong>{formatBudget(displayedAmount)} {currencySymbol}</strong>
+          <strong>{formatWholeMoney(displayedAmount)} {currencySymbol}</strong>
         </div>
         <div className="balance-percent">
           {isOverBudget ? `+${overrunPercent}%` : `${remainingPercent}%`}
@@ -1765,7 +1771,7 @@ const MonthlyBalance = () => {
         <span style={{ width: `${progressWidth}%` }} />
       </div>
       <div className="balance-meta">
-        <span>Потрачено {formatBudget(spent)} {currencySymbol}</span>
+        <span>Потрачено {formatWholeMoney(spent)} {currencySymbol}</span>
         <span>Бюджет {formatBudget(budget)} {currencySymbol}</span>
       </div>
     </section>
