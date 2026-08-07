@@ -1,8 +1,20 @@
+import calendar
 import datetime as dt
+from collections import defaultdict
+from decimal import Decimal
 
 from backend.app.api.validators import validate_month_year
+from backend.app.models.currency import Currency
 from backend.app.repositories import currency_repository, expense_repository, setting_repository
-from backend.app.schemas.statistic import MoneyLeft, MoneySpent, Statistic, StatisticPeriod
+from backend.app.schemas.statistic import (
+    CategoryExpense,
+    ExpensesStatisticByCategories,
+    MoneyLeft,
+    MoneySpent,
+    MonthYearStatistic,
+    Statistic,
+    StatisticPeriod,
+)
 from backend.app.services.base import BaseService
 
 
@@ -37,9 +49,13 @@ class StatisticService(BaseService):
         )
         return Statistic.from_db_query(crud_result=expenses)
 
-    async def get_statistic_periods(self) -> list[StatisticPeriod]:
+    async def get_statistic_periods(
+        self, currency: Currency | None = None
+    ) -> list[StatisticPeriod]:
         """Get periods with expenses."""
-        periods = await expense_repository.get_years_and_months_with_expenses(self._session)
+        periods = await expense_repository.get_years_and_months_with_expenses(
+            self._session, currency
+        )
         return [StatisticPeriod(year=year, month=month) for year, month in periods]
 
     async def get_statistic_for_period(self, period: StatisticPeriod) -> Statistic:
@@ -63,3 +79,60 @@ class StatisticService(BaseService):
             current_datetime=dt.datetime.now(),
             default_currency=settings.default_currency,
         )
+
+    async def get_month_year_statistic(self, period: StatisticPeriod) -> MonthYearStatistic:
+        default_currency = await setting_repository.get_default_currency(self._session)
+        expenses_by_categories_and_days = (
+            await expense_repository.get_categories_expenses_by_days_in_month(
+                self._session, period.year, period.month, default_currency
+            )
+        )
+
+        days_categories_expenses_mapping = defaultdict(dict)
+        for category, amount, day in expenses_by_categories_and_days:
+            days_categories_expenses_mapping[day][category.name] = amount
+
+        days_result = []
+        summary_total = Decimal(0)
+        summary_categories = defaultdict(Decimal)
+
+        for day in self._get_month_year_days(period.year, period.month):
+            day_data = {
+                "date": dt.datetime(day=day, month=period.month, year=period.year).strftime(
+                    "%Y-%m-%d"
+                ),
+                "total": Decimal(0),
+                "categories": [],
+            }
+            if day in days_categories_expenses_mapping:
+                for category_name, amount in days_categories_expenses_mapping[day].items():
+                    day_data["categories"].append(
+                        {
+                            "name": category_name,
+                            "amount": amount,
+                        }
+                    )
+                    day_data["total"] += amount
+                    summary_total += amount
+                    summary_categories[category_name] += amount
+
+            days_result.append(day_data)
+
+        return MonthYearStatistic(
+            period=period,
+            currency=default_currency,
+            days=days_result,
+            summary=ExpensesStatisticByCategories(
+                **{
+                    "total": summary_total,
+                    "categories": [
+                        CategoryExpense(name=category_name, amount=total)
+                        for category_name, total in summary_categories.items()
+                    ],
+                }
+            ),
+        )
+
+    def _get_month_year_days(self, year: int, month: int) -> list[int]:
+        _, num_days = calendar.monthrange(year, month)
+        return list(range(1, num_days + 1))

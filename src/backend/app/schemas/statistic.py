@@ -62,3 +62,19 @@ class MoneySpent(BaseModel):
     money_spent: Decimal
     current_datetime: datetime
     default_currency: CurrencyDB
+
+
+class ExpensesStatisticByCategories(BaseModel):
+    total: Decimal
+    categories: list[CategoryExpense]
+
+
+class DayStatistic(ExpensesStatisticByCategories):
+    date: str
+
+
+class MonthYearStatistic(BaseModel):
+    period: StatisticPeriod
+    days: list[DayStatistic]
+    summary: ExpensesStatisticByCategories
+    currency: CurrencyDB

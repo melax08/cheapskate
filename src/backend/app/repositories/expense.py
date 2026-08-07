@@ -69,14 +69,19 @@ class ExpenseRepository(RepositoryBase):
         )
         return round(today_expenses, 3)
 
-    async def get_years_and_months_with_expenses(self, session: AsyncSession):
+    async def get_years_and_months_with_expenses(
+        self, session: AsyncSession, currency: Currency | None = None
+    ):
         """Gets unique years and months with expenses."""
-        periods = await session.execute(
-            select(
-                distinct(extract("year", self.model.date)).label("year"),
-                extract("month", self.model.date).label("month"),
-            ).order_by(desc("year"), desc("month"))
-        )
+        statement = select(
+            distinct(extract("year", self.model.date)).label("year"),
+            extract("month", self.model.date).label("month"),
+        ).order_by(desc("year"), desc("month"))
+
+        if currency:
+            statement = statement.where(self.model.currency_id == currency.id)
+
+        periods = await session.execute(statement)
         return periods.all()
 
     async def get_years_with_expenses(self, session: AsyncSession, currency_id: int | None = None):
@@ -122,6 +127,29 @@ class ExpenseRepository(RepositoryBase):
             )
             .group_by(Category, "month")
             .order_by("month")
+        )
+        return result.all()
+
+    async def get_categories_expenses_by_days_in_month(
+        self, session: AsyncSession, year: int, month: int, currency: Currency
+    ):
+        result = await session.execute(
+            select(
+                Category,
+                func.sum(Expense.amount).label("category_expense_amount"),
+                func.cast(extract("day", Expense.date), Integer).label("expenses_day"),
+            )
+            .join(Expense, Expense.category_id == Category.id)
+            .join(Currency, Expense.currency_id == Currency.id)
+            .where(
+                and_(
+                    func.cast(extract("month", Expense.date), Integer) == month,
+                    func.cast(extract("year", Expense.date), Integer) == year,
+                    Expense.currency_id == currency.id,
+                )
+            )
+            .group_by(Category, "expenses_day")
+            .order_by(desc("category_expense_amount"))
         )
         return result.all()
 

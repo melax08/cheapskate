@@ -63,7 +63,7 @@ type ExpenseFilters = {
 
 const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean; isHidden?: boolean }> = [
   { id: "expenses", label: "Траты" },
-  { id: "statistics", label: "Статистика", isHidden: true },
+  { id: "statistics", label: "Статистика" },
   { id: "categories", label: "Категории" },
   { id: "currencies", label: "Валюты" },
   { id: "settings", label: "Настройки" },
