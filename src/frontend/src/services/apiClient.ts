@@ -15,8 +15,10 @@ import type {
   ExpenseUpdatePayload,
   ExpenseWithMoneyLeft,
   MoneySpent,
+  MonthYearStatistics,
   Settings,
   SettingsUpdatePayload,
+  StatisticsPeriod,
   User
 } from "../types/api";
 
@@ -254,6 +256,17 @@ export const settingsApi = {
 export const statisticsApi = {
   getMoneySpent(): Promise<MoneySpent> {
     return apiRequest<MoneySpent>(`${STATISTICS_URL}/money-spent`);
+  },
+
+  getPeriods(): Promise<StatisticsPeriod[]> {
+    return apiRequest<StatisticsPeriod[]>(`${STATISTICS_URL}/periods`);
+  },
+
+  getForPeriod(period: StatisticsPeriod): Promise<MonthYearStatistics> {
+    return apiRequest<MonthYearStatistics>(STATISTICS_URL, {
+      method: "POST",
+      body: JSON.stringify(period)
+    });
   }
 };
 

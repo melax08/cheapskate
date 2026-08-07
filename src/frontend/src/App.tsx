@@ -17,7 +17,9 @@ import type {
   ExpenseDetail,
   ExpensePayload,
   MoneySpent,
+  MonthYearStatistics,
   Settings,
+  StatisticsPeriod,
   User
 } from "./types/api";
 import { useTelegramTheme } from "./hooks/useTelegramTheme";
@@ -69,56 +71,6 @@ const navigationItems: Array<{ id: View; label: string; isComingSoon?: boolean; 
   { id: "settings", label: "Настройки" },
   { id: "overview", label: "Профиль" }
 ];
-
-type StatisticPeriod = {
-  spent: number;
-  previous: number;
-  days: number[];
-  categories: Array<{ name: string; amount: number; color: string }>;
-};
-
-const statisticData: Record<number, Record<number, StatisticPeriod>> = {
-  2026: {
-    7: {
-      spent: 46280,
-      previous: 51240,
-      days: [900, 1280, 640, 2100, 1780, 1200, 2450, 980, 1600, 2840, 1340, 820, 1980, 1160, 2500, 740, 1560, 2240, 1100, 2920, 1370, 860, 1740, 2310, 940, 1860, 1260, 2040, 1520, 1160, 720],
-      categories: [
-        { name: "Продукты", amount: 14240, color: "#2f80ed" },
-        { name: "Кафе", amount: 9840, color: "#f59e0b" },
-        { name: "Транспорт", amount: 7210, color: "#8b5cf6" },
-        { name: "Дом", amount: 6780, color: "#10b981" },
-        { name: "Другое", amount: 8210, color: "#94a3b8" }
-      ],
-    },
-    6: {
-      spent: 51240,
-      previous: 48790,
-      days: [1200, 1700, 900, 2300, 1400, 1900, 2800, 1100, 2100, 1600, 900, 2500, 1800, 1300, 2200, 950, 1750, 2600, 1450, 2050, 1200, 2900, 1000, 1850, 2350, 1250, 1950, 1500, 2700, 1490],
-      categories: [
-        { name: "Продукты", amount: 16520, color: "#2f80ed" },
-        { name: "Дом", amount: 11240, color: "#10b981" },
-        { name: "Кафе", amount: 9080, color: "#f59e0b" },
-        { name: "Транспорт", amount: 6840, color: "#8b5cf6" },
-        { name: "Другое", amount: 7560, color: "#94a3b8" }
-      ],
-    }
-  },
-  2025: {
-    11: {
-      spent: 43860,
-      previous: 47120,
-      days: [980, 1420, 2100, 760, 1880, 1240, 2520, 950, 1680, 2250, 1180, 860, 1940, 1340, 2480, 720, 1590, 2170, 1040, 2760, 1310, 810, 1650, 2260, 920, 1770, 1210, 1980, 1450, 880],
-      categories: [
-        { name: "Продукты", amount: 13900, color: "#2f80ed" },
-        { name: "Транспорт", amount: 8860, color: "#8b5cf6" },
-        { name: "Кафе", amount: 7640, color: "#f59e0b" },
-        { name: "Дом", amount: 6920, color: "#10b981" },
-        { name: "Другое", amount: 6540, color: "#94a3b8" }
-      ],
-    }
-  }
-};
 
 const monthNames = [
   "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
@@ -1779,59 +1731,113 @@ const MonthlyBalance = () => {
 };
 
 const StatisticsView = () => {
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(7);
+  const now = new Date();
+  const [periods, setPeriods] = useState<StatisticsPeriod[]>([]);
+  const [periodsStatus, setPeriodsStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [statistics, setStatistics] = useState<MonthYearStatistics | null>(null);
+  const [statisticsStatus, setStatisticsStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
   const [mode, setMode] = useState<"month" | "today">("month");
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-  const availableMonths = Object.keys(statisticData[year] ?? {}).map(Number).sort((a, b) => b - a);
-  const period = statisticData[year]?.[month] ?? statisticData[year]?.[availableMonths[0]];
+  const loadPeriods = useCallback(async () => {
+    setPeriodsStatus("loading");
+    setError(null);
+
+    try {
+      const items = (await statisticsApi.getPeriods()).sort(
+        (left, right) => right.year - left.year || right.month - left.month
+      );
+      setPeriods(items);
+      setPeriodsStatus("ready");
+
+      if (items.length) {
+        setYear(items[0].year);
+        setMonth(items[0].month);
+      }
+    } catch (requestError) {
+      setPeriodsStatus("error");
+      setError(getErrorMessage(requestError));
+    }
+  }, []);
+
+  const loadStatistics = useCallback(async () => {
+    setStatisticsStatus("loading");
+    setError(null);
+
+    try {
+      setStatistics(await statisticsApi.getForPeriod({ year, month }));
+      setStatisticsStatus("ready");
+    } catch (requestError) {
+      setStatisticsStatus("error");
+      setError(getErrorMessage(requestError));
+    }
+  }, [year, month]);
 
   useEffect(() => {
-    if (!statisticData[year]?.[month] && availableMonths.length) {
-      setMonth(availableMonths[0]);
+    void loadPeriods();
+  }, [loadPeriods]);
+
+  useEffect(() => {
+    if (periodsStatus === "ready" && (periods.length > 0 || mode === "today")) {
+      void loadStatistics();
     }
-  }, [year, month, availableMonths]);
+  }, [loadStatistics, mode, periods.length, periodsStatus]);
 
   useEffect(() => {
     setSelectedDay(null);
   }, [year, month, mode]);
 
-  if (!period) {
-    return null;
+  const availableYears = Array.from(new Set(periods.map((period) => period.year))).sort((a, b) => b - a);
+  if (!availableYears.includes(year)) {
+    availableYears.push(year);
+  }
+  const availableMonths = Array.from(
+    new Set(periods.filter((period) => period.year === year).map((period) => period.month))
+  ).sort((a, b) => b - a);
+  if (!availableMonths.includes(month)) {
+    availableMonths.push(month);
   }
 
-  const maxDay = Math.max(...period.days);
-  const todayAmount = 2840;
-  const displaySpent = mode === "today" ? todayAmount : period.spent;
-  const selectedDayAmount = selectedDay === null ? null : period.days[selectedDay];
-  const selectedDate = selectedDay === null ? null : new Date(year, month, selectedDay + 1);
-  const selectedDateLabel = selectedDate
-    ? new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate)
+  const days = statistics?.days ?? [];
+  const dayAmounts = days.map((day) => Number(day.total));
+  const maxDay = Math.max(1, ...dayAmounts);
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const todayData = days.find((day) => day.date === todayKey) ?? null;
+  const selectedDayData = selectedDay === null ? null : days[selectedDay] ?? null;
+  const activeDay = mode === "today" ? todayData : selectedDayData;
+  const displaySpent = mode === "today"
+    ? Number(todayData?.total ?? 0)
+    : Number(statistics?.summary.total ?? 0);
+  const selectedDateLabel = activeDay
+    ? new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(new Date(`${activeDay.date}T00:00:00`))
     : null;
-  const selectedDayCategories = selectedDayAmount === null ? null : (() => {
-    const patterns = [[0.52, 0.28, 0.2], [0.38, 0.35, 0.27], [0.61, 0.24, 0.15]];
-    const pattern = patterns[(selectedDay ?? 0) % patterns.length];
-    const names = ["Продукты", "Кафе", "Транспорт"];
-    const colors = ["#2f80ed", "#f59e0b", "#8b5cf6"];
-    let allocated = 0;
-
-    return pattern.map((weight, index) => {
-      const amount = index === pattern.length - 1
-        ? selectedDayAmount - allocated
-        : Math.round(selectedDayAmount * weight);
-      allocated += amount;
-      return { name: names[index], amount, color: colors[index] };
-    });
-  })();
   const displayCategories = mode === "today"
-    ? [
-        { name: "Продукты", amount: 1460, color: "#2f80ed" },
-        { name: "Кафе", amount: 890, color: "#f59e0b" },
-        { name: "Транспорт", amount: 490, color: "#8b5cf6" }
-      ]
-    : selectedDayCategories ?? period.categories;
-  const categoryTotal = mode === "today" ? todayAmount : selectedDayAmount ?? period.spent;
+    ? todayData?.categories ?? []
+    : selectedDayData?.categories ?? statistics?.summary.categories ?? [];
+  const categoryTotal = mode === "today"
+    ? Number(todayData?.total ?? 0)
+    : selectedDayData
+      ? Number(selectedDayData.total)
+      : Number(statistics?.summary.total ?? 0);
+  const currencySymbol = statistics ? getCurrencySymbol(statistics.currency) : "";
+  const categoryColors = ["#2f80ed", "#f59e0b", "#8b5cf6", "#10b981", "#ef4444", "#94a3b8"];
+
+  const showToday = () => {
+    setMode("today");
+    setYear(now.getFullYear());
+    setMonth(now.getMonth() + 1);
+  };
+
+  const showMonth = () => {
+    setMode("month");
+    if (periods.length) {
+      setYear(periods[0].year);
+      setMonth(periods[0].month);
+    }
+  };
 
   return (
     <section className="statistics-view">
@@ -1843,15 +1849,24 @@ const StatisticsView = () => {
         <div className="period-selectors">
           <label>
             <span className="sr-only">Год</span>
-            <select value={year} onChange={(event) => setYear(Number(event.target.value))}>
-              {Object.keys(statisticData).map((value) => <option key={value}>{value}</option>)}
+            <select
+              value={year}
+              disabled={mode === "today" || periodsStatus !== "ready"}
+              onChange={(event) => {
+                const nextYear = Number(event.target.value);
+                setYear(nextYear);
+                const nextMonth = periods.find((period) => period.year === nextYear)?.month;
+                if (nextMonth) setMonth(nextMonth);
+              }}
+            >
+              {availableYears.map((value) => <option key={value}>{value}</option>)}
             </select>
           </label>
           <label>
             <span className="sr-only">Месяц</span>
-            <select value={month} onChange={(event) => setMonth(Number(event.target.value))}>
+            <select value={month} disabled={mode === "today" || periodsStatus !== "ready"} onChange={(event) => setMonth(Number(event.target.value))}>
               {availableMonths.map((value) => (
-                <option value={value} key={value}>{monthNames[value]}</option>
+                <option value={value} key={value}>{monthNames[value - 1]}</option>
               ))}
             </select>
           </label>
@@ -1859,48 +1874,77 @@ const StatisticsView = () => {
       </div>
 
       <div className="stat-tabs" role="tablist" aria-label="Период статистики">
-        <button type="button" role="tab" aria-selected={mode === "month"} className={mode === "month" ? "active" : ""} onClick={() => setMode("month")}>За месяц</button>
-        <button type="button" role="tab" aria-selected={mode === "today"} className={mode === "today" ? "active" : ""} onClick={() => setMode("today")}>Сегодня</button>
+        <button type="button" role="tab" aria-selected={mode === "month"} className={mode === "month" ? "active" : ""} onClick={showMonth}>За месяц</button>
+        <button type="button" role="tab" aria-selected={mode === "today"} className={mode === "today" ? "active" : ""} onClick={showToday}>Сегодня</button>
       </div>
 
-      <section className="spending-hero">
-        <div>
-          <p>{mode === "today" ? "Потрачено сегодня" : `Потрачено за ${monthNames[month].toLowerCase()}`}</p>
-          <strong>{formatBudget(displaySpent)} ₽</strong>
-        </div>
-      </section>
+      {periodsStatus === "error" && (
+        <section className="stat-card list-state">
+          <h3>Не удалось загрузить периоды</h3>
+          <p>{error}</p>
+          <button type="button" className="primary-button" onClick={() => void loadPeriods()}>Повторить</button>
+        </section>
+      )}
+
+      {periodsStatus === "ready" && periods.length === 0 && mode === "month" && (
+        <section className="stat-card list-state"><h3>Статистики пока нет</h3><p>Добавьте первую трату, чтобы увидеть аналитику.</p></section>
+      )}
+
+      {(periodsStatus === "loading" || statisticsStatus === "loading") && (
+        <section className="stat-card list-state" aria-live="polite"><div className="loader small-loader" /><p>Загружаем статистику.</p></section>
+      )}
+
+      {statisticsStatus === "error" && periodsStatus !== "error" && (
+        <section className="stat-card list-state">
+          <h3>Не удалось загрузить статистику</h3>
+          <p>{error}</p>
+          <button type="button" className="primary-button" onClick={() => void loadStatistics()}>Повторить</button>
+        </section>
+      )}
+
+      {periodsStatus === "ready" && statisticsStatus === "ready" && statistics && (periods.length > 0 || mode === "today") && (
+        <>
+          <section className="spending-hero">
+            <div>
+              <p>{mode === "today" ? "Потрачено сегодня" : `Потрачено за ${monthNames[month - 1].toLowerCase()}`}</p>
+              <strong>{formatBudget(displaySpent)} {currencySymbol}</strong>
+            </div>
+          </section>
 
       {mode === "month" && (
         <section className="stat-card chart-card">
           <div className="stat-card-heading">
             <div><h3>Расходы по дням</h3><p>Нажмите на столбец, чтобы посмотреть детали дня</p></div>
-            <span>Среднее {formatBudget(period.spent / period.days.length)} ₽</span>
+            <span>Среднее {formatBudget(statistics.average_per_day)} {currencySymbol}</span>
           </div>
-          {selectedDay !== null && selectedDayAmount !== null && (
+          {selectedDayData && (
             <div className="selected-day-summary" aria-live="polite">
               <div>
                 <span>Выбранный день</span>
                 <strong>{selectedDateLabel}</strong>
               </div>
-              <b>{formatBudget(selectedDayAmount)} ₽</b>
+              <b>{formatBudget(selectedDayData.total)} {currencySymbol}</b>
               <button type="button" onClick={() => setSelectedDay(null)}>Сбросить</button>
             </div>
           )}
           <div className="daily-chart" aria-label="График расходов по дням">
-            {period.days.map((amount, index) => (
-              <button
-                type="button"
-                className={`chart-column${selectedDay === index ? " selected" : ""}${selectedDay !== null && selectedDay !== index ? " muted" : ""}`}
-                key={index}
-                title={`${index + 1} ${monthNames[month].toLowerCase()}: ${formatBudget(amount)} ₽`}
-                aria-label={`${index + 1} ${monthNames[month].toLowerCase()}, ${formatBudget(amount)} ₽`}
-                aria-pressed={selectedDay === index}
-                onClick={() => setSelectedDay((current) => current === index ? null : index)}
-              >
-                <span style={{ height: `${Math.max(8, (amount / maxDay) * 100)}%` }} />
-                {(index === 0 || (index + 1) % 5 === 0 || index === period.days.length - 1) && <small>{index + 1}</small>}
-              </button>
-            ))}
+            {days.map((day, index) => {
+              const amount = Number(day.total);
+              return (
+                <button
+                  type="button"
+                  className={`chart-column${selectedDay === index ? " selected" : ""}${selectedDay !== null && selectedDay !== index ? " muted" : ""}`}
+                  key={day.date}
+                  title={`${index + 1} ${monthNames[month - 1].toLowerCase()}: ${formatBudget(amount)} ${currencySymbol}`}
+                  aria-label={`${index + 1} ${monthNames[month - 1].toLowerCase()}, ${formatBudget(amount)} ${currencySymbol}`}
+                  aria-pressed={selectedDay === index}
+                  onClick={() => setSelectedDay((current) => current === index ? null : index)}
+                >
+                  <span style={{ height: `${Math.max(8, (amount / maxDay) * 100)}%` }} />
+                  {(index === 0 || (index + 1) % 5 === 0 || index === days.length - 1) && <small>{index + 1}</small>}
+                </button>
+              );
+            })}
           </div>
         </section>
       )}
@@ -1914,23 +1958,30 @@ const StatisticsView = () => {
             </div>
           </div>
           <div className="category-stat-list">
-            {displayCategories.map((category) => {
-              const share = Math.round((category.amount / categoryTotal) * 100);
+            {displayCategories.length === 0 && (
+              <div className="category-empty-state">За этот период трат по категориям нет.</div>
+            )}
+            {displayCategories.map((category, index) => {
+              const amount = Number(category.amount);
+              const share = categoryTotal > 0 ? Math.round((amount / categoryTotal) * 100) : 0;
+              const color = categoryColors[index % categoryColors.length];
               return (
                 <div className="category-stat" key={category.name}>
                   <div className="category-stat-copy">
-                    <span className="category-marker" style={{ background: category.color }} />
+                    <span className="category-marker" style={{ background: color }} />
                     <strong>{category.name}</strong>
                     <span>{share}%</span>
-                    <b>{formatBudget(category.amount)} ₽</b>
+                    <b>{formatBudget(amount)} {currencySymbol}</b>
                   </div>
-                  <div className="category-bar"><span style={{ width: `${share}%`, background: category.color }} /></div>
+                  <div className="category-bar"><span style={{ width: `${share}%`, background: color }} /></div>
                 </div>
               );
             })}
           </div>
         </section>
       </div>
+        </>
+      )}
     </section>
   );
 };

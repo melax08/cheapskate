@@ -1186,6 +1186,15 @@ p {
   gap: 16px;
 }
 
+.category-empty-state {
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--muted-text);
+  font-size: 13px;
+  text-align: center;
+}
+
 .category-stat-copy {
   display: grid;
   grid-template-columns: auto 1fr auto auto;

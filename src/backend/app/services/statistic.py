@@ -2,6 +2,7 @@ import calendar
 import datetime as dt
 from collections import defaultdict
 from decimal import Decimal
+from operator import itemgetter
 
 from backend.app.api.validators import validate_month_year
 from backend.app.models.currency import Currency
@@ -96,7 +97,9 @@ class StatisticService(BaseService):
         summary_total = Decimal(0)
         summary_categories = defaultdict(Decimal)
 
-        for day in self._get_month_year_days(period.year, period.month):
+        month_year_days = self._get_month_year_days(period.year, period.month)
+
+        for day in month_year_days:
             day_data = {
                 "date": dt.datetime(day=day, month=period.month, year=period.year).strftime(
                     "%Y-%m-%d"
@@ -118,6 +121,20 @@ class StatisticService(BaseService):
 
             days_result.append(day_data)
 
+        sorted_summary_categories = dict(
+            sorted(summary_categories.items(), key=itemgetter(1), reverse=True)
+        )
+
+        now = dt.datetime.now()
+        current_year = now.year
+        current_month = now.month
+        days_passed_in_month = Decimal(
+            now.day
+            if current_year == period.year and current_month == period.month
+            else len(month_year_days)
+        )
+        average_per_day = summary_total / days_passed_in_month
+
         return MonthYearStatistic(
             period=period,
             currency=default_currency,
@@ -127,10 +144,11 @@ class StatisticService(BaseService):
                     "total": summary_total,
                     "categories": [
                         CategoryExpense(name=category_name, amount=total)
-                        for category_name, total in summary_categories.items()
+                        for category_name, total in sorted_summary_categories.items()
                     ],
                 }
             ),
+            average_per_day=average_per_day,
         )
 
     def _get_month_year_days(self, year: int, month: int) -> list[int]:

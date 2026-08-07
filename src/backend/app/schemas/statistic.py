@@ -77,4 +77,5 @@ class MonthYearStatistic(BaseModel):
     period: StatisticPeriod
     days: list[DayStatistic]
     summary: ExpensesStatisticByCategories
+    average_per_day: Decimal
     currency: CurrencyDB

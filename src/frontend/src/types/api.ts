@@ -61,6 +61,33 @@ export type MoneySpent = {
   default_currency: Currency;
 };
 
+export type StatisticsPeriod = {
+  year: number;
+  month: number;
+};
+
+export type CategoryStatistics = {
+  name: string;
+  amount: string | number;
+};
+
+export type DayStatistics = {
+  date: string;
+  total: string | number;
+  categories: CategoryStatistics[];
+};
+
+export type MonthYearStatistics = {
+  period: StatisticsPeriod;
+  days: DayStatistics[];
+  average_per_day: string | number;
+  summary: {
+    total: string | number;
+    categories: CategoryStatistics[];
+  };
+  currency: Currency;
+};
+
 export type Settings = {
   id: number;
   budget: string | number;
