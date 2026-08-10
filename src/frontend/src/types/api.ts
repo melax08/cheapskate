@@ -75,6 +75,7 @@ export type DayStatistics = {
   date: string;
   total: string | number;
   categories: CategoryStatistics[];
+  currency: Currency;
 };
 
 export type MonthYearStatistics = {

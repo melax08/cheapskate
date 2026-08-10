@@ -13,6 +13,7 @@ import type {
   CategoryWithExpenses,
   Currency,
   CurrencyPayload,
+  DayStatistics,
   Expense,
   ExpenseDetail,
   ExpensePayload,
@@ -1736,6 +1737,8 @@ const StatisticsView = () => {
   const [periodsStatus, setPeriodsStatus] = useState<"loading" | "ready" | "error">("loading");
   const [statistics, setStatistics] = useState<MonthYearStatistics | null>(null);
   const [statisticsStatus, setStatisticsStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [todayStatistics, setTodayStatistics] = useState<DayStatistics | null>(null);
+  const [todayStatus, setTodayStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -1776,15 +1779,34 @@ const StatisticsView = () => {
     }
   }, [year, month]);
 
+  const loadTodayStatistics = useCallback(async () => {
+    setTodayStatus("loading");
+    setError(null);
+
+    try {
+      setTodayStatistics(await statisticsApi.getToday());
+      setTodayStatus("ready");
+    } catch (requestError) {
+      setTodayStatus("error");
+      setError(getErrorMessage(requestError));
+    }
+  }, []);
+
   useEffect(() => {
     void loadPeriods();
   }, [loadPeriods]);
 
   useEffect(() => {
-    if (periodsStatus === "ready" && (periods.length > 0 || mode === "today")) {
+    if (mode === "month" && periodsStatus === "ready" && periods.length > 0) {
       void loadStatistics();
     }
   }, [loadStatistics, mode, periods.length, periodsStatus]);
+
+  useEffect(() => {
+    if (mode === "today") {
+      void loadTodayStatistics();
+    }
+  }, [loadTodayStatistics, mode]);
 
   useEffect(() => {
     setSelectedDay(null);
@@ -1804,25 +1826,24 @@ const StatisticsView = () => {
   const days = statistics?.days ?? [];
   const dayAmounts = days.map((day) => Number(day.total));
   const maxDay = Math.max(1, ...dayAmounts);
-  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const todayData = days.find((day) => day.date === todayKey) ?? null;
   const selectedDayData = selectedDay === null ? null : days[selectedDay] ?? null;
-  const activeDay = mode === "today" ? todayData : selectedDayData;
+  const activeDay = mode === "today" ? todayStatistics : selectedDayData;
   const displaySpent = mode === "today"
-    ? Number(todayData?.total ?? 0)
+    ? Number(todayStatistics?.total ?? 0)
     : Number(statistics?.summary.total ?? 0);
   const selectedDateLabel = activeDay
     ? new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(new Date(`${activeDay.date}T00:00:00`))
     : null;
   const displayCategories = mode === "today"
-    ? todayData?.categories ?? []
+    ? todayStatistics?.categories ?? []
     : selectedDayData?.categories ?? statistics?.summary.categories ?? [];
   const categoryTotal = mode === "today"
-    ? Number(todayData?.total ?? 0)
+    ? Number(todayStatistics?.total ?? 0)
     : selectedDayData
       ? Number(selectedDayData.total)
       : Number(statistics?.summary.total ?? 0);
-  const currencySymbol = statistics ? getCurrencySymbol(statistics.currency) : "";
+  const currency = mode === "today" ? todayStatistics?.currency : statistics?.currency;
+  const currencySymbol = currency ? getCurrencySymbol(currency) : "";
   const categoryColors = ["#2f80ed", "#f59e0b", "#8b5cf6", "#10b981", "#ef4444", "#94a3b8"];
 
   const showToday = () => {
@@ -1878,7 +1899,7 @@ const StatisticsView = () => {
         <button type="button" role="tab" aria-selected={mode === "today"} className={mode === "today" ? "active" : ""} onClick={showToday}>Сегодня</button>
       </div>
 
-      {periodsStatus === "error" && (
+      {mode === "month" && periodsStatus === "error" && (
         <section className="stat-card list-state">
           <h3>Не удалось загрузить периоды</h3>
           <p>{error}</p>
@@ -1890,19 +1911,22 @@ const StatisticsView = () => {
         <section className="stat-card list-state"><h3>Статистики пока нет</h3><p>Добавьте первую трату, чтобы увидеть аналитику.</p></section>
       )}
 
-      {(periodsStatus === "loading" || statisticsStatus === "loading") && (
+      {((mode === "month" && (periodsStatus === "loading" || statisticsStatus === "loading")) ||
+        (mode === "today" && todayStatus === "loading")) && (
         <section className="stat-card list-state" aria-live="polite"><div className="loader small-loader" /><p>Загружаем статистику.</p></section>
       )}
 
-      {statisticsStatus === "error" && periodsStatus !== "error" && (
+      {((mode === "month" && statisticsStatus === "error" && periodsStatus !== "error") ||
+        (mode === "today" && todayStatus === "error")) && (
         <section className="stat-card list-state">
           <h3>Не удалось загрузить статистику</h3>
           <p>{error}</p>
-          <button type="button" className="primary-button" onClick={() => void loadStatistics()}>Повторить</button>
+          <button type="button" className="primary-button" onClick={() => void (mode === "today" ? loadTodayStatistics() : loadStatistics())}>Повторить</button>
         </section>
       )}
 
-      {periodsStatus === "ready" && statisticsStatus === "ready" && statistics && (periods.length > 0 || mode === "today") && (
+      {((mode === "month" && periodsStatus === "ready" && statisticsStatus === "ready" && statistics && periods.length > 0) ||
+        (mode === "today" && todayStatus === "ready" && todayStatistics)) && (
         <>
           <section className="spending-hero">
             <div>
@@ -1915,7 +1939,7 @@ const StatisticsView = () => {
         <section className="stat-card chart-card">
           <div className="stat-card-heading">
             <div><h3>Расходы по дням</h3><p>Нажмите на столбец, чтобы посмотреть детали дня</p></div>
-            <span>Среднее {formatBudget(statistics.average_per_day)} {currencySymbol}</span>
+            <span>Среднее {formatBudget(statistics!.average_per_day)} {currencySymbol}</span>
           </div>
           {selectedDayData && (
             <div className="selected-day-summary" aria-live="polite">

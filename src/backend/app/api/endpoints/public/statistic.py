@@ -4,7 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.app.core.db import get_async_session
 from backend.app.dependencies.authorization import get_current_user
 from backend.app.repositories.setting import setting_repository
-from backend.app.schemas.statistic import MoneySpent, MonthYearStatistic, StatisticPeriod
+from backend.app.schemas.statistic import (
+    DayStatisticWithCurrency,
+    MoneySpent,
+    MonthYearStatistic,
+    StatisticPeriod,
+)
 from backend.app.services.statistic import StatisticService
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -31,3 +36,10 @@ async def statistic_for_period(
     period: StatisticPeriod, statistic_service: StatisticService = Depends(StatisticService)
 ) -> MonthYearStatistic:
     return await statistic_service.get_month_year_statistic(period)
+
+
+@router.get("/today", response_model=DayStatisticWithCurrency)
+async def today_statistic(
+    statistic_service: StatisticService = Depends(StatisticService),
+) -> DayStatisticWithCurrency:
+    return await statistic_service.get_today_statistic()

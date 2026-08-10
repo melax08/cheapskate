@@ -73,6 +73,10 @@ class DayStatistic(ExpensesStatisticByCategories):
     date: str
 
 
+class DayStatisticWithCurrency(DayStatistic):
+    currency: CurrencyDB
+
+
 class MonthYearStatistic(BaseModel):
     period: StatisticPeriod
     days: list[DayStatistic]

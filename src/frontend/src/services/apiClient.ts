@@ -9,6 +9,7 @@ import type {
   CurrencyPayload,
   CurrencyUpdatePayload,
   CursorPage,
+  DayStatistics,
   Expense,
   ExpenseDetail,
   ExpensePayload,
@@ -260,6 +261,10 @@ export const statisticsApi = {
 
   getPeriods(): Promise<StatisticsPeriod[]> {
     return apiRequest<StatisticsPeriod[]>(`${STATISTICS_URL}/periods`);
+  },
+
+  getToday(): Promise<DayStatistics> {
+    return apiRequest<DayStatistics>(`${STATISTICS_URL}/today`);
   },
 
   getForPeriod(period: StatisticsPeriod): Promise<MonthYearStatistics> {

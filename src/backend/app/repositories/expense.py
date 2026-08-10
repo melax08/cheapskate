@@ -130,28 +130,5 @@ class ExpenseRepository(RepositoryBase):
         )
         return result.all()
 
-    async def get_categories_expenses_by_days_in_month(
-        self, session: AsyncSession, year: int, month: int, currency: Currency
-    ):
-        result = await session.execute(
-            select(
-                Category,
-                func.sum(Expense.amount).label("category_expense_amount"),
-                func.cast(extract("day", Expense.date), Integer).label("expenses_day"),
-            )
-            .join(Expense, Expense.category_id == Category.id)
-            .join(Currency, Expense.currency_id == Currency.id)
-            .where(
-                and_(
-                    func.cast(extract("month", Expense.date), Integer) == month,
-                    func.cast(extract("year", Expense.date), Integer) == year,
-                    Expense.currency_id == currency.id,
-                )
-            )
-            .group_by(Category, "expenses_day")
-            .order_by(desc("category_expense_amount"))
-        )
-        return result.all()
-
 
 expense_repository = ExpenseRepository(Expense)

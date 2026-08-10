@@ -6,9 +6,15 @@ from operator import itemgetter
 
 from backend.app.api.validators import validate_month_year
 from backend.app.models.currency import Currency
-from backend.app.repositories import currency_repository, expense_repository, setting_repository
+from backend.app.repositories import (
+    category_repository,
+    currency_repository,
+    expense_repository,
+    setting_repository,
+)
 from backend.app.schemas.statistic import (
     CategoryExpense,
+    DayStatisticWithCurrency,
     ExpensesStatisticByCategories,
     MoneyLeft,
     MoneySpent,
@@ -84,7 +90,7 @@ class StatisticService(BaseService):
     async def get_month_year_statistic(self, period: StatisticPeriod) -> MonthYearStatistic:
         default_currency = await setting_repository.get_default_currency(self._session)
         expenses_by_categories_and_days = (
-            await expense_repository.get_categories_expenses_by_days_in_month(
+            await category_repository.get_categories_expenses_by_days_in_month(
                 self._session, period.year, period.month, default_currency
             )
         )
@@ -149,6 +155,24 @@ class StatisticService(BaseService):
                 }
             ),
             average_per_day=average_per_day,
+        )
+
+    async def get_today_statistic(self) -> DayStatisticWithCurrency:
+        default_currency = await setting_repository.get_default_currency(self._session)
+        today_expenses_by_categories = await category_repository.get_today_categories_expenses(
+            session=self._session, currency=default_currency
+        )
+        categories = []
+        total = Decimal(0)
+        for category_name, amount in today_expenses_by_categories:
+            total += amount
+            categories.append(CategoryExpense(name=category_name, amount=amount))
+
+        return DayStatisticWithCurrency(
+            date=dt.datetime.now().strftime("%Y-%m-%d"),
+            total=total,
+            categories=categories,
+            currency=default_currency,
         )
 
     def _get_month_year_days(self, year: int, month: int) -> list[int]:
