@@ -440,6 +440,50 @@ p {
   gap: 8px;
 }
 
+.expense-heading-actions {
+  flex-wrap: nowrap;
+}
+
+.icon-button {
+  position: relative;
+  display: inline-flex;
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.icon-button svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.filter-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  place-items: center;
+  border: 2px solid var(--surface);
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 9px;
+  line-height: 1;
+}
+
 .category-count {
   display: inline-flex;
   align-items: center;
@@ -1262,6 +1306,10 @@ p {
 
   .heading-actions > * {
     flex: 1 1 auto;
+  }
+
+  .expense-heading-actions .icon-button {
+    flex: 0 0 36px;
   }
 
   .currency-item {

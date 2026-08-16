@@ -976,16 +976,7 @@ const ExpensesView = ({ onExpensesChanged }: { onExpensesChanged: () => void }) 
           <p className="eyebrow">Журнал</p>
           <h2>Траты</h2>
         </div>
-        <div className="heading-actions">
-          <button
-            type="button"
-            className={`ghost-button${activeFiltersCount ? " active-filter-button" : ""}`}
-            aria-expanded={isFiltersOpen}
-            aria-controls="expense-filters"
-            onClick={() => setIsFiltersOpen((isOpen) => !isOpen)}
-          >
-            Фильтры{activeFiltersCount ? ` · ${activeFiltersCount}` : ""}
-          </button>
+        <div className="heading-actions expense-heading-actions">
           <button
             type="button"
             className="primary-button compact-primary-button"
@@ -993,8 +984,33 @@ const ExpensesView = ({ onExpensesChanged }: { onExpensesChanged: () => void }) 
           >
             {isCreateFormOpen ? "Скрыть" : "Добавить"}
           </button>
-          <button type="button" className="ghost-button" onClick={() => void loadExpenses()}>
-            Обновить
+          <button
+            type="button"
+            className={`ghost-button icon-button${activeFiltersCount ? " active-filter-button" : ""}`}
+            aria-label="Фильтры"
+            title="Фильтры"
+            aria-expanded={isFiltersOpen}
+            aria-controls="expense-filters"
+            onClick={() => setIsFiltersOpen((isOpen) => !isOpen)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 5h16l-6.5 7.25v5.25l-3 1.5v-6.75L4 5Z" />
+            </svg>
+            {activeFiltersCount > 0 && (
+              <span className="filter-count" aria-hidden="true">{activeFiltersCount}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            className="ghost-button icon-button"
+            aria-label="Обновить"
+            title="Обновить"
+            onClick={() => void loadExpenses()}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19.5 8.5A8 8 0 1 0 20 14" />
+              <path d="M19.5 4.5v4h-4" />
+            </svg>
           </button>
         </div>
       </div>
@@ -1200,7 +1216,7 @@ const ExpensesView = ({ onExpensesChanged }: { onExpensesChanged: () => void }) 
                       <div className="expense-main">
                         <div>
                           <h3>{category?.name ?? `Категория #${expense.category_id}`}</h3>
-                          <p>{expense.description || "Без описания"}</p>
+                          {expense.description && <p>{expense.description}</p>}
                         </div>
                         <strong>
                           {formatMoney(expense.amount)}
