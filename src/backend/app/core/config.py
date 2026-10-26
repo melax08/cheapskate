@@ -3,11 +3,10 @@ import json
 from pathlib import Path
 
 from fastapi import status
-from pydantic import SecretStr, computed_field
+from pydantic import SecretStr, computed_field, field_validator
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from backend.app.utils import raise_api_error
 from configs.enums import APIErrorCode
 
 
@@ -31,6 +30,8 @@ class Settings(BaseSettings):
     # Telegram bot
     bot_telegram_token: SecretStr
     telegram_webapp_data_lifetime: dt.timedelta = dt.timedelta(minutes=5)
+    allowed_telegram_ids: str | None = None
+    echo_messages: bool = True
 
     # Google API credentials
     report_spreadsheet_id: str | None = None
@@ -57,6 +58,8 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def google_service_account_info(self) -> dict[str, str]:
+        from backend.app.utils import raise_api_error
+
         if not self.google_service_account_creds:
             raise_api_error(
                 error_code=APIErrorCode.NO_GOOGLE_SERVICE_CREDS,
@@ -71,6 +74,14 @@ class Settings(BaseSettings):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 message="Указаны некорректные данные доступа к сервисному аккаунту google",
             )
+
+    @field_validator("allowed_telegram_ids")
+    @classmethod
+    def convert_string_to_set(cls, data: str) -> set[int] | None:
+        """Convert dot variable string like: 123 321 to set of integers."""
+        if data is not None:
+            data = set(map(int, data.split()))
+        return data
 
 
 settings = Settings()

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import status
@@ -16,8 +17,12 @@ from tests.test_backend.factories.expense import ExpenseFactory
 class TestExpensePublicEndpoints:
     BASE_URL = "/api/v1/expenses"
 
+    @patch(
+        "backend.app.api.endpoints.public.expense.send_message_to_authorized_users_about_user_action"
+    )
     async def test_expenses_create(
         self,
+        send_message_to_authorized_users_about_user_action_mock: AsyncMock,
         db_session: AsyncSession,
         authorized_client: AsyncClient,
         anonymous_client: AsyncClient,
@@ -73,6 +78,8 @@ class TestExpensePublicEndpoints:
             "money_left": str((setting.budget - Decimal(data["amount"])).quantize(Decimal(".001"))),
         }
         assert expense.user is user
+        send_message_to_authorized_users_about_user_action_mock.assert_called_once()
+        send_message_to_authorized_users_about_user_action_mock.reset_mock()
 
         # Create expense without specify currency (may use default currency)
         actual_money_left = setting.budget - Decimal(data["amount"])
@@ -83,6 +90,8 @@ class TestExpensePublicEndpoints:
         }
         response = await authorized_client.post(self.BASE_URL, json=data)
         assert response.status_code == status.HTTP_201_CREATED
+        send_message_to_authorized_users_about_user_action_mock.assert_called_once()
+        send_message_to_authorized_users_about_user_action_mock.reset_mock()
         expenses_count = await db_session.execute(select(func.count()).select_from(Expense))
         assert expenses_count.scalar() == expenses_count_before + 2
         expense = await db_session.execute(
@@ -131,6 +140,8 @@ class TestExpensePublicEndpoints:
         }
         response = await authorized_client.post(self.BASE_URL, json=data)
         assert response.status_code == status.HTTP_201_CREATED
+        send_message_to_authorized_users_about_user_action_mock.assert_called_once()
+        send_message_to_authorized_users_about_user_action_mock.reset_mock()
 
         expenses_count = await db_session.execute(select(func.count()).select_from(Expense))
         assert expenses_count.scalar() == expenses_count_before + 3

@@ -14,6 +14,7 @@ from backend.app.schemas.expense import (
     ExpenseUpdate,
 )
 from backend.app.services.expense import ExpenseService
+from backend.app.utils import send_message_to_authorized_users_about_user_action
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
@@ -51,7 +52,16 @@ async def expenses_create(
     user: User = Depends(get_current_user),
     expense_service: ExpenseService = Depends(ExpenseService),
 ) -> ExpenseMoneyLeftDB:
-    return await expense_service.add_expense(expense_data, user)
+    expense = await expense_service.add_expense(expense_data, user)
+    message = (
+        f"✅ добавлена трата <b>{expense.amount.normalize():f} "
+        f"{expense.currency.symbol or expense.currency.letter_code}</b> в категорию "
+        f"<b>{expense.category.name}</b>"
+    )
+    if expense.description:
+        message = message + f", описание: <b>{expense.description}</b>"
+    await send_message_to_authorized_users_about_user_action(user, message)
+    return expense
 
 
 @router.delete("/{expense_id}", response_model=ExpenseMoneyLeftDB)
